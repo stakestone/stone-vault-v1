@@ -6,7 +6,9 @@ import {ERC20} from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 contract Stone is ERC20 {
     address public minter;
 
-    constructor(address _minter) ERC20("Stone", "Stone") {}
+    constructor(address _minter) ERC20("Stone", "Stone") {
+        minter = _minter;
+    }
 
     modifier onlyMinter() {
         require(msg.sender == minter, "NM");
