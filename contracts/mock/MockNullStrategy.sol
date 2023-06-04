@@ -12,9 +12,10 @@ contract MockNullStrategy is Strategy {
 
     uint256 public totalDeposit;
 
-    constructor(address payable _controller) {
-        controller = _controller;
-    }
+    constructor(
+        address payable _controller,
+        string memory _name
+    ) Strategy(_controller, _name) {}
 
     function deposit() public payable override onlyController {
         totalDeposit = totalDeposit.add(msg.value);

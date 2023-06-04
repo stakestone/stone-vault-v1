@@ -6,7 +6,14 @@ import {SafeMath} from "@openzeppelin/contracts/utils/math/SafeMath.sol";
 abstract contract Strategy {
     using SafeMath for uint256;
 
-    address payable public controller;
+    address payable public immutable controller;
+
+    string public name;
+
+    constructor(address payable _controller, string memory _name) {
+        controller = _controller;
+        name = _name;
+    }
 
     modifier onlyController() {
         require(controller == msg.sender, "not controller");

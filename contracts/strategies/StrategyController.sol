@@ -33,7 +33,7 @@ contract StrategyController {
         stoneVault = msg.sender;
         assetsVault = _assetsVault;
 
-        _setStrategies(_strategies, _ratios);
+        _initStrategies(_strategies, _ratios);
     }
 
     function onlyRebaseStrategies() external {
@@ -158,6 +158,21 @@ contract StrategyController {
         for (uint i = 0; i < strategies.length(); i++) {
             _value = _value.add(getStrategyValidValue(strategies.at(i)));
         }
+    }
+
+    function _initStrategies(
+        address[] memory _strategies,
+        uint256[] memory _ratios
+    ) internal {
+        require(_strategies.length == _ratios.length, "invalid length");
+
+        uint256 totalRatio;
+        for (uint i = 0; i < _strategies.length; i++) {
+            strategies.add(_strategies[i]);
+            ratios[_strategies[i]] = _ratios[i];
+            totalRatio = totalRatio.add(_ratios[i]);
+        }
+        require(totalRatio <= ONE_HUNDRED_PERCENT, "exceed 100%");
     }
 
     function _setStrategies(
