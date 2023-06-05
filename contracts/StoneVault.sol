@@ -110,7 +110,7 @@ contract StoneVault is ReentrancyGuard, Ownable {
         stone = Minter(_minter).stone();
 
         roundPricePerShare[0] = MULTIPLIER;
-        latestRoundID = 1;
+        latestRoundID = 0;
     }
 
     function deposit()
@@ -135,10 +135,16 @@ contract StoneVault is ReentrancyGuard, Ownable {
     ) internal returns (uint256 mintAmount) {
         require(_amount > 0, "too small");
 
-        uint256 sharePrice = roundPricePerShare[latestRoundID - 1] >
-            currentSharePrice()
-            ? roundPricePerShare[latestRoundID - 1]
-            : currentSharePrice();
+        uint256 sharePrice;
+        if (latestRoundID == 0) {
+            sharePrice = MULTIPLIER;
+        } else {
+            sharePrice = roundPricePerShare[latestRoundID - 1] >
+                currentSharePrice()
+                ? roundPricePerShare[latestRoundID - 1]
+                : currentSharePrice();
+        }
+
         mintAmount = _amount.mul(sharePrice).div(MULTIPLIER);
 
         AssetsVault(assetsVault).deposit{value: address(this).balance}();
@@ -149,6 +155,7 @@ contract StoneVault is ReentrancyGuard, Ownable {
 
     function requestWithdraw(uint256 _shares) external nonReentrant {
         require(_shares > 0, "too small");
+        require(latestRoundID > 0, "should withdraw instantly");
         Stone stoneToken = Stone(stone);
         Minter stoneMinter = Minter(minter);
 
@@ -263,10 +270,16 @@ contract StoneVault is ReentrancyGuard, Ownable {
         }
 
         if (_shares > 0) {
-            uint256 sharePrice = roundPricePerShare[latestRoundID] <
-                currentSharePrice()
-                ? roundPricePerShare[latestRoundID]
-                : currentSharePrice();
+            uint256 sharePrice;
+            if (latestRoundID == 0) {
+                sharePrice = MULTIPLIER;
+            } else {
+                sharePrice = roundPricePerShare[latestRoundID] <
+                    currentSharePrice()
+                    ? roundPricePerShare[latestRoundID]
+                    : currentSharePrice();
+            }
+
             uint256 ethAmount = VaultMath.sharesToAsset(_shares, sharePrice);
             uint256 vaultBalance = aVault.getBalance();
 
