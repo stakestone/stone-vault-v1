@@ -20,33 +20,37 @@ module.exports = async function (callback) {
         const stone = await Stone.new(minterAddr);
         console.log("stone: ", stone.address);
 
-        const stoneVaultAddr = await getFutureAddr(2);
+        const stoneVaultAddr = await getFutureAddr(1);
         console.log("stoneVaultAddr: ", stoneVaultAddr);
 
         const minter = await Minter.new(stone.address, [stoneVaultAddr]);
         console.log("minter: ", minter.address);
 
-        const proposal = await Proposal.new();
-        console.log("proposal: ", proposal.address);
-
-        const assetsVaultAddr = await getFutureAddr(1);
+        const assetsVaultAddr = await getFutureAddr(2);
         console.log("assetsVaultAddr: ", assetsVaultAddr);
 
-        const mockNullStrategyAAddr = await getFutureAddr(2);
-        const mockNullStrategyBAddr = await getFutureAddr(3);
+        const mockNullStrategyAAddr = await getFutureAddr(3);
+        const mockNullStrategyBAddr = await getFutureAddr(4);
         console.log("mockNullStrategyAAddr: ", mockNullStrategyAAddr);
         console.log("mockNullStrategyBAddr: ", mockNullStrategyBAddr);
 
+        const proposalAddr = await getFutureAddr(1);
+        console.log("proposalAddr: ", proposalAddr);
+
         const stoneVault = await StoneVault.new(
             minter.address,
-            proposal.address,
+            proposalAddr,
             assetsVaultAddr,
             [mockNullStrategyAAddr, mockNullStrategyBAddr],
             [5e5, 5e5]
         );
         console.log("stoneVault: ", stoneVault.address);
 
+        const proposal = await Proposal.new(stoneVault.address);
+        console.log("proposal: ", proposal.address);
+
         const strategyControllerAddr = await stoneVault.strategyController();
+        console.log("strategyController: ", strategyControllerAddr);
 
         const assetsVault = await AssetsVault.new(stoneVault.address, strategyControllerAddr);
         console.log("assetsVault: ", assetsVault.address);
@@ -56,6 +60,33 @@ module.exports = async function (callback) {
 
         const mockNullStrategyB = await MockNullStrategy.new(strategyControllerAddr, "Mock Strategy B");
         console.log("mockNullStrategyB: ", mockNullStrategyB.address);
+
+        await stoneVault.deposit({
+            value: BigNumber(1e16).toString(10),
+        });
+        await stone.approve(stoneVault.address, MAX_UINT256);
+        await stoneVault.requestWithdraw(BigNumber(2e15).toString(10));
+        await stoneVault.cancelWithdraw(BigNumber(1e15).toString(10))
+
+        let currentSharePrice = await stoneVault.currentSharePrice();
+        console.log("currentSharePrice: ", BigNumber(currentSharePrice).div(1e18).toString(10));
+
+
+        await stoneVault.instantWithdraw(0, BigNumber(5e15).toString(10));
+        currentSharePrice = await stoneVault.currentSharePrice();
+        console.log("currentSharePrice: ", BigNumber(currentSharePrice).div(1e18).toString(10));
+
+        await stoneVault.rollToNextRound();
+        currentSharePrice = await stoneVault.currentSharePrice();
+        console.log("currentSharePrice: ", BigNumber(currentSharePrice).div(1e18).toString(10));
+
+        await stoneVault.rollToNextRound();
+        currentSharePrice = await stoneVault.currentSharePrice();
+        console.log("currentSharePrice: ", BigNumber(currentSharePrice).div(1e18).toString(10));
+
+        await stoneVault.rollToNextRound();
+        currentSharePrice = await stoneVault.currentSharePrice();
+        console.log("currentSharePrice: ", BigNumber(currentSharePrice).div(1e18).toString(10));
 
         callback();
     } catch (e) {

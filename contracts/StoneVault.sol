@@ -228,8 +228,10 @@ contract StoneVault is ReentrancyGuard, Ownable {
         AssetsVault aVault = AssetsVault(assetsVault);
         Minter stoneMinter = Minter(minter);
 
+        (uint256 idleAmount, ) = getVaultAvailableAmount();
+
         if (_amount > 0) {
-            require(_amount >= aVault.getBalance(), "still need wait");
+            require(_amount >= idleAmount, "still need wait");
 
             UserReceipt storage receipt = userReceipts[msg.sender];
 
@@ -256,7 +258,7 @@ contract StoneVault is ReentrancyGuard, Ownable {
             }
 
             require(
-                receipt.withdrawableAmount > _amount,
+                receipt.withdrawableAmount >= _amount,
                 "exceed withdrawable"
             );
 
@@ -388,6 +390,21 @@ contract StoneVault is ReentrancyGuard, Ownable {
         uint256 activeShare = totalStone.sub(withdrawingSharesInPast);
 
         return etherAmount.mul(MULTIPLIER).div(activeShare);
+    }
+
+    function getVaultAvailableAmount()
+        public
+        view
+        returns (uint256 idleAmount, uint256 investedAmount)
+    {
+        AssetsVault vault = AssetsVault(assetsVault);
+
+        if (vault.getBalance() > withdrawableAmountInPast) {
+            idleAmount = vault.getBalance().sub(withdrawableAmountInPast);
+        }
+
+        investedAmount = StrategyController(strategyController)
+            .getAllStrategyValidValue();
     }
 
     function setWithdrawFeeRate(uint256 _withdrawFeeRate) external onlyOwner {

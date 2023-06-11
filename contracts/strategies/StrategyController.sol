@@ -101,10 +101,6 @@ contract StrategyController {
                 _withdrawFromStrategy(strategy, position.sub(newPosition));
             }
         }
-
-        if (_out > 0) {
-            AssetsVault(assetsVault).deposit{value: _out}();
-        }
     }
 
     function _depositToStrategy(address _strategy, uint256 _amount) internal {
@@ -157,6 +153,23 @@ contract StrategyController {
     function getAllStrategyValidValue() public view returns (uint256 _value) {
         for (uint i = 0; i < strategies.length(); i++) {
             _value = _value.add(getStrategyValidValue(strategies.at(i)));
+        }
+    }
+
+    function getStrategies()
+        public
+        view
+        returns (address[] memory addrs, uint256[] memory portions)
+    {
+        uint256 length = strategies.length();
+
+        addrs = new address[](length);
+        portions = new uint256[](length);
+
+        for (uint256 i = 0; i < length; i++) {
+            address addr = strategies.at(i);
+            addrs[i] = addr;
+            portions[i] = ratios[addr];
         }
     }
 
