@@ -267,6 +267,7 @@ contract StoneVault is ReentrancyGuard, Ownable {
             );
             withdrawableAmountInPast = withdrawableAmountInPast.sub(_amount);
             actualWithdrawn = _amount;
+            idleAmount = idleAmount.sub(_amount);
 
             emit Withdrawn(msg.sender, _amount, latestRoundID);
         }
@@ -283,17 +284,16 @@ contract StoneVault is ReentrancyGuard, Ownable {
             }
 
             uint256 ethAmount = VaultMath.sharesToAsset(_shares, sharePrice);
-            uint256 vaultBalance = aVault.getBalance();
 
             stoneMinter.burn(msg.sender, _shares);
 
-            if (ethAmount <= vaultBalance) {
+            if (ethAmount <= idleAmount) {
                 actualWithdrawn = actualWithdrawn.add(ethAmount);
 
                 emit Withdrawn(msg.sender, ethAmount, latestRoundID);
             } else {
-                actualWithdrawn = actualWithdrawn.add(vaultBalance);
-                ethAmount = ethAmount.sub(vaultBalance);
+                actualWithdrawn = actualWithdrawn.add(idleAmount);
+                ethAmount = ethAmount.sub(idleAmount);
 
                 StrategyController controller = StrategyController(
                     strategyController
