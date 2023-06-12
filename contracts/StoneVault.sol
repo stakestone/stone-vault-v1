@@ -311,13 +311,15 @@ contract StoneVault is ReentrancyGuard, Ownable {
             }
         }
 
-        uint256 withFee = actualWithdrawn.mul(withdrawFeeRate).div(
-            ONE_HUNDRED_PERCENT
-        );
-        aVault.withdraw(feeRecipient, withFee);
-        aVault.withdraw(msg.sender, actualWithdrawn.sub(withFee));
+        if (withdrawFeeRate > 0) {
+            uint256 withFee = actualWithdrawn.mul(withdrawFeeRate).div(
+                ONE_HUNDRED_PERCENT
+            );
+            aVault.withdraw(feeRecipient, withFee);
+            aVault.withdraw(msg.sender, actualWithdrawn.sub(withFee));
 
-        emit FeeCharged(msg.sender, withFee);
+            emit FeeCharged(msg.sender, withFee);
+        }
     }
 
     function rollToNextRound() external {
