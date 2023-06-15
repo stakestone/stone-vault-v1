@@ -41,6 +41,7 @@ contract StoneVault is ReentrancyGuard, Ownable {
     uint256 public rebaseTime;
 
     mapping(uint256 => uint256) public roundPricePerShare;
+    mapping(uint256 => uint256) public settlementTime;
 
     mapping(address => UserReceipt) public userReceipts;
 
@@ -349,6 +350,7 @@ contract StoneVault is ReentrancyGuard, Ownable {
         controller.rebaseStrategies(vaultIn, vaultOut);
         uint256 newSharePrice = currentSharePrice();
         roundPricePerShare[latestRoundID] = newSharePrice;
+        settlementTime[latestRoundID] = block.timestamp;
         latestRoundID = latestRoundID + 1;
 
         withdrawingSharesInPast = withdrawingSharesInPast.add(
