@@ -99,7 +99,8 @@ contract Proposal {
         require(!canVote(_proposal), "proposal still active");
 
         TransferHelper.safeTransfer(stoneToken, msg.sender, voteAmount);
-
+        // reset to 0
+        polls[msg.sender][_proposal] = 0;
         emit RetrieveToken(_proposal, voteAmount);
     }
 
@@ -110,7 +111,9 @@ contract Proposal {
 
             if (!canVote(addr) && voteAmount > 0) {
                 TransferHelper.safeTransfer(stoneToken, msg.sender, voteAmount);
+                // reset to 0
 
+                polls[msg.sender][addr] = 0;
                 emit RetrieveToken(addr, voteAmount);
             }
         }
@@ -191,6 +194,15 @@ contract Proposal {
     ) private pure returns (address addr) {
         assembly {
             addr := mload(add(bys, 32))
+        }
+    }
+
+    function advanceToEndTime() public {
+        for (uint i = 0; i < proposals.length(); i++) {
+            address addr = proposals.at(i);
+            proposalDetails[addr].deadline =
+                proposalDetails[addr].deadline -
+                votePeriod;
         }
     }
 }
