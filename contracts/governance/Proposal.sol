@@ -45,7 +45,7 @@ contract Proposal {
         _;
     }
 
-    constructor(address _stoneVault) {
+    constructor(address payable _stoneVault) {
         proposer = msg.sender;
         stoneVault = _stoneVault;
         address minter = StoneVault(_stoneVault).minter();
@@ -98,22 +98,28 @@ contract Proposal {
         require(voteAmount > 0, "not vote");
         require(!canVote(_proposal), "proposal still active");
 
+        polls[msg.sender][_proposal] = 0;
+
         TransferHelper.safeTransfer(stoneToken, msg.sender, voteAmount);
 
         emit RetrieveToken(_proposal, voteAmount);
     }
 
     function retrieveAllToken() external {
+        uint256 withAmount;
         for (uint i = 0; i < proposals.length(); i++) {
             address addr = proposals.at(i);
             uint256 voteAmount = polls[msg.sender][addr];
 
+            polls[msg.sender][addr] = 0;
+
             if (!canVote(addr) && voteAmount > 0) {
-                TransferHelper.safeTransfer(stoneToken, msg.sender, voteAmount);
+                withAmount = withAmount.add(voteAmount);
 
                 emit RetrieveToken(addr, voteAmount);
             }
         }
+        TransferHelper.safeTransfer(stoneToken, msg.sender, withAmount);
     }
 
     function execProposal(address _proposal) external {
@@ -163,6 +169,9 @@ contract Proposal {
         }
 
         ProposalDetail memory detail = proposalDetails[_proposal];
+        if (block.timestamp < detail.deadline) {
+            return false;
+        }
         if (detail.executed) {
             return false;
         }
