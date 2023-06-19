@@ -232,8 +232,6 @@ contract StoneVault is ReentrancyGuard, Ownable {
         (uint256 idleAmount, ) = getVaultAvailableAmount();
 
         if (_amount > 0) {
-            require(_amount >= idleAmount, "still need wait");
-
             UserReceipt storage receipt = userReceipts[msg.sender];
 
             if (
@@ -268,7 +266,6 @@ contract StoneVault is ReentrancyGuard, Ownable {
             );
             withdrawableAmountInPast = withdrawableAmountInPast.sub(_amount);
             actualWithdrawn = _amount;
-            idleAmount = idleAmount.sub(_amount);
 
             emit Withdrawn(msg.sender, _amount, latestRoundID);
         }
@@ -278,9 +275,9 @@ contract StoneVault is ReentrancyGuard, Ownable {
             if (latestRoundID == 0) {
                 sharePrice = MULTIPLIER;
             } else {
-                sharePrice = roundPricePerShare[latestRoundID] <
+                sharePrice = roundPricePerShare[latestRoundID - 1] <
                     currentSharePrice()
-                    ? roundPricePerShare[latestRoundID]
+                    ? roundPricePerShare[latestRoundID - 1]
                     : currentSharePrice();
             }
 
@@ -312,15 +309,18 @@ contract StoneVault is ReentrancyGuard, Ownable {
             }
         }
 
+        require(aVault.getBalance() >= actualWithdrawn, "still need wait");
+
+        uint256 withFee;
         if (withdrawFeeRate > 0) {
-            uint256 withFee = actualWithdrawn.mul(withdrawFeeRate).div(
+            withFee = actualWithdrawn.mul(withdrawFeeRate).div(
                 ONE_HUNDRED_PERCENT
             );
             aVault.withdraw(feeRecipient, withFee);
-            aVault.withdraw(msg.sender, actualWithdrawn.sub(withFee));
 
             emit FeeCharged(msg.sender, withFee);
         }
+        aVault.withdraw(msg.sender, actualWithdrawn.sub(withFee));
     }
 
     function rollToNextRound() external {
@@ -426,4 +426,6 @@ contract StoneVault is ReentrancyGuard, Ownable {
 
         feeRecipient = _feeRecipient;
     }
+
+    receive() external payable {}
 }
