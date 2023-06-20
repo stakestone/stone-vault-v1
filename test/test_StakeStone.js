@@ -1,4 +1,3 @@
-const { ZERO_ADDRESS } = require('@openzeppelin/test-helpers/src/constants');
 const BigNumber = require('bignumber.js');
 const RLP = require('rlp');
 const Abi = web3.eth.abi;
