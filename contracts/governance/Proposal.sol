@@ -23,7 +23,7 @@ contract Proposal {
     EnumerableSet.AddressSet private proposals;
     mapping(address => ProposalDetail) public proposalDetails;
 
-    mapping(address => mapping(address => uint256)) polls; // user => proposal => polls
+    mapping(address => mapping(address => uint256)) public polls; // user => proposal => polls
 
     struct ProposalDetail {
         address proposer;
