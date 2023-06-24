@@ -54,9 +54,9 @@ contract Proposal {
 
     function propose(bytes calldata _data) external onlyProposer {
         uint256 deadline = block.timestamp + votePeriod;
-        address proposalAddr = bytesToAddress(
-            abi.encodePacked(_data, deadline)
-        );
+
+        bytes32 data = keccak256(abi.encodePacked(_data, deadline));
+        address proposalAddr = address(uint160(bytes20(data)));
 
         require(!proposals.contains(proposalAddr), "proposal exists");
         proposals.add(proposalAddr);
@@ -144,14 +144,17 @@ contract Proposal {
         emit SetVotePeriod(_period);
     }
 
+    function getProposal(uint256 _i) public view returns (address addr) {
+        return proposals.at(_i);
+    }
+
     function getProposals() public view returns (address[] memory addrs) {
         uint256 length = proposals.length();
 
         addrs = new address[](length);
 
         for (uint256 i = 0; i < length; i++) {
-            address addr = proposals.at(i);
-            addrs[i] = addr;
+            addrs[i] = proposals.at(i);
         }
     }
 
@@ -193,13 +196,5 @@ contract Proposal {
             }
         }
         emit Invoked(target, data);
-    }
-
-    function bytesToAddress(
-        bytes memory bys
-    ) private pure returns (address addr) {
-        assembly {
-            addr := mload(add(bys, 32))
-        }
     }
 }
