@@ -28,10 +28,7 @@ contract MockNullStrategy is Strategy {
 
         StrategyController strategyController = StrategyController(controller);
 
-        TransferHelper.safeTransferETH(
-            strategyController.assetsVault(),
-            _amount
-        );
+        TransferHelper.safeTransferETH(address(strategyController), _amount);
 
         actualAmount = _amount;
     }
