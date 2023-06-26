@@ -10,6 +10,8 @@ const StoneVault = artifacts.require("StoneVault");
 const StrategyController = artifacts.require("StrategyController");
 const MockNullStrategy = artifacts.require("MockNullStrategy");
 const withdrawFeeRate = 0;
+const { expectRevert } = require('@openzeppelin/test-helpers');
+
 contract("test_NullStrategy", async ([deployer, feeRecipient, taker1, taker2, taker3, proposer]) => {
     // const PERCENTAGE = BigNumber(1).times(1e4);
     const PERCENTAGE = 0;
@@ -292,13 +294,14 @@ contract("test_NullStrategy", async ([deployer, feeRecipient, taker1, taker2, ta
     //     });
 
     //     await stoneVault.rollToNextRound();
-    //     await truffleAssert.fails(
-    //         stoneVault.instantWithdraw(eth_deposit_amount, eth_deposit_amount, {
-    //             from: taker1
-    //         }),
-    //         truffleAssert.ErrorType.REVERT,
-    //         "exceed withdrawable"
-    //     );
+
+    //     // await truffleAssert.fails(
+    //     //     stoneVault.instantWithdraw(eth_deposit_amount, eth_deposit_amount, {
+    //     //         from: taker1
+    //     //     }),
+    //     //     truffleAssert.ErrorType.REVERT,
+    //     //     "exceed withdrawable"
+    //     // );
     //     assetsVaultBalance1 = await web3.eth.getBalance(assetsVault.address);
     //     console.log("After assetsVault1 ether amount:", assetsVaultBalance1.toString());
     //     let withdrawFeeRate1 = BigNumber(await stoneVault.withdrawFeeRate());
@@ -411,16 +414,14 @@ contract("test_NullStrategy", async ([deployer, feeRecipient, taker1, taker2, ta
 
     //     sharePrice = await stoneVault.currentSharePrice();
     //     console.log("sharePrice1 is : ", sharePrice.toString(10));
-    //     // await expectRevert.unspecified(
-    //     //     stoneVault.instantWithdraw(0, eth_deposit_amount, {
-    //     //         from: taker1
-    //     //     }));
+
     //     await stoneVault.requestWithdraw(userStone, {
     //         from: taker1
     //     });
     //     let actualBalance2 = BigNumber(await web3.eth.getBalance(taker1));
     //     console.log("After taker1 ether amount:", actualBalance2.toString());
     //     console.log("taker1 diff:", actualBalance.integerValue().minus(actualBalance2.integerValue()).toString());
+
     //     // await truffleAssert.fails(
     //     //     stoneVault.instantWithdraw(0, eth_deposit_amount, {
     //     //         from: taker1
@@ -429,6 +430,8 @@ contract("test_NullStrategy", async ([deployer, feeRecipient, taker1, taker2, ta
     //     //     "exceed withdrawable"
     //     // );
     //     await stoneVault.rollToNextRound();
+    //     sharePrice = await stoneVault.currentSharePrice();
+    //     console.log("sharePrice1 is : ", sharePrice.toString(10));
 
     //     await stoneVault.instantWithdraw(eth_deposit_amount, 0, {
     //         from: taker1
@@ -4185,14 +4188,6 @@ contract("test_NullStrategy", async ([deployer, feeRecipient, taker1, taker2, ta
     //     const data1 = `${selector1}${encodedParams1.split("0x")[1]}`
     //     const encodedParams2 = Abi.encodeParameters(["address"], [mockNullStrategyD.address]);
     //     const data2 = `${selector1}${encodedParams2.split("0x")[1]}`
-    //     // await proposal.setProposer(taker1,
-    //     //     {
-    //     //         from: deployer
-    //     //     });
-    //     // await proposal.setProposer(taker2,
-    //     //     {
-    //     //         from: deployer
-    //     //     });
 
     //     await proposal.propose(data1, {
     //         from: deployer
@@ -4227,7 +4222,8 @@ contract("test_NullStrategy", async ([deployer, feeRecipient, taker1, taker2, ta
     //     let canVote2 = await proposal.canVote(proposals[1]);
     //     assert.strictEqual(canVote1, true);
     //     assert.strictEqual(canVote2, true);
-
+    //     // time add (one vote period + 1)
+    //     await proposal.advanceToEndTime();
     //     let canExec1 = await proposal.canExec(proposals[0]);
     //     let canExec2 = await proposal.canExec(proposals[1]);
     //     assert.strictEqual(canExec1, true);
@@ -4263,7 +4259,384 @@ contract("test_NullStrategy", async ([deployer, feeRecipient, taker1, taker2, ta
 
     // });
 
-    it("test20_taker1 deposit at the 0 round_rolltonext_proposal_retrive_twice", async () => {
+    // it("test20_taker1 deposit at the 0 round_rolltonext_proposal_retrive_twice", async () => {
+    //     const stoneVault = await StoneVault.new(
+    //         minter.address,
+    //         proposalAddr,
+    //         assetsVaultAddr,
+    //         [mockNullStrategyAAddr, mockNullStrategyBAddr],
+    //         [5e5, 5e5]
+    //     );
+    //     console.log("stoneVault: ", stoneVault.address);
+    //     let proposal = await Proposal.new(stoneVault.address);
+    //     console.log("proposal: ", proposal.address);
+    //     const strategyControllerAddr = await stoneVault.strategyController();
+
+    //     const assetsVault = await AssetsVault.new(stoneVault.address, strategyControllerAddr);
+    //     console.log("assetsVault: ", assetsVault.address);
+
+    //     const mockNullStrategyA = await MockNullStrategy.new(strategyControllerAddr, "Mock Strategy A");
+    //     console.log("mockNullStrategyA: ", mockNullStrategyA.address);
+
+    //     const mockNullStrategyB = await MockNullStrategy.new(strategyControllerAddr, "Mock Strategy B");
+    //     console.log("mockNullStrategyB: ", mockNullStrategyB.address);
+
+    //     await stone.approve(stoneVault.address, BigNumber(100000).times(1e18), {
+    //         from: taker1
+    //     });
+    //     await stone.approve(stoneVault.address, BigNumber(100000).times(1e18), {
+    //         from: taker2
+    //     });
+
+    //     await stone.approve(proposal.address, BigNumber(100000).times(1e18), {
+    //         from: taker1
+    //     });
+    //     await stone.approve(proposal.address, BigNumber(100000).times(1e18), {
+    //         from: taker2
+    //     });
+    //     const eth_deposit_amount = BigNumber(1).times(1e18);
+    //     let actualBalance = BigNumber(await web3.eth.getBalance(taker1));
+    //     console.log("Before taker1 ether amount:", actualBalance.toString());
+
+    //     await stoneVault.deposit({
+    //         value: eth_deposit_amount,
+    //         from: taker1
+    //     });
+
+    //     await stoneVault.deposit({
+    //         value: eth_deposit_amount.div(2),
+    //         from: taker2
+    //     });
+
+    //     let actualBalance1 = BigNumber(await web3.eth.getBalance(taker1));
+    //     console.log("After taker1 ether amount:", actualBalance1.toString());
+
+    //     stoneVaultBalance = await web3.eth.getBalance(stoneVault.address);
+    //     console.log("After stoneVault ether amount:", stoneVaultBalance.toString());
+    //     assert.strictEqual(stoneVaultBalance.toString(), '0');
+
+    //     assetsVaultBalance = await web3.eth.getBalance(assetsVault.address);
+    //     console.log("After assetsVault ether amount:", assetsVaultBalance.toString());
+    //     //assert.strictEqual(assetsVaultBalance.toString(), eth_deposit_amount.toString(10));
+    //     let sharePrice = await stoneVault.currentSharePrice();
+    //     console.log("sharePrice is : ", sharePrice.toString(10));
+    //     await stoneVault.setWithdrawFeeRate(withdrawFeeRate, {
+    //         from: deployer
+    //     })
+    //     await stoneVault.setFeeRecipient(feeRecipient, {
+    //         from: deployer
+    //     })
+
+    //     let user1Stone = BigNumber(await stone.balanceOf(taker1));
+    //     console.log("user1Stone is : ", user1Stone.toString(10));
+
+    //     let user2Stone = BigNumber(await stone.balanceOf(taker2));
+    //     console.log("user2Stone is : ", user2Stone.toString(10));
+
+    //     await stoneVault.rollToNextRound();
+
+    //     await proposal.setProposer(proposer,
+    //         {
+    //             from: deployer
+    //         });
+    //     const mockNullStrategyC = await MockNullStrategy.new(strategyControllerAddr, "Mock Strategy C");
+    //     console.log("mockNullStrategyC: ", mockNullStrategyC.address);
+    //     const mockNullStrategyD = await MockNullStrategy.new(strategyControllerAddr, "Mock Strategy D");
+    //     console.log("mockNullStrategyD: ", mockNullStrategyD.address);
+
+    //     const fn1 = "addStrategy(address)";
+    //     const selector1 = Abi.encodeFunctionSignature(fn1);
+    //     const encodedParams1 = Abi.encodeParameters(["address"], [mockNullStrategyC.address]);
+    //     const data1 = `${selector1}${encodedParams1.split("0x")[1]}`;
+    //     const encodedParams2 = Abi.encodeParameters(["address"], [mockNullStrategyD.address]);
+    //     const data2 = `${selector1}${encodedParams2.split("0x")[1]}`;
+    //     await proposal.propose(data1, {
+    //         from: proposer
+    //     });
+    //     await proposal.propose(data2, {
+    //         from: proposer
+    //     });
+
+    //     const fn2 = "updatePortfolioConfig(address[],uint256[])";
+    //     const selector2 = Abi.encodeFunctionSignature(fn2);
+    //     const encodedParams3 = Abi.encodeParameters(
+    //         ["address[]", "uint256[]"],
+    //         [[mockNullStrategyA.address, mockNullStrategyB.address, mockNullStrategyC.address], [1e5, 2e5, 7e5]]
+    //     );
+    //     const data3 = `${selector2}${encodedParams3.split("0x")[1]}`
+    //     console.log("data3: ", data3);
+
+    //     await proposal.propose(data3, {
+    //         from: proposer
+    //     });
+
+    //     let proposals = await proposal.getProposals();
+    //     console.log("proposals are : ", proposals);
+
+    //     let polls;
+    //     await proposal.voteFor(proposals[0], user1Stone.div(2), true,
+    //         {
+    //             from: taker1
+    //         });
+    //     await proposal.voteFor(proposals[1], user1Stone.div(2), false,
+    //         {
+    //             from: taker1
+    //         });
+
+    //     await proposal.voteFor(proposals[0], user2Stone.div(2), false,
+    //         {
+    //             from: taker2
+    //         });
+    //     await proposal.voteFor(proposals[1], user2Stone.div(4), true,
+    //         {
+    //             from: taker2
+    //         });
+    //     await proposal.voteFor(proposals[2], user2Stone.div(4), true,
+    //         {
+    //             from: taker2
+    //         });
+    //     let canVote1 = await proposal.canVote(proposals[0]);
+    //     let canVote2 = await proposal.canVote(proposals[1]);
+    //     let canVote3 = await proposal.canVote(proposals[2]);
+
+    //     assert.strictEqual(canVote1, true);
+    //     assert.strictEqual(canVote2, true);
+    //     assert.strictEqual(canVote3, true);
+
+    //     const strategyController = await StrategyController.at(strategyControllerAddr);
+    //     let strategies = await strategyController.getStrategies();
+    //     console.log("strategies are : ", strategies);
+    //     assert.strictEqual(strategies[0].length, 2);
+
+    //     // time add (one vote period + 1)
+    //     await proposal.advanceToEndTime();
+    //     let canExec1 = await proposal.canExec(proposals[0]);
+    //     let canExec2 = await proposal.canExec(proposals[1]);
+    //     let canExec3 = await proposal.canExec(proposals[2]);
+
+    //     assert.strictEqual(canExec1, true);
+    //     assert.strictEqual(canExec2, false);
+    //     assert.strictEqual(canExec3, true);
+
+    //     await proposal.execProposal(proposals[0]);
+    //     await proposal.execProposal(proposals[2]);
+
+    //     strategies = await strategyController.getStrategies();
+    //     console.log("strategies are : ", strategies);
+
+    //     assert.strictEqual(strategies[0].length, 3);
+    //     assert.strictEqual(strategies[0][2], mockNullStrategyC.address);
+    //     console.log("strategyC's portion is : ", strategies[1][2].toString(10));
+
+    //     let user1Stone_vote = BigNumber(await stone.balanceOf(taker1));
+    //     console.log("user1Stone_vote is : ", user1Stone_vote.toString(10));
+    //     let user2Stone_vote = BigNumber(await stone.balanceOf(taker2));
+    //     console.log("user2Stone_vote is : ", user2Stone_vote.toString(10));
+    //     assert.strictEqual(user1Stone_vote.toString(10), '0');
+    //     assert.strictEqual(user2Stone_vote.toString(10), '0');
+
+    //     canVote1 = await proposal.canVote(proposals[0]);
+    //     canVote2 = await proposal.canVote(proposals[1]);
+    //     assert.strictEqual(canVote1, false);
+    //     assert.strictEqual(canVote2, false);
+    //     await proposal.retrieveTokenFor(proposals[0],
+    //         {
+    //             from: taker1
+    //         });
+    //     let user1Stone_retrieve = BigNumber(await stone.balanceOf(taker1));
+    //     console.log("user1Stone_retrieve is : ", user1Stone_retrieve.toString(10));
+    //     let user2Stone_retrieve = BigNumber(await stone.balanceOf(taker2));
+    //     console.log("user2Stone_retrieve is : ", user2Stone_retrieve.toString(10));
+    //     assert.strictEqual(user1Stone_retrieve.toString(10), user1Stone.div(2).toString(10));
+    //     assert.strictEqual(user2Stone_retrieve.toString(10), '0');
+
+    //     await proposal.retrieveAllToken(
+    //         {
+    //             from: taker1
+    //         });
+    //     user1Stone_retrieve = BigNumber(await stone.balanceOf(taker1));
+    //     console.log("user1Stone_retrieve is : ", user1Stone_retrieve.toString(10));
+    //     user2Stone_retrieve = BigNumber(await stone.balanceOf(taker2));
+    //     console.log("user2Stone_retrieve is : ", user2Stone_retrieve.toString(10));
+    //     assert.strictEqual(user1Stone_retrieve.toString(10), user1Stone.toString(10));
+    //     assert.strictEqual(user2Stone_retrieve.toString(10), '0');
+    //     await proposal.retrieveAllToken(
+    //         {
+    //             from: taker2
+    //         });
+    //     user2Stone_retrieve = BigNumber(await stone.balanceOf(taker2));
+    //     console.log("user2Stone_retrieve is : ", user2Stone_retrieve.toString(10));
+    //     assert.strictEqual(user2Stone_retrieve.toString(10), user2Stone.toString(10));
+
+    // });
+    // it("test22_negative_taker1 deposit at the 0 round_rolltonext_proposal_execute before vote deadline_withdraw multiple times", async () => {
+    //     const stoneVault = await StoneVault.new(
+    //         minter.address,
+    //         proposalAddr,
+    //         assetsVaultAddr,
+    //         [mockNullStrategyAAddr, mockNullStrategyBAddr],
+    //         [5e5, 5e5]
+    //     );
+    //     console.log("stoneVault: ", stoneVault.address);
+    //     let proposal = await Proposal.new(stoneVault.address);
+    //     console.log("proposal: ", proposal.address);
+    //     const strategyControllerAddr = await stoneVault.strategyController();
+
+    //     const assetsVault = await AssetsVault.new(stoneVault.address, strategyControllerAddr);
+    //     console.log("assetsVault: ", assetsVault.address);
+
+    //     const mockNullStrategyA = await MockNullStrategy.new(strategyControllerAddr, "Mock Strategy A");
+    //     console.log("mockNullStrategyA: ", mockNullStrategyA.address);
+
+    //     const mockNullStrategyB = await MockNullStrategy.new(strategyControllerAddr, "Mock Strategy B");
+    //     console.log("mockNullStrategyB: ", mockNullStrategyB.address);
+
+    //     await stone.approve(stoneVault.address, BigNumber(100000).times(1e18), {
+    //         from: taker1
+    //     });
+    //     await stone.approve(stoneVault.address, BigNumber(100000).times(1e18), {
+    //         from: taker2
+    //     });
+
+    //     await stone.approve(proposal.address, BigNumber(100000).times(1e18), {
+    //         from: taker1
+    //     });
+    //     await stone.approve(proposal.address, BigNumber(100000).times(1e18), {
+    //         from: taker2
+    //     });
+    //     const eth_deposit_amount = BigNumber(1).times(1e18);
+    //     let actualBalance = BigNumber(await web3.eth.getBalance(taker1));
+    //     console.log("Before taker1 ether amount:", actualBalance.toString());
+
+    //     await stoneVault.deposit({
+    //         value: eth_deposit_amount,
+    //         from: taker1
+    //     });
+
+    //     await stoneVault.deposit({
+    //         value: eth_deposit_amount.div(2),
+    //         from: taker2
+    //     });
+
+    //     let actualBalance1 = BigNumber(await web3.eth.getBalance(taker1));
+    //     console.log("After taker1 ether amount:", actualBalance1.toString());
+
+    //     stoneVaultBalance = await web3.eth.getBalance(stoneVault.address);
+    //     console.log("After stoneVault ether amount:", stoneVaultBalance.toString());
+    //     assert.strictEqual(stoneVaultBalance.toString(), '0');
+
+    //     assetsVaultBalance = await web3.eth.getBalance(assetsVault.address);
+    //     console.log("After assetsVault ether amount:", assetsVaultBalance.toString());
+    //     //assert.strictEqual(assetsVaultBalance.toString(), eth_deposit_amount.toString(10));
+    //     let sharePrice = await stoneVault.currentSharePrice();
+    //     console.log("sharePrice is : ", sharePrice.toString(10));
+    //     await stoneVault.setWithdrawFeeRate(withdrawFeeRate, {
+    //         from: deployer
+    //     })
+    //     await stoneVault.setFeeRecipient(feeRecipient, {
+    //         from: deployer
+    //     })
+
+    //     let user1Stone = BigNumber(await stone.balanceOf(taker1));
+    //     console.log("user1Stone is : ", user1Stone.toString(10));
+
+    //     let user2Stone = BigNumber(await stone.balanceOf(taker2));
+    //     console.log("user2Stone is : ", user2Stone.toString(10));
+
+    //     await stoneVault.rollToNextRound();
+    //     const mockNullStrategyC = await MockNullStrategy.new(strategyControllerAddr, "Mock Strategy C");
+    //     console.log("mockNullStrategyC: ", mockNullStrategyC.address);
+    //     const mockNullStrategyD = await MockNullStrategy.new(strategyControllerAddr, "Mock Strategy D");
+    //     console.log("mockNullStrategyD: ", mockNullStrategyD.address);
+    //     const fn1 = "addStrategy(address)";
+    //     const selector1 = Abi.encodeFunctionSignature(fn1);
+    //     const encodedParams1 = Abi.encodeParameters(["address"], [mockNullStrategyC.address]);
+    //     const data1 = `${selector1}${encodedParams1.split("0x")[1]}`
+    //     const encodedParams2 = Abi.encodeParameters(["address"], [mockNullStrategyD.address]);
+    //     const data2 = `${selector1}${encodedParams2.split("0x")[1]}`
+
+    //     await proposal.propose(data1, {
+    //         from: deployer
+    //     });
+    //     await proposal.propose(data2, {
+    //         from: deployer
+    //     });
+
+    //     let proposals = await proposal.getProposals();
+    //     console.log("proposals are : ", proposals);
+
+    //     let polls;
+    //     await proposal.voteFor(proposals[0], user1Stone.div(2), true,
+    //         {
+    //             from: taker1
+    //         });
+    //     await proposal.voteFor(proposals[1], user1Stone.div(2), false,
+    //         {
+    //             from: taker1
+    //         });
+
+    //     await proposal.voteFor(proposals[0], user2Stone.div(2), false,
+    //         {
+    //             from: taker2
+    //         });
+    //     await proposal.voteFor(proposals[1], user2Stone.div(2), true,
+    //         {
+    //             from: taker2
+    //         });
+
+    //     let canVote1 = await proposal.canVote(proposals[0]);
+    //     let canVote2 = await proposal.canVote(proposals[1]);
+    //     assert.strictEqual(canVote1, true);
+    //     assert.strictEqual(canVote2, true);
+    //     let canExec1 = await proposal.canExec(proposals[0]);
+    //     let canExec2 = await proposal.canExec(proposals[1]);
+    //     assert.strictEqual(canExec1, false);
+    //     assert.strictEqual(canExec2, false);
+
+    //     // await truffleAssert.fails(
+    //     //     proposal.execProposal(proposals[0]),
+    //     //     truffleAssert.ErrorType.REVERT,
+    //     //     "cannot exec"
+    //     // );
+    //     // time add (one vote period + 1)
+    //     await proposal.advanceToEndTime();
+    //     canExec1 = await proposal.canExec(proposals[0]);
+    //     canExec2 = await proposal.canExec(proposals[1]);
+    //     assert.strictEqual(canExec1, true);
+    //     assert.strictEqual(canExec2, false);
+    //     await proposal.execProposal(proposals[0]);
+    //     user1Stone = BigNumber(await stone.balanceOf(taker1));
+    //     console.log("user1Stone is : ", user1Stone.toString(10));
+    //     user2Stone = BigNumber(await stone.balanceOf(taker2));
+    //     console.log("user2Stone is : ", user2Stone.toString(10));
+    //     assert.strictEqual(user1Stone.toString(10), '0');
+    //     assert.strictEqual(user2Stone.toString(10), '0');
+
+
+    //     const strategyController = await StrategyController.at(strategyControllerAddr);
+    //     let strategies = await strategyController.getStrategies();
+    //     assert.strictEqual(strategies[0].length, 3);
+    //     assert.strictEqual(strategies[0][2], mockNullStrategyC.address);
+
+    //     // time add (one vote period + 1)
+    //     await proposal.advanceToEndTime();
+    //     canVote1 = await proposal.canVote(proposals[0]);
+    //     canVote2 = await proposal.canVote(proposals[1]);
+    //     assert.strictEqual(canVote1, false);
+    //     assert.strictEqual(canVote2, false);
+    //     await proposal.retrieveTokenFor(proposals[0],
+    //         {
+    //             from: taker1
+    //         });
+    //     await proposal.retrieveAllToken();
+
+    //     // assert.strictEqual(strategies[0].length, 3);
+    //     // assert.strictEqual(strategies[0].length, 3);
+
+    // });
+
+
+    it("test20_taker1 deposit at the 0 round_rolltonext_proposal_exec proposal_rolltonext_check strategy value", async () => {
         const stoneVault = await StoneVault.new(
             minter.address,
             proposalAddr,
@@ -4284,7 +4657,8 @@ contract("test_NullStrategy", async ([deployer, feeRecipient, taker1, taker2, ta
 
         const mockNullStrategyB = await MockNullStrategy.new(strategyControllerAddr, "Mock Strategy B");
         console.log("mockNullStrategyB: ", mockNullStrategyB.address);
-
+        let strategyControllerContract = await StrategyController.new(assetsVault.address, [mockNullStrategyAAddr, mockNullStrategyBAddr],
+            [5e5, 5e5]);
         await stone.approve(stoneVault.address, BigNumber(100000).times(1e18), {
             from: taker1
         });
@@ -4336,6 +4710,10 @@ contract("test_NullStrategy", async ([deployer, feeRecipient, taker1, taker2, ta
 
         let user2Stone = BigNumber(await stone.balanceOf(taker2));
         console.log("user2Stone is : ", user2Stone.toString(10));
+        let strategyA_vaule = BigNumber(await strategyControllerContract.getStrategyValidValue(mockNullStrategyAAddr));
+        let strategyB_vaule = BigNumber(await strategyControllerContract.getStrategyValidValue(mockNullStrategyBAddr));
+        console.log("strategyA_vaule is : ", strategyA_vaule.toString(10));
+        console.log("strategyB_vaule is : ", strategyB_vaule.toString(10));
 
         await stoneVault.rollToNextRound();
 
@@ -4422,27 +4800,34 @@ contract("test_NullStrategy", async ([deployer, feeRecipient, taker1, taker2, ta
         assert.strictEqual(canExec2, false);
         assert.strictEqual(canExec3, true);
 
-        await proposal.execProposal(proposals[0]);
+        //await proposal.execProposal(proposals[0]);
         await proposal.execProposal(proposals[2]);
 
         strategies = await strategyController.getStrategies();
         console.log("strategies are : ", strategies);
 
         assert.strictEqual(strategies[0].length, 3);
+        assert.strictEqual(strategies[0][0], mockNullStrategyA.address);
+        console.log("strategyA's portion is : ", strategies[1][0].toString(10));
+        assert.strictEqual(strategies[0][1], mockNullStrategyB.address);
+        console.log("strategyB's portion is : ", strategies[1][1].toString(10));
         assert.strictEqual(strategies[0][2], mockNullStrategyC.address);
         console.log("strategyC's portion is : ", strategies[1][2].toString(10));
 
-        let user1Stone_vote = BigNumber(await stone.balanceOf(taker1));
-        console.log("user1Stone_vote is : ", user1Stone_vote.toString(10));
-        let user2Stone_vote = BigNumber(await stone.balanceOf(taker2));
-        console.log("user2Stone_vote is : ", user2Stone_vote.toString(10));
-        assert.strictEqual(user1Stone_vote.toString(10), '0');
-        assert.strictEqual(user2Stone_vote.toString(10), '0');
+        // let user1Stone_vote = BigNumber(await stone.balanceOf(taker1));
+        // console.log("user1Stone_vote is : ", user1Stone_vote.toString(10));
+        // let user2Stone_vote = BigNumber(await stone.balanceOf(taker2));
+        // console.log("user2Stone_vote is : ", user2Stone_vote.toString(10));
+        // assert.strictEqual(user1Stone_vote.toString(10), '0');
+        // assert.strictEqual(user2Stone_vote.toString(10), '0');
 
-        canVote1 = await proposal.canVote(proposals[0]);
-        canVote2 = await proposal.canVote(proposals[1]);
-        assert.strictEqual(canVote1, false);
-        assert.strictEqual(canVote2, false);
+        // canVote1 = await proposal.canVote(proposals[0]);
+        // canVote2 = await proposal.canVote(proposals[1]);
+        // assert.strictEqual(canVote1, false);
+        // assert.strictEqual(canVote2, false);
+
+        await stoneVault.rollToNextRound();
+
         await proposal.retrieveTokenFor(proposals[0],
             {
                 from: taker1
