@@ -3,6 +3,7 @@ pragma solidity 0.8.7;
 
 import {EnumerableSet} from "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
 import {SafeMath} from "@openzeppelin/contracts/utils/math/SafeMath.sol";
+import {TransferHelper} from "@uniswap/v3-periphery/contracts/libraries/TransferHelper.sol";
 
 import {Strategy} from "./Strategy.sol";
 import {AssetsVault} from "../AssetsVault.sol";
@@ -19,6 +20,12 @@ contract StrategyController {
     EnumerableSet.AddressSet private strategies;
 
     mapping(address => uint256) public ratios;
+
+    struct StrategyDiff {
+        address strategy;
+        bool isDeposit;
+        uint256 amount;
+    }
 
     modifier onlyVault() {
         require(stoneVault == msg.sender, "not vault");
@@ -83,7 +90,11 @@ contract StrategyController {
             total = total.add(_in).sub(_out);
         }
 
+        StrategyDiff[] memory diffs = new StrategyDiff[](strategies.length());
+
         for (uint i = 0; i < strategies.length(); i++) {
+            uint256 head = 0;
+            uint256 tail = strategies.length() - 1;
             address strategy = strategies.at(i);
             if (ratios[strategy] == 0) {
                 _clearStrategy(strategy);
@@ -93,18 +104,51 @@ contract StrategyController {
             );
             uint256 position = getStrategyValidValue(strategy);
 
+            if (newPosition < position) {
+                diffs[head] = StrategyDiff(
+                    strategy,
+                    false,
+                    position.sub(newPosition)
+                );
+                head++;
+            }
             if (newPosition > position) {
-                _depositToStrategy(strategy, newPosition.sub(position));
+                diffs[tail] = StrategyDiff(
+                    strategy,
+                    true,
+                    newPosition.sub(position)
+                );
+                head--;
+            }
+        }
+
+        for (uint256 i = 0; i < diffs.length; i++) {
+            StrategyDiff memory diff = diffs[i];
+
+            if (diff.amount == 0) {
+                continue;
             }
 
-            if (newPosition < position) {
-                _withdrawFromStrategy(strategy, position.sub(newPosition));
+            if (diff.isDeposit) {
+                _depositToStrategy(diff.strategy, diff.amount);
+            } else {
+                _withdrawFromStrategy(diff.strategy, diff.amount);
             }
+        }
+
+        _repayToVault();
+    }
+
+    function _repayToVault() internal {
+        if (address(this).balance > 0) {
+            TransferHelper.safeTransferETH(assetsVault, address(this).balance);
         }
     }
 
     function _depositToStrategy(address _strategy, uint256 _amount) internal {
         Strategy(_strategy).deposit{value: _amount}();
+
+        _repayToVault();
     }
 
     function _withdrawFromStrategy(
@@ -112,6 +156,8 @@ contract StrategyController {
         uint256 _amount
     ) internal {
         Strategy(_strategy).withdraw(_amount);
+
+        _repayToVault();
     }
 
     function _forceWithdraw(
@@ -130,6 +176,8 @@ contract StrategyController {
                     .add(actualAmount);
             }
         }
+
+        _repayToVault();
     }
 
     function getStrategyValue(
@@ -212,6 +260,8 @@ contract StrategyController {
 
     function _clearStrategy(address _strategy) internal {
         Strategy(_strategy).clear();
+
+        _repayToVault();
     }
 
     function _destoryStrategy(address _strategy) internal {
@@ -219,6 +269,8 @@ contract StrategyController {
 
         Strategy(_strategy).destroy();
         strategies.remove(_strategy);
+
+        _repayToVault();
     }
 
     function _couldDestoryStrategy(
