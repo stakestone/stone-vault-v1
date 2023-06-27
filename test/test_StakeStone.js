@@ -48,9 +48,8 @@ contract("test_NullStrategy", async ([deployer, feeRecipient, taker1, taker2, ta
         console.log("mockNullStrategyBAddr: ", mockNullStrategyBAddr);
         proposalAddr = await getFutureAddr(1);
         console.log("proposalAddr: ", proposalAddr);
-
-
     });
+
     // it("test1_one user_deposit_instant withdraw", async () => {
 
     //     const stoneVault = await StoneVault.new(
@@ -134,108 +133,108 @@ contract("test_NullStrategy", async ([deployer, feeRecipient, taker1, taker2, ta
     //     assert.strictEqual(userStone.toString(10), '0');
 
     // });
-    // it("test2_one user_deposit_nullstrategy_roll to next_request withdraw_roll to next_instant withdraw", async () => {
-    //     const stoneVault = await StoneVault.new(
-    //         minter.address,
-    //         proposalAddr,
-    //         assetsVaultAddr,
-    //         [mockNullStrategyAAddr, mockNullStrategyBAddr],
-    //         [5e5, 5e5]
-    //     );
-    //     console.log("stoneVault: ", stoneVault.address);
-    //     let proposal = await Proposal.new(stoneVault.address);
-    //     console.log("proposal: ", proposal.address);
-    //     const strategyControllerAddr = await stoneVault.strategyController();
+    it("test2_one user_deposit_nullstrategy_roll to next_request withdraw_roll to next_instant withdraw", async () => {
+        const stoneVault = await StoneVault.new(
+            minter.address,
+            proposalAddr,
+            assetsVaultAddr,
+            [mockNullStrategyAAddr, mockNullStrategyBAddr],
+            [5e5, 5e5]
+        );
+        console.log("stoneVault: ", stoneVault.address);
+        let proposal = await Proposal.new(stoneVault.address);
+        console.log("proposal: ", proposal.address);
+        const strategyControllerAddr = await stoneVault.strategyController();
 
-    //     const assetsVault = await AssetsVault.new(stoneVault.address, strategyControllerAddr);
-    //     console.log("assetsVault: ", assetsVault.address);
+        const assetsVault = await AssetsVault.new(stoneVault.address, strategyControllerAddr);
+        console.log("assetsVault: ", assetsVault.address);
 
-    //     const mockNullStrategyA = await MockNullStrategy.new(strategyControllerAddr, "Mock Strategy A");
-    //     console.log("mockNullStrategyA: ", mockNullStrategyA.address);
+        const mockNullStrategyA = await MockNullStrategy.new(strategyControllerAddr, "Mock Strategy A");
+        console.log("mockNullStrategyA: ", mockNullStrategyA.address);
 
-    //     const mockNullStrategyB = await MockNullStrategy.new(strategyControllerAddr, "Mock Strategy B");
-    //     console.log("mockNullStrategyB: ", mockNullStrategyB.address);
+        const mockNullStrategyB = await MockNullStrategy.new(strategyControllerAddr, "Mock Strategy B");
+        console.log("mockNullStrategyB: ", mockNullStrategyB.address);
 
-    //     const eth_deposit_amount = BigNumber(1).times(1e18);
-    //     let actualBalance = BigNumber(await web3.eth.getBalance(taker1));
-    //     console.log("Before taker1 ether amount:", actualBalance.toString());
+        const eth_deposit_amount = BigNumber(1).times(1e18);
+        let actualBalance = BigNumber(await web3.eth.getBalance(taker1));
+        console.log("Before taker1 ether amount:", actualBalance.toString());
 
-    //     await stoneVault.deposit({
-    //         value: eth_deposit_amount,
-    //         from: taker1
-    //     });
-    //     let actualBalance1 = BigNumber(await web3.eth.getBalance(taker1));
-    //     console.log("After taker1 ether amount:", actualBalance1.toString());
+        await stoneVault.deposit({
+            value: eth_deposit_amount,
+            from: taker1
+        });
+        let actualBalance1 = BigNumber(await web3.eth.getBalance(taker1));
+        console.log("After taker1 ether amount:", actualBalance1.toString());
 
-    //     stoneVaultBalance = await web3.eth.getBalance(stoneVault.address);
-    //     console.log("After stoneVault ether amount:", stoneVaultBalance.toString());
-    //     assert.strictEqual(stoneVaultBalance.toString(), '0');
+        stoneVaultBalance = await web3.eth.getBalance(stoneVault.address);
+        console.log("After stoneVault ether amount:", stoneVaultBalance.toString());
+        assert.strictEqual(stoneVaultBalance.toString(), '0');
 
-    //     assetsVaultBalance = await web3.eth.getBalance(assetsVault.address);
-    //     console.log("After assetsVault ether amount:", assetsVaultBalance.toString());
-    //     assert.strictEqual(assetsVaultBalance.toString(), eth_deposit_amount.toString(10));
-    //     let sharePrice = await stoneVault.currentSharePrice();
-    //     console.log("sharePrice is : ", sharePrice.toString(10));
-    //     await stoneVault.setWithdrawFeeRate(withdrawFeeRate, {
-    //         from: deployer
-    //     })
-    //     await stoneVault.setFeeRecipient(feeRecipient, {
-    //         from: deployer
-    //     })
-    //     await stone.approve(stoneVault.address, BigNumber(100000).times(1e18), {
-    //         from: taker1
-    //     });
-    //     let userInfo = await stoneVault.userReceipts(taker1);
-    //     console.log("taker1's withdrawableAmount: ", userInfo.withdrawableAmount.toString(10));
+        assetsVaultBalance = await web3.eth.getBalance(assetsVault.address);
+        console.log("After assetsVault ether amount:", assetsVaultBalance.toString());
+        assert.strictEqual(assetsVaultBalance.toString(), eth_deposit_amount.toString(10));
+        let sharePrice = await stoneVault.currentSharePrice();
+        console.log("sharePrice is : ", sharePrice.toString(10));
+        await stoneVault.setWithdrawFeeRate(withdrawFeeRate, {
+            from: deployer
+        })
+        await stoneVault.setFeeRecipient(feeRecipient, {
+            from: deployer
+        })
+        await stone.approve(stoneVault.address, BigNumber(100000).times(1e18), {
+            from: taker1
+        });
+        let userInfo = await stoneVault.userReceipts(taker1);
+        console.log("taker1's withdrawableAmount: ", userInfo.withdrawableAmount.toString(10));
 
-    //     let userStone = BigNumber(await stone.balanceOf(taker1));
-    //     console.log("userStone is : ", userStone.toString(10));
+        let userStone = BigNumber(await stone.balanceOf(taker1));
+        console.log("userStone is : ", userStone.toString(10));
 
-    //     await stoneVault.rollToNextRound();
-    //     assetsVaultBalance1 = await web3.eth.getBalance(assetsVault.address);
-    //     console.log("After assetsVault1 ether amount:", assetsVaultBalance1.toString());
-    //     let withdrawFeeRate1 = BigNumber(await stoneVault.withdrawFeeRate());
-    //     console.log("withdrawFeeRate1 is :", withdrawFeeRate1.toString(10));
-    //     // assert.strictEqual(withdrawFeeRate1.toString(10), withdrawFeeRate.toString(10));
-    //     userInfo = await stoneVault.userReceipts(taker1);
-    //     userWithdrawShares = userInfo.withdrawShares;
-    //     console.log("taker1's withdrawShares: ", userWithdrawShares.toString(10));
-    //     userWithdrawRound = userInfo.withdrawRound;
-    //     console.log("taker1's withdrawRound: ", userWithdrawRound.toString(10));
-    //     userWithdrawableAmount = userInfo.withdrawableAmount;
-    //     console.log("taker1's withdrawableAmount: ", userWithdrawableAmount.toString(10));
+        await stoneVault.rollToNextRound();
+        assetsVaultBalance1 = await web3.eth.getBalance(assetsVault.address);
+        console.log("After assetsVault1 ether amount:", assetsVaultBalance1.toString());
+        let withdrawFeeRate1 = BigNumber(await stoneVault.withdrawFeeRate());
+        console.log("withdrawFeeRate1 is :", withdrawFeeRate1.toString(10));
+        // assert.strictEqual(withdrawFeeRate1.toString(10), withdrawFeeRate.toString(10));
+        userInfo = await stoneVault.userReceipts(taker1);
+        userWithdrawShares = userInfo.withdrawShares;
+        console.log("taker1's withdrawShares: ", userWithdrawShares.toString(10));
+        userWithdrawRound = userInfo.withdrawRound;
+        console.log("taker1's withdrawRound: ", userWithdrawRound.toString(10));
+        userWithdrawableAmount = userInfo.withdrawableAmount;
+        console.log("taker1's withdrawableAmount: ", userWithdrawableAmount.toString(10));
 
-    //     sharePrice = await stoneVault.currentSharePrice();
-    //     console.log("sharePrice1 is : ", sharePrice.toString(10));
+        sharePrice = await stoneVault.currentSharePrice();
+        console.log("sharePrice1 is : ", sharePrice.toString(10));
 
-    //     await stoneVault.requestWithdraw(userStone, {
-    //         from: taker1
-    //     });
+        await stoneVault.requestWithdraw(userStone, {
+            from: taker1
+        });
 
-    //     await stoneVault.rollToNextRound();
-    //     userInfo1 = await stoneVault.userReceipts(taker1);
-    //     userWithdrawableAmount1 = userInfo1.withdrawableAmount;
-    //     console.log("taker1's withdrawableAmount1: ", userWithdrawableAmount1.toString(10));
-    //     userWithdrawShares1 = userInfo1.withdrawShares;
-    //     console.log("taker1's withdrawShares1: ", userWithdrawShares1.toString(10));
-    //     userWithdrawRound1 = userInfo1.withdrawRound;
-    //     console.log("taker1's withdrawRound1: ", userWithdrawRound1.toString(10));
+        await stoneVault.rollToNextRound();
+        userInfo1 = await stoneVault.userReceipts(taker1);
+        userWithdrawableAmount1 = userInfo1.withdrawableAmount;
+        console.log("taker1's withdrawableAmount1: ", userWithdrawableAmount1.toString(10));
+        userWithdrawShares1 = userInfo1.withdrawShares;
+        console.log("taker1's withdrawShares1: ", userWithdrawShares1.toString(10));
+        userWithdrawRound1 = userInfo1.withdrawRound;
+        console.log("taker1's withdrawRound1: ", userWithdrawRound1.toString(10));
 
-    //     await stoneVault.instantWithdraw(eth_deposit_amount, 0, {
-    //         from: taker1
-    //     });
+        await stoneVault.instantWithdraw(eth_deposit_amount, 0, {
+            from: taker1
+        });
 
-    //     let actualBalance2 = BigNumber(await web3.eth.getBalance(taker1));
-    //     console.log("After taker1 ether amount:", actualBalance2.toString());
-    //     // console.log("taker1 diff:", actualBalance.integerValue().minus(actualBalance2.integerValue()).toString());
-    //     // assert.ok(actualBalance.integerValue().minus(actualBalance2.integerValue()) > 0);
-    //     // assert.ok(actualBalance.integerValue().minus(actualBalance2.integerValue()) < BigNumber(4e14));
+        let actualBalance2 = BigNumber(await web3.eth.getBalance(taker1));
+        console.log("After taker1 ether amount:", actualBalance2.toString());
+        // console.log("taker1 diff:", actualBalance.integerValue().minus(actualBalance2.integerValue()).toString());
+        // assert.ok(actualBalance.integerValue().minus(actualBalance2.integerValue()) > 0);
+        // assert.ok(actualBalance.integerValue().minus(actualBalance2.integerValue()) < BigNumber(4e14));
 
-    //     userStone = BigNumber(await stone.balanceOf(taker1));
-    //     console.log("userStone is : ", userStone.toString(10));
-    //     assert.strictEqual(userStone.toString(10), '0');
+        userStone = BigNumber(await stone.balanceOf(taker1));
+        console.log("userStone is : ", userStone.toString(10));
+        assert.strictEqual(userStone.toString(10), '0');
 
-    // });
+    });
     // it("test3_one user_deposit_nullstrategy_roll to next_request withdraw_cancel withdraw", async () => {
     //     const stoneVault = await StoneVault.new(
     //         minter.address,
@@ -561,109 +560,109 @@ contract("test_NullStrategy", async ([deployer, feeRecipient, taker1, taker2, ta
 
     // });
     //没改
-    // it("test6_two users deposit at the 0 round_taker1 initiate withdraw at the 1 round", async () => {
-    //     const stoneVault = await StoneVault.new(
-    //         minter.address,
-    //         proposal,
-    //         assetsVaultAddr,
-    //         [mockNullStrategyAAddr, mockNullStrategyBAddr],
-    //         [5e5, 5e5]
-    //     );
-    //     console.log("stoneVault: ", stoneVault.address);
+    it("test6_two users deposit at the 0 round_taker1 initiate withdraw at the 1 round", async () => {
+        const stoneVault = await StoneVault.new(
+            minter.address,
+            proposal,
+            assetsVaultAddr,
+            [mockNullStrategyAAddr, mockNullStrategyBAddr],
+            [5e5, 5e5]
+        );
+        console.log("stoneVault: ", stoneVault.address);
 
-    //     const strategyControllerAddr = await stoneVault.strategyController();
+        const strategyControllerAddr = await stoneVault.strategyController();
 
-    //     const assetsVault = await AssetsVault.new(stoneVault.address, strategyControllerAddr);
-    //     console.log("assetsVault: ", assetsVault.address);
+        const assetsVault = await AssetsVault.new(stoneVault.address, strategyControllerAddr);
+        console.log("assetsVault: ", assetsVault.address);
 
-    //     const mockNullStrategyA = await MockNullStrategy.new(strategyControllerAddr, "Mock Strategy A");
-    //     console.log("mockNullStrategyA: ", mockNullStrategyA.address);
+        const mockNullStrategyA = await MockNullStrategy.new(strategyControllerAddr, "Mock Strategy A");
+        console.log("mockNullStrategyA: ", mockNullStrategyA.address);
 
-    //     const mockNullStrategyB = await MockNullStrategy.new(strategyControllerAddr, "Mock Strategy B");
-    //     console.log("mockNullStrategyB: ", mockNullStrategyB.address);
+        const mockNullStrategyB = await MockNullStrategy.new(strategyControllerAddr, "Mock Strategy B");
+        console.log("mockNullStrategyB: ", mockNullStrategyB.address);
 
-    //     await minter.setKeeper(stoneVault.address, true);
+        await minter.setKeeper(stoneVault.address, true);
 
-    //     const eth_deposit_amount = BigNumber(1).times(1e18);
-    //     let actualBalance = BigNumber(await web3.eth.getBalance(taker1));
-    //     console.log("Before taker1 ether amount:", actualBalance.toString());
+        const eth_deposit_amount = BigNumber(1).times(1e18);
+        let actualBalance = BigNumber(await web3.eth.getBalance(taker1));
+        console.log("Before taker1 ether amount:", actualBalance.toString());
 
-    //     await stoneVault.deposit({
-    //         value: eth_deposit_amount,
-    //         from: taker1
-    //     });
-    //     await stoneVault.deposit({
-    //         value: eth_deposit_amount,
-    //         from: taker2
-    //     });
-    //     let actualBalance1 = BigNumber(await web3.eth.getBalance(taker1));
-    //     console.log("After taker1 ether amount:", actualBalance1.toString());
+        await stoneVault.deposit({
+            value: eth_deposit_amount,
+            from: taker1
+        });
+        await stoneVault.deposit({
+            value: eth_deposit_amount,
+            from: taker2
+        });
+        let actualBalance1 = BigNumber(await web3.eth.getBalance(taker1));
+        console.log("After taker1 ether amount:", actualBalance1.toString());
 
-    //     stoneVaultBalance = await web3.eth.getBalance(stoneVault.address);
-    //     console.log("After stoneVault ether amount:", stoneVaultBalance.toString());
-    //     assert.strictEqual(stoneVaultBalance.toString(), '0');
+        stoneVaultBalance = await web3.eth.getBalance(stoneVault.address);
+        console.log("After stoneVault ether amount:", stoneVaultBalance.toString());
 
-    //     assetsVaultBalance = await web3.eth.getBalance(assetsVault.address);
-    //     console.log("After assetsVault ether amount:", assetsVaultBalance.toString());
-    //     assert.strictEqual(assetsVaultBalance.toString(), eth_deposit_amount.toString(10));
-    //     let sharePrice = await stoneVault.currentSharePrice();
-    //     console.log("sharePrice is : ", sharePrice.toString(10));
-    //     await stoneVault.setWithdrawFeeRate(withdrawFeeRate, {
-    //         from: deployer
-    //     })
-    //     await stoneVault.setFeeRecipient(feeRecipient, {
-    //         from: deployer
-    //     })
-    //     let userInfo = await stoneVault.userReceipts(taker1);
-    //     console.log("taker1's withdrawableAmount: ", userInfo.withdrawableAmount.toString(10));
-    //     // await truffleAssert.fails(
-    //     //     stoneVault.instantWithdraw(eth_deposit_amount, eth_deposit_amount),
-    //     //     truffleAssert.ErrorType.REVERT,
-    //     //     "exceed withdrawable"
-    //     // );
-    //     let userStone = BigNumber(await stone.balanceOf(taker1));
-    //     console.log("userStone is : ", userStone.toString(10));
-    //     await stone.approve(stoneVault.address, BigNumber(100000).times(1e18), {
-    //         from: taker1
-    //     });
-    //     await stone.approve(stoneVault.address, BigNumber(100000).times(1e18), {
-    //         from: taker2
-    //     });
-    //     await stoneVault.rollToNextRound();
-    //     assetsVaultBalance1 = await web3.eth.getBalance(assetsVault.address);
-    //     console.log("After assetsVault1 ether amount:", assetsVaultBalance1.toString());
-    //     let withdrawFeeRate1 = BigNumber(await stoneVault.withdrawFeeRate());
-    //     console.log("withdrawFeeRate1 is :", withdrawFeeRate1.toString(10));
-    //     // assert.strictEqual(withdrawFeeRate1.toString(10), withdrawFeeRate.toString(10));
-    //     userInfo = await stoneVault.userReceipts(taker1);
-    //     userWithdrawShares = userInfo.withdrawShares;
-    //     console.log("taker1's withdrawShares: ", userWithdrawShares.toString(10));
-    //     userWithdrawRound = userInfo.withdrawRound;
-    //     console.log("taker1's withdrawRound: ", userWithdrawRound.toString(10));
-    //     userWithdrawableAmount = userInfo.withdrawableAmount;
-    //     console.log("taker1's withdrawableAmount: ", userWithdrawableAmount.toString(10));
+        assetsVaultBalance = await web3.eth.getBalance(assetsVault.address);
+        console.log("After assetsVault ether amount:", assetsVaultBalance.toString());
 
-    //     sharePrice = await stoneVault.currentSharePrice();
-    //     console.log("sharePrice1 is : ", sharePrice.toString(10));
-    //     await stoneVault.requestWithdraw(userStone, {
-    //         from: taker1
-    //     });
-    //     await stoneVault.rollToNextRound();
+        let sharePrice = await stoneVault.currentSharePrice();
+        console.log("sharePrice is : ", sharePrice.toString(10));
+        let withdrawFeeRate1 = BigNumber(1).times(1e5);
 
-    //     await stoneVault.instantWithdraw(eth_deposit_amount, 0, {
-    //         from: taker2
-    //     });
+        await stoneVault.setWithdrawFeeRate(withdrawFeeRate1, {
+            from: deployer
+        })
+        await stoneVault.setFeeRecipient(feeRecipient, {
+            from: deployer
+        })
+        let userInfo = await stoneVault.userReceipts(taker1);
+        console.log("taker1's withdrawableAmount: ", userInfo.withdrawableAmount.toString(10));
 
-    //     let actualBalance2 = BigNumber(await web3.eth.getBalance(taker1));
-    //     console.log("After taker1 ether amount:", actualBalance2.toString());
-    //     // console.log("taker1 diff:", actualBalance.integerValue().minus(actualBalance2.integerValue()).toString());
-    //     // assert.ok(actualBalance.integerValue().minus(actualBalance2.integerValue()) > 0);
-    //     // assert.ok(actualBalance.integerValue().minus(actualBalance2.integerValue()) < BigNumber(4e14));
+        let userStone = BigNumber(await stone.balanceOf(taker1));
+        console.log("userStone is : ", userStone.toString(10));
+        await stone.approve(stoneVault.address, BigNumber(100000).times(1e18), {
+            from: taker1
+        });
+        await stone.approve(stoneVault.address, BigNumber(100000).times(1e18), {
+            from: taker2
+        });
 
-    //     let userStone1 = BigNumber(await stone.balanceOf(taker1));
-    //     console.log("userStone1 is : ", userStone1.toString(10));
-    //     assert.strictEqual(userStone.toString(10), userStone1.toString(10));
-    // });
+        await stoneVault.rollToNextRound();
+
+        assetsVaultBalance1 = await web3.eth.getBalance(assetsVault.address);
+        console.log("After assetsVault1 ether amount:", assetsVaultBalance1.toString());
+
+        userInfo = await stoneVault.userReceipts(taker1);
+        userWithdrawShares = userInfo.withdrawShares;
+        console.log("taker1's withdrawShares: ", userWithdrawShares.toString(10));
+        userWithdrawRound = userInfo.withdrawRound;
+        console.log("taker1's withdrawRound: ", userWithdrawRound.toString(10));
+        userWithdrawableAmount = userInfo.withdrawableAmount;
+        console.log("taker1's withdrawableAmount: ", userWithdrawableAmount.toString(10));
+
+        sharePrice = await stoneVault.currentSharePrice();
+        console.log("sharePrice1 is : ", sharePrice.toString(10));
+        await stoneVault.requestWithdraw(userStone, {
+            from: taker1
+        });
+
+        await stoneVault.rollToNextRound();
+
+        await stoneVault.instantWithdraw(eth_deposit_amount, 0, {
+            from: taker2
+        });
+        let fee = eth_deposit_amount.mul(withdrawFeeRate).div(
+            ONE_HUNDRED_PERCENT
+        );
+        let actualBalance2 = BigNumber(await web3.eth.getBalance(taker1));
+        console.log("After taker1 ether amount:", actualBalance2.toString());
+        // console.log("taker1 diff:", actualBalance.integerValue().minus(actualBalance2.integerValue()).toString());
+        // assert.ok(actualBalance.integerValue().minus(actualBalance2.integerValue()) > 0);
+        // assert.ok(actualBalance.integerValue().minus(actualBalance2.integerValue()) < BigNumber(4e14));
+
+        let userStone1 = BigNumber(await stone.balanceOf(taker1));
+        console.log("userStone1 is : ", userStone1.toString(10));
+        assert.strictEqual(userStone.toString(10), userStone1.toString(10));
+    });
 
 
     // it("test7_taker1 deposit at the 0 round and the 1st round_instant withdraw amount is greater than the second deposit at the 1st round_complete withdraw", async () => {
