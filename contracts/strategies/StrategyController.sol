@@ -118,7 +118,7 @@ contract StrategyController {
                     true,
                     newPosition.sub(position)
                 );
-                head--;
+                tail--;
             }
         }
 
@@ -130,6 +130,9 @@ contract StrategyController {
             }
 
             if (diff.isDeposit) {
+                if (address(this).balance < diff.amount) {
+                    diff.amount = address(this).balance;
+                }
                 _depositToStrategy(diff.strategy, diff.amount);
             } else {
                 _withdrawFromStrategy(diff.strategy, diff.amount);
@@ -147,8 +150,6 @@ contract StrategyController {
 
     function _depositToStrategy(address _strategy, uint256 _amount) internal {
         Strategy(_strategy).deposit{value: _amount}();
-
-        _repayToVault();
     }
 
     function _withdrawFromStrategy(
@@ -156,8 +157,6 @@ contract StrategyController {
         uint256 _amount
     ) internal {
         Strategy(_strategy).withdraw(_amount);
-
-        _repayToVault();
     }
 
     function _forceWithdraw(
