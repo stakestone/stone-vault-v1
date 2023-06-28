@@ -77,7 +77,10 @@ contract StrategyController {
         _destoryStrategy(_strategy);
     }
 
-    function _rebase(uint256 _in, uint256 _out) internal {
+    function _rebase(
+        uint256 _in,
+        uint256 _out
+    ) public returns (uint256[2] memory aaa) {
         require(_in == 0 || _out == 0, "only deposit or withdraw");
 
         if (_in > 0) {
@@ -91,13 +94,13 @@ contract StrategyController {
         }
 
         StrategyDiff[] memory diffs = new StrategyDiff[](strategies.length());
-
+        uint256 head = 0;
+        uint256 tail = strategies.length() - 1;
         for (uint i = 0; i < strategies.length(); i++) {
-            uint256 head = 0;
-            uint256 tail = strategies.length() - 1;
             address strategy = strategies.at(i);
             if (ratios[strategy] == 0) {
                 _clearStrategy(strategy);
+                continue;
             }
             uint256 newPosition = total.mul(ratios[strategy]).div(
                 ONE_HUNDRED_PERCENT
@@ -118,7 +121,7 @@ contract StrategyController {
                     true,
                     newPosition.sub(position)
                 );
-                tail--;
+                tail > 0 ? tail-- : tail;
             }
         }
 
