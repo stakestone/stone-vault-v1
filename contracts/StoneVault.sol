@@ -146,7 +146,7 @@ contract StoneVault is ReentrancyGuard, Ownable {
                 : currentSharePrice();
         }
 
-        mintAmount = _amount.mul(sharePrice).div(MULTIPLIER);
+        mintAmount = _amount.mul(MULTIPLIER).div(sharePrice);
 
         AssetsVault(assetsVault).deposit{value: address(this).balance}();
         Minter(minter).mint(_user, mintAmount);

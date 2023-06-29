@@ -44,4 +44,6 @@ contract MockNullStrategy is Strategy {
     function getInvestedValue() public view override returns (uint256 value) {
         return address(this).balance;
     }
+
+    receive() external payable {}
 }
