@@ -10,22 +10,16 @@ import {StrategyController} from "../strategies/StrategyController.sol";
 contract MockNullStrategy is Strategy {
     using SafeMath for uint256;
 
-    uint256 public totalDeposit;
-
     constructor(
         address payable _controller,
         string memory _name
     ) Strategy(_controller, _name) {}
 
-    function deposit() public payable override onlyController {
-        totalDeposit = totalDeposit.add(msg.value);
-    }
+    function deposit() public payable override onlyController {}
 
     function withdraw(
         uint256 _amount
     ) public override onlyController returns (uint256 actualAmount) {
-        totalDeposit = totalDeposit.sub(_amount);
-
         StrategyController strategyController = StrategyController(controller);
 
         TransferHelper.safeTransferETH(address(strategyController), _amount);
@@ -35,19 +29,19 @@ contract MockNullStrategy is Strategy {
 
     function instantWithdraw(
         uint256 _amount
-    ) public virtual override returns (uint256 actualAmount) {
+    ) public virtual override onlyController returns (uint256 actualAmount) {
         actualAmount = withdraw(_amount);
     }
 
     function clear() public override onlyController returns (uint256 amount) {
-        amount = withdraw(totalDeposit);
+        amount = withdraw(address(this).balance);
     }
 
     function getAllValue() public view override returns (uint256 value) {
-        return totalDeposit;
+        return address(this).balance;
     }
 
     function getInvestedValue() public view override returns (uint256 value) {
-        return totalDeposit;
+        return address(this).balance;
     }
 }
