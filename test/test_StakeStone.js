@@ -4990,6 +4990,7 @@ contract("test_NullStrategy", async ([deployer, feeRecipient, taker1, taker2, ta
         await stoneVault.setFeeRecipient(feeRecipient, {
             from: deployer
         })
+
         await stone.approve(stoneVault.address, BigNumber(100000).times(1e18), {
             from: taker1
         });
@@ -5014,7 +5015,11 @@ contract("test_NullStrategy", async ([deployer, feeRecipient, taker1, taker2, ta
 
         // strategyA got some interest
         let interest = BigNumber(1).times(1e17);
-        await mockNullStrategyA.deposit_test({ value: interest, from: deployer });
+        await web3.eth.sendTransaction({
+            from: deployer,
+            to: mockNullStrategyAAddr,
+            value: BigNumber(1e17).toString(10)
+        })
         let balanceOfA = await web3.eth.getBalance(mockNullStrategyA.address);
         console.log('balanceOfA is : ', balanceOfA.toString(10));
 
