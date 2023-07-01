@@ -380,7 +380,7 @@ contract StoneVault is ReentrancyGuard, Ownable {
         controller.setStrategies(_strategies, _ratios);
     }
 
-    function currentSharePrice() public view returns (uint256 price) {
+    function currentSharePrice() public returns (uint256 price) {
         Stone stoneToken = Stone(stone);
         uint256 totalStone = stoneToken.totalSupply();
         if (totalStone == 0 || totalStone == withdrawingSharesInPast) {
@@ -398,7 +398,6 @@ contract StoneVault is ReentrancyGuard, Ownable {
 
     function getVaultAvailableAmount()
         public
-        view
         returns (uint256 idleAmount, uint256 investedAmount)
     {
         AssetsVault vault = AssetsVault(assetsVault);

@@ -184,23 +184,23 @@ contract StrategyController {
 
     function getStrategyValue(
         address _strategy
-    ) public view returns (uint256 _value) {
+    ) public returns (uint256 _value) {
         return Strategy(_strategy).getAllValue();
     }
 
     function getStrategyValidValue(
         address _strategy
-    ) public view returns (uint256 _value) {
+    ) public returns (uint256 _value) {
         return Strategy(_strategy).getInvestedValue();
     }
 
-    function getAllStrategiesValue() public view returns (uint256 _value) {
+    function getAllStrategiesValue() public returns (uint256 _value) {
         for (uint i = 0; i < strategies.length(); i++) {
             _value = _value.add(getStrategyValue(strategies.at(i)));
         }
     }
 
-    function getAllStrategyValidValue() public view returns (uint256 _value) {
+    function getAllStrategyValidValue() public returns (uint256 _value) {
         for (uint i = 0; i < strategies.length(); i++) {
             _value = _value.add(getStrategyValidValue(strategies.at(i)));
         }
@@ -277,7 +277,7 @@ contract StrategyController {
 
     function _couldDestoryStrategy(
         address _strategy
-    ) internal view returns (bool status) {
+    ) internal returns (bool status) {
         return ratios[_strategy] == 0 && Strategy(_strategy).getAllValue() == 0;
     }
 
