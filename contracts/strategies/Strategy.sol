@@ -50,15 +50,14 @@ abstract contract Strategy {
         uint256 _amount
     ) public virtual returns (uint256 amount) {}
 
-    function getAllValue() public view virtual returns (uint256 value) {}
+    function getAllValue() public virtual returns (uint256 value) {}
 
-    function getPendingValue() public view virtual returns (uint256 value) {}
+    function getPendingValue() public virtual returns (uint256 value) {}
 
-    function getInvestedValue() public view virtual returns (uint256 value) {}
+    function getInvestedValue() public virtual returns (uint256 value) {}
 
     function checkPendingStatus()
         public
-        view
         virtual
         returns (uint256 pending, uint256 executable)
     {}
