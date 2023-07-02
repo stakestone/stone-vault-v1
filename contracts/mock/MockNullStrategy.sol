@@ -27,6 +27,10 @@ contract MockNullStrategy is Strategy {
         actualAmount = _amount;
     }
 
+    function mock_transfer(uint256 _amount) public payable {
+        TransferHelper.safeTransferETH(msg.sender, _amount);
+    }
+
     function instantWithdraw(
         uint256 _amount
     ) public virtual override onlyController returns (uint256 actualAmount) {
