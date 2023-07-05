@@ -1,102 +1,66 @@
-const { ZERO_ADDRESS } = require('@openzeppelin/test-helpers/src/constants');
-const BigNumber = require('bignumber.js');
-const RLP = require('rlp');
+// truffle exec scripts/deployment.js --network goerli
+// eslint-disable-next-line no-undef
 
-const Stone = artifacts.require("Stone");
-const Minter = artifacts.require("Minter");
-const Proposal = artifacts.require("Proposal");
-const AssetsVault = artifacts.require("AssetsVault");
-const StoneVault = artifacts.require("StoneVault");
-const StrategyController = artifacts.require("StrategyController");
 const MockNullStrategy = artifacts.require("MockNullStrategy");
-
-const deployer = "0xff34F282b82489BfDa789816d7622d3Ae8199Af6";
-
+const StrategyController = artifacts.require("StrategyController");
+const Proposal = artifacts.require("Proposal");
+const Abi = web3.eth.abi;
 module.exports = async function (callback) {
     try {
-        const minterAddr = await getFutureAddr(1);
-        console.log("minterAddr: ", minterAddr);
 
-        const stone = await Stone.new(minterAddr);
-        console.log("stone: ", stone.address);
+        // const strategyController = await StrategyController.at("0xe4297F86ab71484c3BeBe5DeDaD6e48FB36e9aeb");
+        // console.log("strategyController: ", strategyController.address);
+        const proposal = await Proposal.at("0x3149e58f500ae2d23a037bc510387b565744a7dc");
 
-        const stoneVaultAddr = await getFutureAddr(1);
-        console.log("stoneVaultAddr: ", stoneVaultAddr);
+        await proposal.execProposal("0xa0330BF9F8cE1b0D571e2b16fd34349629e5D8fa");
+        // const period = 5 * 60;
+        // await proposal.setVotePeriod(period);
 
-        const minter = await Minter.new(stone.address, [stoneVaultAddr]);
-        console.log("minter: ", minter.address);
+        // // // const mockNullStrategyE = await MockNullStrategy.new(strategyController.address, "Mock Strategy E",
+        // // //     { nonce: 452 });
+        // const mockNullStrategyI = await MockNullStrategy.new(strategyController.address, "Mock Strategy I");
+        // console.log("mockNullStrategyI: ", mockNullStrategyI.address);
 
-        const assetsVaultAddr = await getFutureAddr(2);
-        console.log("assetsVaultAddr: ", assetsVaultAddr);
+        // const mockNullStrategyJ = await MockNullStrategy.new(strategyController.address, "Mock Strategy J");
+        // console.log("mockNullStrategyJ: ", mockNullStrategyJ.address);
 
-        const mockNullStrategyAAddr = await getFutureAddr(3);
-        const mockNullStrategyBAddr = await getFutureAddr(4);
-        console.log("mockNullStrategyAAddr: ", mockNullStrategyAAddr);
-        console.log("mockNullStrategyBAddr: ", mockNullStrategyBAddr);
+        // // const fn1 = "addStrategy(address)";
+        // // const selector1 = Abi.encodeFunctionSignature(fn1);
+        // // const encodedParams1 = Abi.encodeParameters(["address"], [mockNullStrategyE.address]);
+        // // const data1 = `${selector1}${encodedParams1.split("0x")[1]}`
+        // // const encodedParams2 = Abi.encodeParameters(["address"], [mockNullStrategyF.address]);
+        // // const data2 = `${selector1}${encodedParams2.split("0x")[1]}`
 
-        const proposalAddr = await getFutureAddr(1);
-        console.log("proposalAddr: ", proposalAddr);
+        // // await proposal.propose(data1);
+        // // await proposal.propose(data2);
 
-        const stoneVault = await StoneVault.new(
-            minter.address,
-            proposalAddr,
-            assetsVaultAddr,
-            [mockNullStrategyAAddr, mockNullStrategyBAddr],
-            [5e5, 5e5]
-        );
-        console.log("stoneVault: ", stoneVault.address);
+        // let proposals = await proposal.getProposals();
+        // console.log("proposals are : ", proposals);
 
-        const proposal = await Proposal.new(stoneVault.address);
-        console.log("proposal: ", proposal.address);
+        // const fn2 = "updatePortfolioConfig(address[],uint256[])";
+        // const selector2 = Abi.encodeFunctionSignature(fn2);
+        // const encodedParams3 = Abi.encodeParameters(
+        //     ["address[]", "uint256[]"],
+        //     [[mockNullStrategyI.address, mockNullStrategyJ.address], [3e5, 7e5]]
+        // );
+        // const data3 = `${selector2}${encodedParams3.split("0x")[1]}`
+        // console.log("data3: ", data3);
 
-        const strategyControllerAddr = await stoneVault.strategyController();
-        console.log("strategyController: ", strategyControllerAddr);
+        // await proposal.propose(data3);
 
-        const assetsVault = await AssetsVault.new(stoneVault.address, strategyControllerAddr);
-        console.log("assetsVault: ", assetsVault.address);
+        // proposals = await proposal.getProposals();
+        // console.log("proposals1 are : ", proposals);
 
-        const mockNullStrategyA = await MockNullStrategy.new(strategyControllerAddr, "Mock Strategy A");
-        console.log("mockNullStrategyA: ", mockNullStrategyA.address);
+        // // let strategies = await strategyController.getStrategies();
+        // // console.log("length is : ", strategies[0].length);
 
-        const mockNullStrategyB = await MockNullStrategy.new(strategyControllerAddr, "Mock Strategy B");
-        console.log("mockNullStrategyB: ", mockNullStrategyB.address);
-
-        await stoneVault.deposit({
-            value: BigNumber(1e16).toString(10),
-        });
-        await stone.approve(stoneVault.address, MAX_UINT256);
-        await stoneVault.requestWithdraw(BigNumber(2e15).toString(10));
-        await stoneVault.cancelWithdraw(BigNumber(1e15).toString(10))
-
-        let currentSharePrice = await stoneVault.currentSharePrice();
-        console.log("currentSharePrice: ", BigNumber(currentSharePrice).div(1e18).toString(10));
-
-
-        await stoneVault.instantWithdraw(0, BigNumber(5e15).toString(10));
-        currentSharePrice = await stoneVault.currentSharePrice();
-        console.log("currentSharePrice: ", BigNumber(currentSharePrice).div(1e18).toString(10));
-
-        await stoneVault.rollToNextRound();
-        currentSharePrice = await stoneVault.currentSharePrice();
-        console.log("currentSharePrice: ", BigNumber(currentSharePrice).div(1e18).toString(10));
-
-        await stoneVault.rollToNextRound();
-        currentSharePrice = await stoneVault.currentSharePrice();
-        console.log("currentSharePrice: ", BigNumber(currentSharePrice).div(1e18).toString(10));
-
-        await stoneVault.rollToNextRound();
-        currentSharePrice = await stoneVault.currentSharePrice();
-        console.log("currentSharePrice: ", BigNumber(currentSharePrice).div(1e18).toString(10));
+        // // for (i = 0; i < strategies[0].length; i++) {
+        // //     console.log("strategy" + i + " is : ", strategies[0][i]);
+        // // }
 
         callback();
     } catch (e) {
         callback(e);
     }
 
-    async function getFutureAddr(index) {
-        const nonce = await web3.eth.getTransactionCount(deployer);
-        const encoded = RLP.encode([deployer, nonce + index]);
-        const rs = web3.utils.sha3(encoded);
-        return '0x' + rs.substr(rs.length - 40, 40);
-    }
 }
