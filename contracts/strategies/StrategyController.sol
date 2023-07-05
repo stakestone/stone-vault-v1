@@ -99,7 +99,7 @@ contract StrategyController {
         for (uint i = 0; i < strategies.length(); i++) {
             address strategy = strategies.at(i);
             if (ratios[strategy] == 0) {
-                _clearStrategy(strategy);
+                _clearStrategy(strategy, true);
                 continue;
             }
             uint256 newPosition = total.mul(ratios[strategy]).div(
@@ -260,10 +260,16 @@ contract StrategyController {
         require(totalRatio <= ONE_HUNDRED_PERCENT, "exceed 100%");
     }
 
-    function _clearStrategy(address _strategy) internal {
+    function clearStrategy(address _strategy) public onlyVault {
+        _clearStrategy(_strategy, false);
+    }
+
+    function _clearStrategy(address _strategy, bool _isRebase) internal {
         Strategy(_strategy).clear();
 
-        _repayToVault();
+        if (!_isRebase) {
+            _repayToVault();
+        }
     }
 
     function _destoryStrategy(address _strategy) internal {
