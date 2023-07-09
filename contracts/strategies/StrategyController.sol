@@ -77,10 +77,7 @@ contract StrategyController {
         _destoryStrategy(_strategy);
     }
 
-    function _rebase(
-        uint256 _in,
-        uint256 _out
-    ) public returns (uint256[2] memory aaa) {
+    function _rebase(uint256 _in, uint256 _out) internal {
         require(_in == 0 || _out == 0, "only deposit or withdraw");
 
         if (_in > 0) {

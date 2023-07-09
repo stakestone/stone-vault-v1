@@ -11,6 +11,8 @@
   "author": "luoyhang003",
   "license": "MIT",
   "dependencies": {
+    "@layerzerolabs/scan-client": "^0.0.5",
+    "@layerzerolabs/solidity-examples": "^0.0.12",
     "@openzeppelin/contracts": "^4.8.0",
     "@openzeppelin/test-helpers": "^0.5.16",
     "@truffle/hdwallet-provider": "^2.1.6",
