@@ -30,7 +30,7 @@ contract Proposal {
         uint256 deadline;
         uint256 support;
         uint256 oppose;
-        bool executed;
+        uint256 executedTime;
         bytes data;
     }
 
@@ -66,7 +66,7 @@ contract Proposal {
             deadline,
             0,
             0,
-            false,
+            0,
             _data
         );
     }
@@ -129,7 +129,7 @@ contract Proposal {
 
         invoke(stoneVault, detail.data);
 
-        detail.executed = true;
+        detail.executedTime = block.timestamp;
     }
 
     function setProposer(address _proposer) external onlyProposer {
@@ -175,7 +175,7 @@ contract Proposal {
         if (block.timestamp < detail.deadline) {
             return false;
         }
-        if (detail.executed) {
+        if (detail.executedTime > 0) {
             return false;
         }
 
