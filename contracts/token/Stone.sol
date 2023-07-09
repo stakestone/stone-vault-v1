@@ -1,12 +1,19 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.7;
 
-import {ERC20} from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+import "@layerzerolabs/solidity-examples/contracts/token/oft/extension/BasedOFT.sol";
 
-contract Stone is ERC20 {
+import {Minter} from "./Minter.sol";
+
+contract Stone is BasedOFT {
     address public minter;
 
-    constructor(address _minter) ERC20("Stone", "Stone") {
+    uint16 public constant PT_FEED = 1;
+
+    constructor(
+        address _minter,
+        address _layerZeroEndpoint
+    ) BasedOFT("Stone Liquidity Ether Token", "STONE", _layerZeroEndpoint) {
         minter = _minter;
     }
 
@@ -21,5 +28,34 @@ contract Stone is ERC20 {
 
     function burn(address _from, uint256 _amount) external onlyMinter {
         _burn(_from, _amount);
+    }
+
+    function updatePrice(
+        uint16 _dstChainId,
+        bytes memory _toAddress
+    ) public payable returns (uint256 price) {
+        price = tokenPrice();
+
+        bytes memory lzPayload = abi.encode(
+            PT_FEED,
+            _toAddress,
+            price,
+            block.timestamp
+        );
+
+        _lzSend(
+            _dstChainId,
+            lzPayload,
+            payable(msg.sender),
+            address(0),
+            bytes(""),
+            msg.value
+        );
+
+        emit SendToChain(_dstChainId, msg.sender, _toAddress, price);
+    }
+
+    function tokenPrice() public returns (uint256 price) {
+        price = Minter(minter).getTokenPrice();
     }
 }

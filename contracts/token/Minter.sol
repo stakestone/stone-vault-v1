@@ -2,31 +2,32 @@
 pragma solidity 0.8.7;
 
 import {Stone} from "./Stone.sol";
+import {StoneVault} from "../StoneVault.sol";
 
 contract Minter {
-    address public stone;
-
     // TODO: governable upgrade
-    mapping(address => bool) public keepers;
+    address public stone;
+    address payable public vault;
 
-    modifier onlyKeeper() {
-        require(keepers[msg.sender], "not keeper");
+    modifier onlyVault() {
+        require(msg.sender == vault, "not vault");
         _;
     }
 
-    constructor(address _stone, address[] memory _keepers) {
+    constructor(address _stone, address payable _vault) {
         stone = _stone;
-
-        for (uint i = 0; i < _keepers.length; i++) {
-            keepers[_keepers[i]] = true;
-        }
+        vault = _vault;
     }
 
-    function mint(address _to, uint256 _amount) external onlyKeeper {
+    function mint(address _to, uint256 _amount) external onlyVault {
         Stone(stone).mint(_to, _amount);
     }
 
-    function burn(address _from, uint256 _amount) external onlyKeeper {
+    function burn(address _from, uint256 _amount) external onlyVault {
         Stone(stone).burn(_from, _amount);
+    }
+
+    function getTokenPrice() public returns (uint256 price) {
+        price = StoneVault(vault).currentSharePrice();
     }
 }
