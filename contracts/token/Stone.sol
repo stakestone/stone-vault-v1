@@ -10,6 +10,13 @@ contract Stone is BasedOFT {
 
     uint16 public constant PT_FEED = 1;
 
+    event FeedToChain(
+        uint16 indexed dstChainId,
+        address indexed from,
+        bytes toAddress,
+        uint price
+    );
+
     constructor(
         address _minter,
         address _layerZeroEndpoint
@@ -52,7 +59,7 @@ contract Stone is BasedOFT {
             msg.value
         );
 
-        emit SendToChain(_dstChainId, msg.sender, _toAddress, price);
+        emit FeedToChain(_dstChainId, msg.sender, _toAddress, price);
     }
 
     function tokenPrice() public returns (uint256 price) {
