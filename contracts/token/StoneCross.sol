@@ -36,6 +36,7 @@ contract StoneCross is OFT {
             require(time > updatedTime, "stale price");
 
             tokenPrice = price;
+            updatedTime = time;
         } else {
             revert("unknown packet type");
         }

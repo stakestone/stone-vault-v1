@@ -20,6 +20,8 @@ contract Proposal {
 
     uint256 public votePeriod = 7 * 24 * 60 * 60;
 
+    uint256 public minVotePeriod = 24 * 60 * 60;
+
     EnumerableSet.AddressSet private proposals;
     mapping(address => ProposalDetail) public proposalDetails;
 
@@ -139,6 +141,7 @@ contract Proposal {
     }
 
     function setVotePeriod(uint256 _period) external onlyProposer {
+        require(_period >= minVotePeriod, "too short for a proposal");
         votePeriod = _period;
 
         emit SetVotePeriod(_period);
