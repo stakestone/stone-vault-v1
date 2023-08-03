@@ -128,9 +128,9 @@ contract Proposal {
 
         ProposalDetail storage detail = proposalDetails[_proposal];
 
-        invoke(stoneVault, detail.data);
-
         detail.executedTime = block.timestamp;
+
+        invoke(stoneVault, detail.data);
     }
 
     function setProposer(address _proposer) external onlyProposer {
