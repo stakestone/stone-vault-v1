@@ -124,10 +124,9 @@ contract StoneVault is ReentrancyGuard, Ownable {
     }
 
     function depositFor(
-        uint256 _amount,
         address _user
     ) external payable nonReentrant returns (uint256 mintAmount) {
-        mintAmount = _depositFor(_amount, _user);
+        mintAmount = _depositFor(msg.value, _user);
     }
 
     function _depositFor(
