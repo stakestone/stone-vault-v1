@@ -158,7 +158,39 @@ contract BalancerLPAuraStrategy is Strategy {
     }
 
     function clear() public override onlyController returns (uint256 amount) {
-        amount = withdraw(IERC20(AURA_REWARD_POOL).balanceOf(address(this)));
+        uint256 lpOut = IERC20(AURA_REWARD_POOL).balanceOf(address(this));
+
+        IAuraRewardPool rewardPool = IAuraRewardPool(AURA_REWARD_POOL);
+        rewardPool.withdrawAndUnwrap(lpOut, true);
+
+        uint256 lpBalance = IERC20(LP_TOKEN).balanceOf(address(this));
+        TransferHelper.safeApprove(LP_TOKEN, VAULT, lpBalance);
+
+        IBalancerVault.SingleSwap memory singleSwap;
+        singleSwap.poolId = poolId;
+        singleSwap.kind = IBalancerVault.SwapKind.GIVEN_IN;
+        singleSwap.assetIn = LP_TOKEN;
+        singleSwap.assetOut = WSTETH;
+        singleSwap.amount = lpOut;
+
+        IBalancerVault.FundManagement memory fundManagement;
+        fundManagement.sender = address(this);
+        fundManagement.fromInternalBalance = false;
+        fundManagement.recipient = payable(address(this));
+        fundManagement.toInternalBalance = false;
+
+        IBalancerVault(VAULT).swap(
+            singleSwap,
+            fundManagement,
+            lpBalance,
+            block.timestamp
+        );
+
+        uint256 balance = IERC20(WSTETH).balanceOf(address(this));
+        amount = SwappingAggregator(SWAPPING).swap(WSTETH, balance);
+        amount = amount.add(sellAllRewards());
+
+        TransferHelper.safeTransferETH(controller, address(this).balance);
     }
 
     function getAllValue() public override returns (uint256 value) {

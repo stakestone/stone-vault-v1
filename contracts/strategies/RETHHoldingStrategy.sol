@@ -69,9 +69,10 @@ contract RETHHoldingStrategy is Strategy {
         onlyController
         returns (uint256 actualAmount)
     {
-        uint256 amount = IRocketTokenRETH(RETH).balanceOf(address(this));
+        IRocketTokenRETH rETH = IRocketTokenRETH(RETH);
+        uint256 amount = rETH.balanceOf(address(this));
+        rETH.burn(amount);
 
-        _withdraw(amount);
         actualAmount = address(this).balance;
 
         TransferHelper.safeTransferETH(controller, address(this).balance);
