@@ -147,14 +147,21 @@ contract BalancerLPAuraStrategy is Strategy {
 
     function sellAllRewards() internal returns (uint256 actualAmount) {
         uint256 balance = IERC20(BAL_TOKEN).balanceOf(address(this));
-        TransferHelper.safeApprove(BAL_TOKEN, SWAPPING, balance);
-        actualAmount = SwappingAggregator(SWAPPING).swap(BAL_TOKEN, balance);
+        if (balance > 0) {
+            TransferHelper.safeApprove(BAL_TOKEN, SWAPPING, balance);
+            actualAmount = SwappingAggregator(SWAPPING).swap(
+                BAL_TOKEN,
+                balance
+            );
+        }
 
         balance = IERC20(AURA_TOKEN).balanceOf(address(this));
-        TransferHelper.safeApprove(AURA_TOKEN, SWAPPING, balance);
-        actualAmount = actualAmount.add(
-            SwappingAggregator(SWAPPING).swap(BAL_TOKEN, balance)
-        );
+        if (balance > 0) {
+            TransferHelper.safeApprove(AURA_TOKEN, SWAPPING, balance);
+            actualAmount = actualAmount.add(
+                SwappingAggregator(SWAPPING).swap(AURA_TOKEN, balance)
+            );
+        }
     }
 
     function clear() public override onlyController returns (uint256 amount) {
