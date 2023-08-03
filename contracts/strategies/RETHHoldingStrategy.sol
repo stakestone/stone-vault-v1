@@ -60,7 +60,9 @@ contract RETHHoldingStrategy is Strategy {
 
         rETH.burn(rETHAmount);
 
-        TransferHelper.safeTransferETH(controller, address(this).balance);
+        actualAmount = address(this).balance;
+
+        TransferHelper.safeTransferETH(controller, actualAmount);
     }
 
     function clear()
