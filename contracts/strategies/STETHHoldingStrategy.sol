@@ -56,7 +56,7 @@ contract STETHHoldingStrategy is Strategy {
         amounts[0] = _amount;
         uint256[] memory ids = withdrawalQueue.requestWithdrawals(
             amounts,
-            controller
+            address(this)
         );
 
         require(ids.length > 0, "Lido request withdrawal error");
