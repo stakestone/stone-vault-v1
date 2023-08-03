@@ -113,9 +113,8 @@ contract Proposal {
             address addr = proposals.at(i);
             uint256 voteAmount = polls[msg.sender][addr];
 
-            polls[msg.sender][addr] = 0;
-
             if (!canVote(addr) && voteAmount > 0) {
+                polls[msg.sender][addr] = 0;
                 withAmount = withAmount.add(voteAmount);
 
                 emit RetrieveToken(addr, voteAmount);
