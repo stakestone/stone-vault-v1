@@ -81,9 +81,7 @@ contract SFraxETHHoldingStrategy is Strategy {
     }
 
     function getInvestedValue() public override returns (uint256 value) {
-        uint256 max = ISfrxETH(SFRXETH).maxRedeem(address(this));
-
-        (, value) = SwappingAggregator(SWAPPING).getBestRouter(FRXETH, max);
+        value = ISfrxETH(SFRXETH).maxRedeem(address(this));
     }
 
     function getPendingValue() public override returns (uint256 value) {
