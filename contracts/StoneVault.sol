@@ -323,6 +323,8 @@ contract StoneVault is ReentrancyGuard, Ownable {
     }
 
     function rollToNextRound() external {
+        require(block.timestamp > rebaseTime, "already rebased");
+
         StrategyController controller = StrategyController(strategyController);
         AssetsVault aVault = AssetsVault(assetsVault);
 
