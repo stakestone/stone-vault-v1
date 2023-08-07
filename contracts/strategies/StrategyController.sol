@@ -118,7 +118,9 @@ contract StrategyController {
                     true,
                     newPosition.sub(position)
                 );
-                tail > 0 ? tail-- : tail;
+                if (tail > 0) {
+                    tail--;
+                }
             }
         }
 
