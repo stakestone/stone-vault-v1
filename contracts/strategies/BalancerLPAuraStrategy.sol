@@ -81,8 +81,9 @@ contract BalancerLPAuraStrategy is Strategy {
             block.timestamp
         );
 
-        TransferHelper.safeApprove(LP_TOKEN, BOOSTER, lpOut);
-        IBooster(BOOSTER).deposit(auraPoolId, lpOut, true);
+        uint256 lp_balance = IERC20(LP_TOKEN).balanceOf(address(this));
+        TransferHelper.safeApprove(LP_TOKEN, BOOSTER, lp_balance);
+        IBooster(BOOSTER).deposit(auraPoolId, lp_balance, true);
     }
 
     function withdraw(
