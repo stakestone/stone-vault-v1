@@ -90,7 +90,9 @@ contract STETHHoldingStrategy is Strategy {
     }
 
     function getAllValue() public override returns (uint256 value) {
-        value = getInvestedValue().add(getPendingValue());
+        value = getInvestedValue().add(getPendingValue()).add(
+            getClaimableValue()
+        );
     }
 
     function getInvestedValue() public override returns (uint256 value) {
@@ -99,6 +101,10 @@ contract STETHHoldingStrategy is Strategy {
 
     function getPendingValue() public override returns (uint256 value) {
         (, , value) = checkPendingAssets();
+    }
+
+    function getClaimableValue() public returns (uint256 value) {
+        (, value, ) = checkPendingAssets();
     }
 
     function checkPendingStatus()
