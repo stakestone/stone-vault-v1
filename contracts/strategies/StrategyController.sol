@@ -56,7 +56,17 @@ contract StrategyController {
     function forceWithdraw(
         uint256 _amount
     ) external onlyVault returns (uint256 actualAmount) {
-        actualAmount = _forceWithdraw(_amount);
+        uint256 balanceBeforeRepay = address(this).balance;
+
+        if (balanceBeforeRepay >= _amount) {
+            _repayToVault();
+
+            actualAmount = balanceBeforeRepay;
+        } else {
+            actualAmount = _forceWithdraw(_amount.sub(balanceBeforeRepay)).add(
+                balanceBeforeRepay
+            );
+        }
     }
 
     function setStrategies(
