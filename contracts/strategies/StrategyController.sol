@@ -37,6 +37,12 @@ contract StrategyController {
         address[] memory _strategies,
         uint256[] memory _ratios
     ) {
+        require(_assetsVault != address(0), "ZERO ADDRESS");
+
+        for (uint256 i = 0; i < _strategies.length; i++) {
+            require(_strategies[i] != address(0), "ZERO ADDRESS");
+        }
+
         stoneVault = msg.sender;
         assetsVault = _assetsVault;
 

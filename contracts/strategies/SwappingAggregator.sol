@@ -63,7 +63,16 @@ contract SwappingAggregator {
             "invalid length"
         );
 
+        require(_wETH != address(0), "ZERO ADDRESS");
+
         for (uint256 i = 0; i < _tokens.length; i++) {
+            require(
+                _tokens[i] != address(0) &&
+                    _uniPools[i] != address(0) &&
+                    _curvePools[i] != address(0),
+                "ZERO ADDRESS"
+            );
+
             uniV3Pools[_tokens[i]] = _uniPools[i];
             curvePools[_tokens[i]] = _curvePools[i];
             slippage[_tokens[i]] = _slippages[i];

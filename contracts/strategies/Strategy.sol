@@ -22,6 +22,8 @@ abstract contract Strategy {
     event TransferGovernance(address oldOwner, address newOwner);
 
     constructor(address payable _controller, string memory _name) {
+        require(_controller != address(0), "ZERO ADDRESS");
+
         governance = msg.sender;
         controller = _controller;
         name = _name;

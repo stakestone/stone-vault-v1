@@ -96,6 +96,17 @@ contract StoneVault is ReentrancyGuard, Ownable {
         address[] memory _strategies,
         uint256[] memory _ratios
     ) {
+        require(
+            _minter != address(0) &&
+                _proposal != address(0) &&
+                _assetsVault != address(0),
+            "ZERO ADDRESS"
+        );
+
+        for (uint256 i = 0; i < _strategies.length; i++) {
+            require(_strategies[i] != address(0), "ZERO ADDRESS");
+        }
+
         minter = _minter;
         proposal = _proposal;
         assetsVault = _assetsVault;

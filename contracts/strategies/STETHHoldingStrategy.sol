@@ -28,6 +28,13 @@ contract STETHHoldingStrategy is Strategy {
         address _lidoWithdrawalQueue,
         address payable _swap
     ) Strategy(_controller, _name) {
+        require(
+            _stETH != address(0) &&
+                _lidoWithdrawalQueue != address(0) &&
+                _swap != address(0),
+            "ZERO ADDRESS"
+        );
+
         STETH = _stETH;
         LidoWithdrawalQueue = _lidoWithdrawalQueue;
         SWAPPING = _swap;

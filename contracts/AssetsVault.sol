@@ -16,6 +16,10 @@ contract AssetsVault {
     }
 
     constructor(address _stoneVault, address _strategyController) {
+        require(
+            _stoneVault != address(0) && _strategyController != address(0),
+            "ZERO ADDRESS"
+        );
         stoneVault = _stoneVault;
         strategyController = _strategyController;
     }

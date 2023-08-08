@@ -27,6 +27,8 @@ contract SFraxETHHoldingStrategy is Strategy {
         address payable _swap,
         string memory _name
     ) Strategy(_controller, _name) {
+        require(_swap != address(0), "ZERO ADDRESS");
+
         SWAPPING = _swap;
     }
 
