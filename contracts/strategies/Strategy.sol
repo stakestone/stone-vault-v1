@@ -44,8 +44,6 @@ abstract contract Strategy {
 
     function clear() public virtual onlyController returns (uint256 amount) {}
 
-    function destroy() public virtual onlyController {}
-
     function execPendingRequest(
         uint256 _amount
     ) public virtual returns (uint256 amount) {}

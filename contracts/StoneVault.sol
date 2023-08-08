@@ -372,6 +372,12 @@ contract StoneVault is ReentrancyGuard, Ownable {
         controller.addStrategy(_strategy);
     }
 
+    function destroyStrategy(address _strategy) external onlyOwner {
+        StrategyController controller = StrategyController(strategyController);
+
+        controller.destroyStrategy(_strategy);
+    }
+
     function updatePortfolioConfig(
         address[] memory _strategies,
         uint256[] memory _ratios

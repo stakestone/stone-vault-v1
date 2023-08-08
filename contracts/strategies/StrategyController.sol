@@ -274,7 +274,6 @@ contract StrategyController {
     function _destoryStrategy(address _strategy) internal {
         require(_couldDestoryStrategy(_strategy), "still active");
 
-        Strategy(_strategy).destroy();
         strategies.remove(_strategy);
 
         _repayToVault();
