@@ -2,7 +2,6 @@
 pragma solidity 0.8.7;
 
 import {TransferHelper} from "@uniswap/v3-periphery/contracts/libraries/TransferHelper.sol";
-import {SafeMath} from "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 import {Strategy} from "../strategies/Strategy.sol";
@@ -13,8 +12,6 @@ import {ILidoWithdrawalQueue} from "../interfaces/ILidoWithdrawalQueue.sol";
 import {IStableSwap} from "../interfaces/IStableSwap.sol";
 
 contract STETHHoldingStrategy is Strategy {
-    using SafeMath for uint256;
-
     address public immutable STETH;
 
     address payable public immutable SWAPPING;
@@ -97,9 +94,7 @@ contract STETHHoldingStrategy is Strategy {
     }
 
     function getAllValue() public override returns (uint256 value) {
-        value = getInvestedValue().add(getPendingValue()).add(
-            getClaimableValue()
-        );
+        value = getInvestedValue() + getPendingValue() + getClaimableValue();
     }
 
     function getInvestedValue() public override returns (uint256 value) {
@@ -165,9 +160,9 @@ contract STETHHoldingStrategy is Strategy {
             if (status.isFinalized) {
                 ids[j] = allIds[i];
                 j += 1;
-                totalClaimable = totalClaimable.add(status.amountOfStETH);
+                totalClaimable = totalClaimable + status.amountOfStETH;
             } else {
-                totalPending = totalPending.add(status.amountOfStETH);
+                totalPending = totalPending + status.amountOfStETH;
             }
         }
     }

@@ -2,7 +2,6 @@
 pragma solidity 0.8.7;
 
 import {TransferHelper} from "@uniswap/v3-periphery/contracts/libraries/TransferHelper.sol";
-import {SafeMath} from "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 import {IBalancerVault} from "../interfaces/IBalancerVault.sol";
@@ -15,8 +14,6 @@ import {Strategy} from "./Strategy.sol";
 import {SwappingAggregator} from "./SwappingAggregator.sol";
 
 contract BalancerLPAuraStrategy is Strategy {
-    using SafeMath for uint256;
-
     uint256 internal MULTIPLIER = 1e18;
     uint256 internal PERCENTAGE = 1e6;
     uint256 internal SLIPPAGE = 999000;
@@ -143,7 +140,7 @@ contract BalancerLPAuraStrategy is Strategy {
         actualAmount = SwappingAggregator(SWAPPING).swap(WSTETH, balance);
 
         if (!_isInstant) {
-            actualAmount = actualAmount.add(sellAllRewards());
+            actualAmount = actualAmount + sellAllRewards();
         }
         TransferHelper.safeTransferETH(controller, address(this).balance);
     }
@@ -161,9 +158,9 @@ contract BalancerLPAuraStrategy is Strategy {
         balance = IERC20(AURA_TOKEN).balanceOf(address(this));
         if (balance > 0) {
             TransferHelper.safeApprove(AURA_TOKEN, SWAPPING, balance);
-            actualAmount = actualAmount.add(
-                SwappingAggregator(SWAPPING).swap(AURA_TOKEN, balance)
-            );
+            actualAmount =
+                actualAmount +
+                SwappingAggregator(SWAPPING).swap(AURA_TOKEN, balance);
         }
     }
 
@@ -198,21 +195,19 @@ contract BalancerLPAuraStrategy is Strategy {
 
         uint256 balance = IERC20(WSTETH).balanceOf(address(this));
         amount = SwappingAggregator(SWAPPING).swap(WSTETH, balance);
-        amount = amount.add(sellAllRewards());
+        amount = amount + sellAllRewards();
 
         TransferHelper.safeTransferETH(controller, address(this).balance);
     }
 
     function getAllValue() public override returns (uint256 value) {
-        value = getInvestedValue().add(getPendingValue());
+        value = getInvestedValue() + getPendingValue();
     }
 
     function getInvestedValue() public override returns (uint256 value) {
         return
-            IERC20(AURA_REWARD_POOL)
-                .balanceOf(address(this))
-                .mul(getOnchainLpPrice())
-                .div(MULTIPLIER);
+            (IERC20(AURA_REWARD_POOL).balanceOf(address(this)) *
+                getOnchainLpPrice()) / MULTIPLIER;
     }
 
     function getPendingValue() public override returns (uint256 value) {
@@ -235,16 +230,11 @@ contract BalancerLPAuraStrategy is Strategy {
         uint256 _eAmount
     ) internal returns (uint256) {
         return
-            _eAmount.mul(lpPriceByWstETH).mul(PERCENTAGE).div(MULTIPLIER).div(
-                SLIPPAGE
-            );
+            (_eAmount * lpPriceByWstETH * PERCENTAGE) / MULTIPLIER / SLIPPAGE;
     }
 
     function getSwapOutAmount(uint256 _amount) internal returns (uint256) {
-        return
-            _amount.mul(lpPriceByWstETH).mul(SLIPPAGE).div(MULTIPLIER).div(
-                PERCENTAGE
-            );
+        return (_amount * lpPriceByWstETH * SLIPPAGE) / MULTIPLIER / PERCENTAGE;
     }
 
     function setLpPrice(uint256 _price) external onlyGovernance {

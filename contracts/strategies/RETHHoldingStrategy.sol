@@ -2,7 +2,6 @@
 pragma solidity 0.8.7;
 
 import {TransferHelper} from "@uniswap/v3-periphery/contracts/libraries/TransferHelper.sol";
-import {SafeMath} from "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 import {IRocketDepositPool} from "../interfaces/IRocketDepositPool.sol";
@@ -11,8 +10,6 @@ import {IRocketTokenRETH} from "../interfaces/IRocketTokenRETH.sol";
 import {Strategy} from "./Strategy.sol";
 
 contract RETHHoldingStrategy is Strategy {
-    using SafeMath for uint256;
-
     address public immutable ROCKET_DEPOSIT_POOL =
         0xDD3f50F8A6CafbE9b31a427582963f465E745AF8;
 
@@ -81,7 +78,7 @@ contract RETHHoldingStrategy is Strategy {
     }
 
     function getAllValue() public override returns (uint256 value) {
-        value = getInvestedValue().add(getPendingValue());
+        value = getInvestedValue() + getPendingValue();
     }
 
     function getInvestedValue() public override returns (uint256 value) {

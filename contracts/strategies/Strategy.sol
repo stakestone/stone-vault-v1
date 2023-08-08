@@ -1,13 +1,9 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.7;
 
-import {SafeMath} from "@openzeppelin/contracts/utils/math/SafeMath.sol";
-
 import {StrategyController} from "../strategies/StrategyController.sol";
 
 abstract contract Strategy {
-    using SafeMath for uint256;
-
     address payable public immutable controller;
 
     address public governance;

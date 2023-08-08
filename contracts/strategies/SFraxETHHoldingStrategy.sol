@@ -2,7 +2,6 @@
 pragma solidity 0.8.7;
 
 import {TransferHelper} from "@uniswap/v3-periphery/contracts/libraries/TransferHelper.sol";
-import {SafeMath} from "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 import {IFrxETHMinter} from "../interfaces/IFrxETHMinter.sol";
@@ -12,8 +11,6 @@ import {Strategy} from "./Strategy.sol";
 import {SwappingAggregator} from "./SwappingAggregator.sol";
 
 contract SFraxETHHoldingStrategy is Strategy {
-    using SafeMath for uint256;
-
     address public immutable FRXETH =
         0x5E8422345238F34275888049021821E8E08CAa1f;
     address public immutable FRXETH_MINTER =
@@ -79,7 +76,7 @@ contract SFraxETHHoldingStrategy is Strategy {
     }
 
     function getAllValue() public override returns (uint256 value) {
-        value = getInvestedValue().add(getPendingValue());
+        value = getInvestedValue() + getPendingValue();
     }
 
     function getInvestedValue() public override returns (uint256 value) {

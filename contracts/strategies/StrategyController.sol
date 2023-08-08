@@ -2,14 +2,12 @@
 pragma solidity 0.8.7;
 
 import {EnumerableSet} from "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
-import {SafeMath} from "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import {TransferHelper} from "@uniswap/v3-periphery/contracts/libraries/TransferHelper.sol";
 
 import {Strategy} from "./Strategy.sol";
 import {AssetsVault} from "../AssetsVault.sol";
 
 contract StrategyController {
-    using SafeMath for uint256;
     using EnumerableSet for EnumerableSet.AddressSet;
 
     uint256 internal constant ONE_HUNDRED_PERCENT = 1e6;
@@ -63,9 +61,9 @@ contract StrategyController {
 
             actualAmount = balanceBeforeRepay;
         } else {
-            actualAmount = _forceWithdraw(_amount.sub(balanceBeforeRepay)).add(
-                balanceBeforeRepay
-            );
+            actualAmount =
+                _forceWithdraw(_amount - balanceBeforeRepay) +
+                balanceBeforeRepay;
         }
     }
 
@@ -103,7 +101,7 @@ contract StrategyController {
         if (total < _out) {
             total = 0;
         } else {
-            total = total.add(_in).sub(_out);
+            total = total + _in - _out;
         }
 
         StrategyDiff[] memory diffs = new StrategyDiff[](strategies.length());
@@ -115,16 +113,15 @@ contract StrategyController {
                 _clearStrategy(strategy, true);
                 continue;
             }
-            uint256 newPosition = total.mul(ratios[strategy]).div(
-                ONE_HUNDRED_PERCENT
-            );
+            uint256 newPosition = (total * ratios[strategy]) /
+                ONE_HUNDRED_PERCENT;
             uint256 position = getStrategyValidValue(strategy);
 
             if (newPosition < position) {
                 diffs[head] = StrategyDiff(
                     strategy,
                     false,
-                    position.sub(newPosition)
+                    position - newPosition
                 );
                 head++;
             }
@@ -132,7 +129,7 @@ contract StrategyController {
                 diffs[tail] = StrategyDiff(
                     strategy,
                     true,
-                    newPosition.sub(position)
+                    newPosition - position
                 );
                 if (tail > 0) {
                     tail--;
@@ -183,14 +180,13 @@ contract StrategyController {
         for (uint i = 0; i < strategies.length(); i++) {
             address strategy = strategies.at(i);
 
-            uint256 withAmount = _amount.mul(ratios[strategy]).div(
-                ONE_HUNDRED_PERCENT
-            );
+            uint256 withAmount = (_amount * ratios[strategy]) /
+                ONE_HUNDRED_PERCENT;
 
             if (withAmount > 0) {
-                actualAmount = Strategy(strategy)
-                    .instantWithdraw(withAmount)
-                    .add(actualAmount);
+                actualAmount =
+                    Strategy(strategy).instantWithdraw(withAmount) +
+                    actualAmount;
             }
         }
 
@@ -211,13 +207,13 @@ contract StrategyController {
 
     function getAllStrategiesValue() public returns (uint256 _value) {
         for (uint i = 0; i < strategies.length(); i++) {
-            _value = _value.add(getStrategyValue(strategies.at(i)));
+            _value = _value + getStrategyValue(strategies.at(i));
         }
     }
 
     function getAllStrategyValidValue() public returns (uint256 _value) {
         for (uint i = 0; i < strategies.length(); i++) {
-            _value = _value.add(getStrategyValidValue(strategies.at(i)));
+            _value = _value + getStrategyValidValue(strategies.at(i));
         }
     }
 
@@ -248,7 +244,7 @@ contract StrategyController {
         for (uint i = 0; i < _strategies.length; i++) {
             strategies.add(_strategies[i]);
             ratios[_strategies[i]] = _ratios[i];
-            totalRatio = totalRatio.add(_ratios[i]);
+            totalRatio = totalRatio + _ratios[i];
         }
         require(totalRatio <= ONE_HUNDRED_PERCENT, "exceed 100%");
     }
@@ -270,7 +266,7 @@ contract StrategyController {
             );
             strategies.add(_strategies[i]);
             ratios[_strategies[i]] = _ratios[i];
-            totalRatio = totalRatio.add(_ratios[i]);
+            totalRatio = totalRatio + _ratios[i];
         }
         require(totalRatio <= ONE_HUNDRED_PERCENT, "exceed 100%");
     }

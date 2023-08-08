@@ -5,15 +5,12 @@ import {TransferHelper} from "@uniswap/v3-periphery/contracts/libraries/Transfer
 import {ISwapRouter} from "@uniswap/v3-periphery/contracts/interfaces/ISwapRouter.sol";
 import {IQuoter} from "@uniswap/v3-periphery/contracts/interfaces/IQuoter.sol";
 
-import {SafeMath} from "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 import {IStableSwap} from "../interfaces/IStableSwap.sol";
 import {IWETH9} from "../interfaces/IWETH9.sol";
 
 contract SwappingAggregator {
-    using SafeMath for uint256;
-
     uint256 internal constant MULTIPLIER = 1e18;
     uint256 internal constant ONE_HUNDRED_PERCENT = 1e6;
 
@@ -226,7 +223,7 @@ contract SwappingAggregator {
         uint256 _amount,
         uint256 _slippage
     ) internal view returns (uint256 amount) {
-        amount = _amount.mul(_slippage).div(ONE_HUNDRED_PERCENT);
+        amount = (_amount * _slippage) / ONE_HUNDRED_PERCENT;
     }
 
     function setSlippage(
