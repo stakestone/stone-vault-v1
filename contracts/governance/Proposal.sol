@@ -20,7 +20,7 @@ contract Proposal {
 
     uint256 public votePeriod = 7 * 24 * 60 * 60;
 
-    uint256 public minVotePeriod = 24 * 60 * 60;
+    uint256 public constant minVotePeriod = 24 * 60 * 60;
 
     EnumerableSet.AddressSet private proposals;
     mapping(address => ProposalDetail) public proposalDetails;

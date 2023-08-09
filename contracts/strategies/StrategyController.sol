@@ -12,8 +12,8 @@ contract StrategyController {
 
     uint256 internal constant ONE_HUNDRED_PERCENT = 1e6;
 
-    address public stoneVault;
-    address payable public assetsVault;
+    address public immutable stoneVault;
+    address payable public immutable assetsVault;
 
     EnumerableSet.AddressSet private strategies;
 

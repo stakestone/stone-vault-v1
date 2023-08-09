@@ -14,13 +14,13 @@ import {Strategy} from "./Strategy.sol";
 import {SwappingAggregator} from "./SwappingAggregator.sol";
 
 contract BalancerLPAuraStrategy is Strategy {
-    uint256 internal MULTIPLIER = 1e18;
-    uint256 internal PERCENTAGE = 1e6;
+    uint256 internal immutable MULTIPLIER = 1e18;
+    uint256 internal immutable PERCENTAGE = 1e6;
     uint256 internal SLIPPAGE = 999000;
 
-    bytes32 internal poolId =
+    bytes32 internal immutable poolId =
         0x5aee1e99fe86960377de9f88689616916d5dcabe000000000000000000000467;
-    uint256 internal auraPoolId = 50;
+    uint256 internal immutable auraPoolId = 50;
 
     address public immutable WSTETH =
         0x7f39C581F595B53c5cb19bD0b3f8dA6c935E2Ca0;
