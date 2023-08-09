@@ -111,7 +111,7 @@ contract Proposal {
         uint256 withAmount;
 
         uint256 length = proposals.length();
-        for (uint i = 0; i < length; i++) {
+        for (uint i; i < length; i++) {
             address addr = proposals.at(i);
             uint256 voteAmount = polls[msg.sender][addr];
 
@@ -157,7 +157,7 @@ contract Proposal {
 
         addrs = new address[](length);
 
-        for (uint256 i = 0; i < length; i++) {
+        for (uint256 i; i < length; i++) {
             addrs[i] = proposals.at(i);
         }
     }

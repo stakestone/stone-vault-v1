@@ -121,7 +121,7 @@ contract STETHHoldingStrategy is Strategy {
         (uint256[] memory ids, , ) = checkPendingAssets();
 
         uint256 length = ids.length;
-        for (uint256 i = 0; i < length; i++) {
+        for (uint256 i; i < length; i++) {
             if (ids[i] == 0) continue;
             ILidoWithdrawalQueue(LidoWithdrawalQueue).claimWithdrawal(ids[i]);
         }
@@ -151,9 +151,9 @@ contract STETHHoldingStrategy is Strategy {
         ILidoWithdrawalQueue.WithdrawalRequestStatus[] memory statuses = queue
             .getWithdrawalStatus(allIds);
 
-        uint256 j = 0;
+        uint256 j;
         uint256 length = statuses.length;
-        for (uint256 i = 0; i < length; i++) {
+        for (uint256 i; i < length; i++) {
             ILidoWithdrawalQueue.WithdrawalRequestStatus
                 memory status = statuses[i];
             if (status.isClaimed) {

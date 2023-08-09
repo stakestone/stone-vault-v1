@@ -62,7 +62,7 @@ contract SwappingAggregator {
 
         require(_wETH != address(0), "ZERO ADDRESS");
 
-        for (uint256 i = 0; i < length; i++) {
+        for (uint256 i; i < length; i++) {
             require(
                 _tokens[i] != address(0) &&
                     _uniPools[i] != address(0) &&
