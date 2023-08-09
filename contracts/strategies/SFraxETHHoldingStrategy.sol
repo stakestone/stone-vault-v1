@@ -57,10 +57,10 @@ contract SFraxETHHoldingStrategy is Strategy {
 
         ISfrxETH sfrxETH = ISfrxETH(SFRXETH);
 
-        uint256 shares = sfrxETH.convertToShares(_amount) <
-            ISfrxETH(SFRXETH).balanceOf(address(this))
-            ? sfrxETH.convertToShares(_amount)
-            : ISfrxETH(SFRXETH).balanceOf(address(this));
+        uint256 convertedShares = sfrxETH.convertToShares(_amount);
+        uint256 balance = ISfrxETH(SFRXETH).balanceOf(address(this));
+
+        uint256 shares = convertedShares < balance ? convertedShares : balance;
         uint256 assets = sfrxETH.redeem(shares, address(this), address(this));
 
         TransferHelper.safeApprove(FRXETH, SWAPPING, assets);

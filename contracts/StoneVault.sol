@@ -147,13 +147,14 @@ contract StoneVault is ReentrancyGuard, Ownable {
         require(_amount > 0, "too small");
 
         uint256 sharePrice;
+        uint256 currSharePrice = currentSharePrice();
+        uint256 latestSharePrice = roundPricePerShare[latestRoundID - 1];
         if (latestRoundID == 0) {
             sharePrice = MULTIPLIER;
         } else {
-            sharePrice = roundPricePerShare[latestRoundID - 1] >
-                currentSharePrice()
-                ? roundPricePerShare[latestRoundID - 1]
-                : currentSharePrice();
+            sharePrice = latestSharePrice > currSharePrice
+                ? latestSharePrice
+                : currSharePrice;
         }
 
         mintAmount = (_amount * MULTIPLIER) / sharePrice;
@@ -279,14 +280,16 @@ contract StoneVault is ReentrancyGuard, Ownable {
         }
 
         if (_shares > 0) {
+            uint256 latestSharePrice = roundPricePerShare[latestRoundID - 1];
             uint256 sharePrice;
+
             if (latestRoundID == 0) {
                 sharePrice = MULTIPLIER;
             } else {
-                sharePrice = roundPricePerShare[latestRoundID - 1] <
-                    currentSharePrice()
-                    ? roundPricePerShare[latestRoundID - 1]
-                    : currentSharePrice();
+                uint256 currSharePrice = currentSharePrice();
+                sharePrice = latestSharePrice < currSharePrice
+                    ? latestSharePrice
+                    : currSharePrice;
             }
 
             uint256 ethAmount = VaultMath.sharesToAsset(_shares, sharePrice);
