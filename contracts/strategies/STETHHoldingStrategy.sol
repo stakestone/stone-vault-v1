@@ -117,7 +117,7 @@ contract STETHHoldingStrategy is Strategy {
         (, executable, pending) = checkPendingAssets();
     }
 
-    function claimAllPendingAssets() public {
+    function claimAllPendingAssets() external {
         (uint256[] memory ids, , ) = checkPendingAssets();
 
         for (uint256 i = 0; i < ids.length; i++) {
