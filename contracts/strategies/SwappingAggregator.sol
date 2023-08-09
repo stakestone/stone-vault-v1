@@ -87,14 +87,17 @@ contract SwappingAggregator {
     ) external returns (uint256 amount) {
         (DEX_TYPE dex, ) = getBestRouter(_token, _amount);
 
+        uint256 balance;
         if (dex == DEX_TYPE.UNISWAPV3) {
             amount = swapOnUniV3(_token, _amount);
+            balance = address(this).balance;
         } else {
             amount = swapOnCurve(_token, _amount);
+            balance = address(this).balance;
         }
 
-        if (address(this).balance != 0) {
-            TransferHelper.safeTransferETH(msg.sender, address(this).balance);
+        if (balance != 0) {
+            TransferHelper.safeTransferETH(msg.sender, balance);
         }
     }
 
