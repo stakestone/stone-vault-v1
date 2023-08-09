@@ -89,9 +89,7 @@ contract SwappingAggregator {
 
         if (dex == DEX_TYPE.UNISWAPV3) {
             amount = swapOnUniV3(_token, _amount);
-        }
-
-        if (dex == DEX_TYPE.CURVE) {
+        } else {
             amount = swapOnCurve(_token, _amount);
         }
 
