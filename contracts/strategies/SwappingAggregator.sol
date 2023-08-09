@@ -54,15 +54,15 @@ contract SwappingAggregator {
         uint256[] memory _slippages,
         uint24[] memory _fees
     ) {
+        uint256 length = _tokens.length;
         require(
-            _tokens.length == _uniPools.length &&
-                _tokens.length == _curvePools.length,
+            length == _uniPools.length && _tokens.length == _curvePools.length,
             "invalid length"
         );
 
         require(_wETH != address(0), "ZERO ADDRESS");
 
-        for (uint256 i = 0; i < _tokens.length; i++) {
+        for (uint256 i = 0; i < length; i++) {
             require(
                 _tokens[i] != address(0) &&
                     _uniPools[i] != address(0) &&

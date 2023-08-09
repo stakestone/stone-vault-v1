@@ -37,7 +37,8 @@ contract StrategyController {
     ) {
         require(_assetsVault != address(0), "ZERO ADDRESS");
 
-        for (uint256 i = 0; i < _strategies.length; i++) {
+        uint256 length = _strategies.length;
+        for (uint256 i = 0; i < length; i++) {
             require(_strategies[i] != address(0), "ZERO ADDRESS");
         }
 
@@ -104,10 +105,11 @@ contract StrategyController {
             total = total + _in - _out;
         }
 
-        StrategyDiff[] memory diffs = new StrategyDiff[](strategies.length());
+        uint256 length = strategies.length();
+        StrategyDiff[] memory diffs = new StrategyDiff[](length);
         uint256 head = 0;
-        uint256 tail = strategies.length() - 1;
-        for (uint i = 0; i < strategies.length(); i++) {
+        uint256 tail = length - 1;
+        for (uint i = 0; i < length; i++) {
             address strategy = strategies.at(i);
             if (ratios[strategy] == 0) {
                 _clearStrategy(strategy, true);
@@ -136,7 +138,8 @@ contract StrategyController {
             }
         }
 
-        for (uint256 i = 0; i < diffs.length; i++) {
+        length = diffs.length;
+        for (uint256 i = 0; i < length; i++) {
             StrategyDiff memory diff = diffs[i];
 
             if (diff.amount == 0) {
@@ -176,7 +179,8 @@ contract StrategyController {
     function _forceWithdraw(
         uint256 _amount
     ) internal returns (uint256 actualAmount) {
-        for (uint i = 0; i < strategies.length(); i++) {
+        uint256 length = strategies.length();
+        for (uint i = 0; i < length; i++) {
             address strategy = strategies.at(i);
 
             uint256 withAmount = (_amount * ratios[strategy]) /
@@ -205,13 +209,15 @@ contract StrategyController {
     }
 
     function getAllStrategiesValue() public returns (uint256 _value) {
-        for (uint i = 0; i < strategies.length(); i++) {
+        uint256 length = strategies.length();
+        for (uint i = 0; i < length; i++) {
             _value = _value + getStrategyValue(strategies.at(i));
         }
     }
 
     function getAllStrategyValidValue() public returns (uint256 _value) {
-        for (uint i = 0; i < strategies.length(); i++) {
+        uint256 length = strategies.length();
+        for (uint i = 0; i < length; i++) {
             _value = _value + getStrategyValidValue(strategies.at(i));
         }
     }
@@ -240,7 +246,8 @@ contract StrategyController {
         require(_strategies.length == _ratios.length, "invalid length");
 
         uint256 totalRatio;
-        for (uint i = 0; i < _strategies.length; i++) {
+        uint256 length = _strategies.length;
+        for (uint i = 0; i < length; i++) {
             strategies.add(_strategies[i]);
             ratios[_strategies[i]] = _ratios[i];
             totalRatio = totalRatio + _ratios[i];
@@ -252,13 +259,15 @@ contract StrategyController {
         address[] memory _strategies,
         uint256[] memory _ratios
     ) internal {
-        require(_strategies.length == _ratios.length, "invalid length");
+        uint256 length = _strategies.length;
+        require(length == _ratios.length, "invalid length");
 
-        for (uint i = 0; i < strategies.length(); i++) {
+        uint256 oldLength = strategies.length();
+        for (uint i = 0; i < oldLength; i++) {
             ratios[strategies.at(i)] = 0;
         }
         uint256 totalRatio;
-        for (uint i = 0; i < _strategies.length; i++) {
+        for (uint i = 0; i < length; i++) {
             require(
                 Strategy(_strategies[i]).controller() == address(this),
                 "controller mismatch"

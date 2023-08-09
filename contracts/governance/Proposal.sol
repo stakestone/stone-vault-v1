@@ -109,7 +109,9 @@ contract Proposal {
 
     function retrieveAllToken() external {
         uint256 withAmount;
-        for (uint i = 0; i < proposals.length(); i++) {
+
+        uint256 length = proposals.length();
+        for (uint i = 0; i < length; i++) {
             address addr = proposals.at(i);
             uint256 voteAmount = polls[msg.sender][addr];
 

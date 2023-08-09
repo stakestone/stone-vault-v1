@@ -103,7 +103,8 @@ contract StoneVault is ReentrancyGuard, Ownable {
             "ZERO ADDRESS"
         );
 
-        for (uint256 i = 0; i < _strategies.length; i++) {
+        uint256 length = _strategies.length;
+        for (uint256 i = 0; i < length; i++) {
             require(_strategies[i] != address(0), "ZERO ADDRESS");
         }
 
