@@ -97,7 +97,7 @@ contract Proposal {
 
     function retrieveTokenFor(address _proposal) external {
         uint256 voteAmount = polls[msg.sender][_proposal];
-        require(voteAmount > 0, "not vote");
+        require(voteAmount != 0, "not vote");
         require(!canVote(_proposal), "proposal still active");
 
         polls[msg.sender][_proposal] = 0;
@@ -115,7 +115,7 @@ contract Proposal {
             address addr = proposals.at(i);
             uint256 voteAmount = polls[msg.sender][addr];
 
-            if (!canVote(addr) && voteAmount > 0) {
+            if (!canVote(addr) && voteAmount != 0) {
                 polls[msg.sender][addr] = 0;
                 withAmount = withAmount.add(voteAmount);
 
@@ -179,7 +179,7 @@ contract Proposal {
         if (block.timestamp < detail.deadline) {
             return false;
         }
-        if (detail.executedTime > 0) {
+        if (detail.executedTime != 0) {
             return false;
         }
 

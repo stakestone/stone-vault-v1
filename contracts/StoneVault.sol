@@ -145,7 +145,7 @@ contract StoneVault is ReentrancyGuard, Ownable {
         uint256 _amount,
         address _user
     ) internal returns (uint256 mintAmount) {
-        require(_amount > 0, "too small");
+        require(_amount != 0, "too small");
 
         uint256 sharePrice;
         uint256 currSharePrice = currentSharePrice();
@@ -167,8 +167,8 @@ contract StoneVault is ReentrancyGuard, Ownable {
     }
 
     function requestWithdraw(uint256 _shares) external nonReentrant {
-        require(_shares > 0, "too small");
-        require(latestRoundID > 0, "should withdraw instantly");
+        require(_shares != 0, "too small");
+        require(latestRoundID != 0, "should withdraw instantly");
         Stone stoneToken = Stone(stone);
         Minter stoneMinter = Minter(minter);
 
@@ -213,7 +213,7 @@ contract StoneVault is ReentrancyGuard, Ownable {
     }
 
     function cancelWithdraw(uint256 _shares) external nonReentrant {
-        require(_shares > 0, "too small");
+        require(_shares != 0, "too small");
 
         UserReceipt storage receipt = userReceipts[msg.sender];
         require(receipt.withdrawRound == latestRoundID, "no pending withdraw");
@@ -236,14 +236,14 @@ contract StoneVault is ReentrancyGuard, Ownable {
         uint256 _amount,
         uint256 _shares
     ) external nonReentrant returns (uint256 actualWithdrawn) {
-        require(_amount > 0 || _shares > 0, "too small");
+        require(_amount != 0 || _shares != 0, "too small");
 
         AssetsVault aVault = AssetsVault(assetsVault);
         Minter stoneMinter = Minter(minter);
 
         (uint256 idleAmount, ) = getVaultAvailableAmount();
 
-        if (_amount > 0) {
+        if (_amount != 0) {
             UserReceipt storage receipt = userReceipts[msg.sender];
 
             if (
@@ -280,7 +280,7 @@ contract StoneVault is ReentrancyGuard, Ownable {
             emit Withdrawn(msg.sender, _amount, latestRoundID);
         }
 
-        if (_shares > 0) {
+        if (_shares != 0) {
             uint256 latestSharePrice = roundPricePerShare[latestRoundID - 1];
             uint256 sharePrice;
 
@@ -324,7 +324,7 @@ contract StoneVault is ReentrancyGuard, Ownable {
         require(aVault.getBalance() >= actualWithdrawn, "still need wait");
 
         uint256 withFee;
-        if (withdrawFeeRate > 0) {
+        if (withdrawFeeRate != 0) {
             withFee = (actualWithdrawn * withdrawFeeRate) / ONE_HUNDRED_PERCENT;
             aVault.withdraw(feeRecipient, withFee);
 

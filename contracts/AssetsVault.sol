@@ -25,7 +25,7 @@ contract AssetsVault {
     }
 
     function deposit() external payable {
-        require(msg.value > 0, "too small");
+        require(msg.value != 0, "too small");
     }
 
     function withdraw(address _to, uint256 _amount) external onlyPermit {

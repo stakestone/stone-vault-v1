@@ -95,7 +95,7 @@ contract StrategyController {
     function _rebase(uint256 _in, uint256 _out) internal {
         require(_in == 0 || _out == 0, "only deposit or withdraw");
 
-        if (_in > 0) {
+        if (_in != 0) {
             AssetsVault(assetsVault).withdraw(address(this), _in);
         }
         uint256 total = getAllStrategyValidValue();
@@ -132,7 +132,7 @@ contract StrategyController {
                     true,
                     newPosition - position
                 );
-                if (tail > 0) {
+                if (tail != 0) {
                     tail--;
                 }
             }
@@ -160,7 +160,7 @@ contract StrategyController {
     }
 
     function _repayToVault() internal {
-        if (address(this).balance > 0) {
+        if (address(this).balance != 0) {
             TransferHelper.safeTransferETH(assetsVault, address(this).balance);
         }
     }
@@ -186,7 +186,7 @@ contract StrategyController {
             uint256 withAmount = (_amount * ratios[strategy]) /
                 ONE_HUNDRED_PERCENT;
 
-            if (withAmount > 0) {
+            if (withAmount != 0) {
                 actualAmount =
                     Strategy(strategy).instantWithdraw(withAmount) +
                     actualAmount;

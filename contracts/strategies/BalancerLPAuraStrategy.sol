@@ -52,7 +52,7 @@ contract BalancerLPAuraStrategy is Strategy {
 
     function deposit() public payable override onlyController {
         uint256 amount = msg.value;
-        require(amount > 0, "zero value");
+        require(amount != 0, "zero value");
 
         TransferHelper.safeTransferETH(WSTETH, amount);
 
@@ -101,7 +101,7 @@ contract BalancerLPAuraStrategy is Strategy {
         uint256 _amount,
         bool _isInstant
     ) internal returns (uint256 actualAmount) {
-        require(_amount > 0, "zero value");
+        require(_amount != 0, "zero value");
 
         uint256 wstETHOut = IWstETH(WSTETH).getWstETHByStETH(_amount);
         uint256 lpOut = getWithdrawLPOutAmount(wstETHOut);
@@ -147,7 +147,7 @@ contract BalancerLPAuraStrategy is Strategy {
 
     function sellAllRewards() internal returns (uint256 actualAmount) {
         uint256 balance = IERC20(BAL_TOKEN).balanceOf(address(this));
-        if (balance > 0) {
+        if (balance != 0) {
             TransferHelper.safeApprove(BAL_TOKEN, SWAPPING, balance);
             actualAmount = SwappingAggregator(SWAPPING).swap(
                 BAL_TOKEN,
@@ -156,7 +156,7 @@ contract BalancerLPAuraStrategy is Strategy {
         }
 
         balance = IERC20(AURA_TOKEN).balanceOf(address(this));
-        if (balance > 0) {
+        if (balance != 0) {
             TransferHelper.safeApprove(AURA_TOKEN, SWAPPING, balance);
             actualAmount =
                 actualAmount +

@@ -39,7 +39,7 @@ contract STETHHoldingStrategy is Strategy {
 
     function deposit() public payable override onlyController {
         uint256 amount = msg.value;
-        require(amount > 0, "zero value");
+        require(amount != 0, "zero value");
 
         ILido(STETH).submit{value: amount}(address(0));
     }
@@ -47,7 +47,7 @@ contract STETHHoldingStrategy is Strategy {
     function withdraw(
         uint256 _amount
     ) public override onlyController returns (uint256 actualAmount) {
-        require(_amount > 0, "zero value");
+        require(_amount != 0, "zero value");
 
         ILido lido = ILido(STETH);
         ILidoWithdrawalQueue withdrawalQueue = ILidoWithdrawalQueue(
@@ -63,7 +63,7 @@ contract STETHHoldingStrategy is Strategy {
             address(this)
         );
 
-        require(ids.length > 0, "Lido request withdrawal error");
+        require(ids.length != 0, "Lido request withdrawal error");
 
         actualAmount = _amount;
 

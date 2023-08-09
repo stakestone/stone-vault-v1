@@ -31,7 +31,7 @@ contract SFraxETHHoldingStrategy is Strategy {
 
     function deposit() public payable override onlyController {
         uint256 amount = msg.value;
-        require(amount > 0, "zero value");
+        require(amount != 0, "zero value");
 
         IFrxETHMinter(FRXETH_MINTER).submitAndDeposit{value: amount}(
             address(this)
@@ -53,7 +53,7 @@ contract SFraxETHHoldingStrategy is Strategy {
     function _withdraw(
         uint256 _amount
     ) internal returns (uint256 actualAmount) {
-        require(_amount > 0, "zero value");
+        require(_amount != 0, "zero value");
 
         ISfrxETH sfrxETH = ISfrxETH(SFRXETH);
 

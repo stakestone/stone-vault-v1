@@ -22,7 +22,7 @@ contract RETHHoldingStrategy is Strategy {
 
     function deposit() public payable override onlyController {
         uint256 amount = msg.value;
-        require(amount > 0, "zero value");
+        require(amount != 0, "zero value");
 
         IRocketDepositPool pool = IRocketDepositPool(ROCKET_DEPOSIT_POOL);
         uint256 max = pool.getMaximumDepositAmount();
@@ -46,7 +46,7 @@ contract RETHHoldingStrategy is Strategy {
     function _withdraw(
         uint256 _amount
     ) internal returns (uint256 actualAmount) {
-        require(_amount > 0, "zero value");
+        require(_amount != 0, "zero value");
 
         IRocketTokenRETH rETH = IRocketTokenRETH(RETH);
 

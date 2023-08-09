@@ -95,7 +95,7 @@ contract SwappingAggregator {
             amount = swapOnCurve(_token, _amount);
         }
 
-        if (address(this).balance > 0) {
+        if (address(this).balance != 0) {
             TransferHelper.safeTransferETH(msg.sender, address(this).balance);
         }
     }
