@@ -2,7 +2,6 @@
 pragma solidity 0.8.21;
 
 import {TransferHelper} from "@uniswap/v3-periphery/contracts/libraries/TransferHelper.sol";
-import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 import {IRocketDepositPool} from "../interfaces/IRocketDepositPool.sol";
 import {IRocketTokenRETH} from "../interfaces/IRocketTokenRETH.sol";
