@@ -3,10 +3,6 @@ pragma solidity 0.8.7;
 
 library VaultMath {
     uint256 internal constant DECIMALS = 18;
-    uint256 internal constant MULTIPLIER = 1e18;
-    uint256 internal constant PERCENTAGE = 1e6;
-    uint256 internal constant DAYS_IN_YEAR = 365;
-    uint256 internal constant SECONDS_IN_YEAR = 365 * 24 * 60 * 60;
 
     function assetToShares(
         uint256 _assetAmount,
