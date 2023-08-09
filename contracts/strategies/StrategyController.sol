@@ -284,14 +284,14 @@ contract StrategyController {
     }
 
     function _destoryStrategy(address _strategy) internal {
-        require(_couldDestoryStrategy(_strategy), "still active");
+        require(_couldDestroyStrategy(_strategy), "still active");
 
         strategies.remove(_strategy);
 
         _repayToVault();
     }
 
-    function _couldDestoryStrategy(
+    function _couldDestroyStrategy(
         address _strategy
     ) internal returns (bool status) {
         return ratios[_strategy] == 0 && Strategy(_strategy).getAllValue() == 0;
