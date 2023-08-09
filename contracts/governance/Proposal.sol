@@ -130,7 +130,7 @@ contract Proposal {
 
         detail.executedTime = block.timestamp;
 
-        invoke(stoneVault, detail.data);
+        invoke(detail.data);
     }
 
     function setProposer(address _proposer) external onlyProposer {
@@ -184,12 +184,9 @@ contract Proposal {
         return detail.support > detail.oppose ? true : false;
     }
 
-    function invoke(
-        address target,
-        bytes memory data
-    ) internal returns (bytes memory result) {
+    function invoke(bytes memory data) internal returns (bytes memory result) {
         bool success;
-        (success, result) = target.call{value: 0}(data);
+        (success, result) = stoneVault.call{value: 0}(data);
         if (!success) {
             // solhint-disable-next-line no-inline-assembly
             assembly {
@@ -197,6 +194,6 @@ contract Proposal {
                 revert(0, returndatasize())
             }
         }
-        emit Invoked(target, data);
+        emit Invoked(stoneVault, data);
     }
 }
