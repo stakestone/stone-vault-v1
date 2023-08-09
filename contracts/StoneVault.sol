@@ -77,6 +77,9 @@ contract StoneVault is ReentrancyGuard, Ownable {
         uint256 vaultOut,
         uint256 sharePrice
     );
+    event StragetyAdded(address strategy);
+    event StragetyDestroyed(address strategy);
+    event PortfolioConfigUpdated(address[] strategies, uint256[] ratios);
     event FeeCharged(address indexed account, uint256 amount);
     event SetWithdrawFeeRate(uint256 oldRate, uint256 newRate);
     event SetFeeRecipient(address oldAddr, address newAddr);
@@ -370,12 +373,14 @@ contract StoneVault is ReentrancyGuard, Ownable {
         StrategyController controller = StrategyController(strategyController);
 
         controller.addStrategy(_strategy);
+        emit StragetyAdded(_strategy);
     }
 
     function destroyStrategy(address _strategy) external onlyOwner {
         StrategyController controller = StrategyController(strategyController);
 
         controller.destroyStrategy(_strategy);
+        emit StragetyDestroyed(_strategy);
     }
 
     function updatePortfolioConfig(
@@ -385,6 +390,8 @@ contract StoneVault is ReentrancyGuard, Ownable {
         StrategyController controller = StrategyController(strategyController);
 
         controller.setStrategies(_strategies, _ratios);
+
+        emit PortfolioConfigUpdated(_strategies, _ratios);
     }
 
     function currentSharePrice() public returns (uint256 price) {
