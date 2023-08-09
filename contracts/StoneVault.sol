@@ -344,9 +344,7 @@ contract StoneVault is ReentrancyGuard, Ownable {
 
         if (vaultBalance > amountVaultNeed) {
             vaultIn = vaultBalance - amountVaultNeed;
-        }
-
-        if (vaultBalance < amountVaultNeed) {
+        } else if (vaultBalance < amountVaultNeed) {
             vaultOut = amountVaultNeed - vaultBalance;
         }
 

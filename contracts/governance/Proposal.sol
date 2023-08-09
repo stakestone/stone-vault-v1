@@ -181,7 +181,7 @@ contract Proposal {
             return false;
         }
 
-        return detail.support > detail.oppose ? true : false;
+        return detail.support > detail.oppose;
     }
 
     function invoke(bytes memory data) internal returns (bytes memory result) {

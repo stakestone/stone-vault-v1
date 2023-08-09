@@ -124,8 +124,7 @@ contract StrategyController {
                     position - newPosition
                 );
                 head++;
-            }
-            if (newPosition > position) {
+            } else if (newPosition > position) {
                 diffs[tail] = StrategyDiff(
                     strategy,
                     true,
