@@ -1,21 +1,19 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.7;
+pragma solidity 0.8.21;
 
 import {EnumerableSet} from "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
-import {SafeMath} from "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import {TransferHelper} from "@uniswap/v3-periphery/contracts/libraries/TransferHelper.sol";
 
 import {Strategy} from "./Strategy.sol";
 import {AssetsVault} from "../AssetsVault.sol";
 
 contract StrategyController {
-    using SafeMath for uint256;
     using EnumerableSet for EnumerableSet.AddressSet;
 
     uint256 internal constant ONE_HUNDRED_PERCENT = 1e6;
 
-    address public stoneVault;
-    address payable public assetsVault;
+    address public immutable stoneVault;
+    address payable public immutable assetsVault;
 
     EnumerableSet.AddressSet private strategies;
 
@@ -37,6 +35,13 @@ contract StrategyController {
         address[] memory _strategies,
         uint256[] memory _ratios
     ) {
+        require(_assetsVault != address(0), "ZERO ADDRESS");
+
+        uint256 length = _strategies.length;
+        for (uint256 i; i < length; i++) {
+            require(_strategies[i] != address(0), "ZERO ADDRESS");
+        }
+
         stoneVault = msg.sender;
         assetsVault = _assetsVault;
 
@@ -50,7 +55,17 @@ contract StrategyController {
     function forceWithdraw(
         uint256 _amount
     ) external onlyVault returns (uint256 actualAmount) {
-        actualAmount = _forceWithdraw(_amount);
+        uint256 balanceBeforeRepay = address(this).balance;
+
+        if (balanceBeforeRepay >= _amount) {
+            _repayToVault();
+
+            actualAmount = balanceBeforeRepay;
+        } else {
+            actualAmount =
+                _forceWithdraw(_amount - balanceBeforeRepay) +
+                balanceBeforeRepay;
+        }
     }
 
     function setStrategies(
@@ -80,49 +95,51 @@ contract StrategyController {
     function _rebase(uint256 _in, uint256 _out) internal {
         require(_in == 0 || _out == 0, "only deposit or withdraw");
 
-        if (_in > 0) {
+        if (_in != 0) {
             AssetsVault(assetsVault).withdraw(address(this), _in);
         }
         uint256 total = getAllStrategyValidValue();
         if (total < _out) {
             total = 0;
         } else {
-            total = total.add(_in).sub(_out);
+            total = total + _in - _out;
         }
 
-        StrategyDiff[] memory diffs = new StrategyDiff[](strategies.length());
-        uint256 head = 0;
-        uint256 tail = strategies.length() - 1;
-        for (uint i = 0; i < strategies.length(); i++) {
+        uint256 length = strategies.length();
+        StrategyDiff[] memory diffs = new StrategyDiff[](length);
+        uint256 head;
+        uint256 tail = length - 1;
+        for (uint i; i < length; i++) {
             address strategy = strategies.at(i);
             if (ratios[strategy] == 0) {
                 _clearStrategy(strategy, true);
                 continue;
             }
-            uint256 newPosition = total.mul(ratios[strategy]).div(
-                ONE_HUNDRED_PERCENT
-            );
+            uint256 newPosition = (total * ratios[strategy]) /
+                ONE_HUNDRED_PERCENT;
             uint256 position = getStrategyValidValue(strategy);
 
             if (newPosition < position) {
                 diffs[head] = StrategyDiff(
                     strategy,
                     false,
-                    position.sub(newPosition)
+                    position - newPosition
                 );
                 head++;
-            }
-            if (newPosition > position) {
+            } else if (newPosition > position) {
                 diffs[tail] = StrategyDiff(
                     strategy,
                     true,
-                    newPosition.sub(position)
+                    newPosition - position
                 );
-                tail > 0 ? tail-- : tail;
+                if (tail != 0) {
+                    tail--;
+                }
             }
         }
 
-        for (uint256 i = 0; i < diffs.length; i++) {
+        length = diffs.length;
+        for (uint256 i; i < length; i++) {
             StrategyDiff memory diff = diffs[i];
 
             if (diff.amount == 0) {
@@ -143,7 +160,7 @@ contract StrategyController {
     }
 
     function _repayToVault() internal {
-        if (address(this).balance > 0) {
+        if (address(this).balance != 0) {
             TransferHelper.safeTransferETH(assetsVault, address(this).balance);
         }
     }
@@ -162,17 +179,17 @@ contract StrategyController {
     function _forceWithdraw(
         uint256 _amount
     ) internal returns (uint256 actualAmount) {
-        for (uint i = 0; i < strategies.length(); i++) {
+        uint256 length = strategies.length();
+        for (uint i; i < length; i++) {
             address strategy = strategies.at(i);
 
-            uint256 withAmount = _amount.mul(ratios[strategy]).div(
-                ONE_HUNDRED_PERCENT
-            );
+            uint256 withAmount = (_amount * ratios[strategy]) /
+                ONE_HUNDRED_PERCENT;
 
-            if (withAmount > 0) {
-                actualAmount = Strategy(strategy)
-                    .instantWithdraw(withAmount)
-                    .add(actualAmount);
+            if (withAmount != 0) {
+                actualAmount =
+                    Strategy(strategy).instantWithdraw(withAmount) +
+                    actualAmount;
             }
         }
 
@@ -192,14 +209,16 @@ contract StrategyController {
     }
 
     function getAllStrategiesValue() public returns (uint256 _value) {
-        for (uint i = 0; i < strategies.length(); i++) {
-            _value = _value.add(getStrategyValue(strategies.at(i)));
+        uint256 length = strategies.length();
+        for (uint i; i < length; i++) {
+            _value = _value + getStrategyValue(strategies.at(i));
         }
     }
 
     function getAllStrategyValidValue() public returns (uint256 _value) {
-        for (uint i = 0; i < strategies.length(); i++) {
-            _value = _value.add(getStrategyValidValue(strategies.at(i)));
+        uint256 length = strategies.length();
+        for (uint i; i < length; i++) {
+            _value = _value + getStrategyValidValue(strategies.at(i));
         }
     }
 
@@ -213,7 +232,7 @@ contract StrategyController {
         addrs = new address[](length);
         portions = new uint256[](length);
 
-        for (uint256 i = 0; i < length; i++) {
+        for (uint256 i; i < length; i++) {
             address addr = strategies.at(i);
             addrs[i] = addr;
             portions[i] = ratios[addr];
@@ -227,10 +246,11 @@ contract StrategyController {
         require(_strategies.length == _ratios.length, "invalid length");
 
         uint256 totalRatio;
-        for (uint i = 0; i < _strategies.length; i++) {
+        uint256 length = _strategies.length;
+        for (uint i; i < length; i++) {
             strategies.add(_strategies[i]);
             ratios[_strategies[i]] = _ratios[i];
-            totalRatio = totalRatio.add(_ratios[i]);
+            totalRatio = totalRatio + _ratios[i];
         }
         require(totalRatio <= ONE_HUNDRED_PERCENT, "exceed 100%");
     }
@@ -239,20 +259,22 @@ contract StrategyController {
         address[] memory _strategies,
         uint256[] memory _ratios
     ) internal {
-        require(_strategies.length == _ratios.length, "invalid length");
+        uint256 length = _strategies.length;
+        require(length == _ratios.length, "invalid length");
 
-        for (uint i = 0; i < strategies.length(); i++) {
+        uint256 oldLength = strategies.length();
+        for (uint i; i < oldLength; i++) {
             ratios[strategies.at(i)] = 0;
         }
         uint256 totalRatio;
-        for (uint i = 0; i < _strategies.length; i++) {
+        for (uint i; i < length; i++) {
             require(
                 Strategy(_strategies[i]).controller() == address(this),
                 "controller mismatch"
             );
             strategies.add(_strategies[i]);
             ratios[_strategies[i]] = _ratios[i];
-            totalRatio = totalRatio.add(_ratios[i]);
+            totalRatio = totalRatio + _ratios[i];
         }
         require(totalRatio <= ONE_HUNDRED_PERCENT, "exceed 100%");
     }
@@ -270,15 +292,14 @@ contract StrategyController {
     }
 
     function _destoryStrategy(address _strategy) internal {
-        require(_couldDestoryStrategy(_strategy), "still active");
+        require(_couldDestroyStrategy(_strategy), "still active");
 
-        Strategy(_strategy).destroy();
         strategies.remove(_strategy);
 
         _repayToVault();
     }
 
-    function _couldDestoryStrategy(
+    function _couldDestroyStrategy(
         address _strategy
     ) internal returns (bool status) {
         return ratios[_strategy] == 0 && Strategy(_strategy).getAllValue() == 0;

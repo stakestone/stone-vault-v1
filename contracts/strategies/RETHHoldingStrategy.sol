@@ -1,9 +1,7 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.7;
+pragma solidity 0.8.21;
 
 import {TransferHelper} from "@uniswap/v3-periphery/contracts/libraries/TransferHelper.sol";
-import {SafeMath} from "@openzeppelin/contracts/utils/math/SafeMath.sol";
-import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 import {IRocketDepositPool} from "../interfaces/IRocketDepositPool.sol";
 import {IRocketTokenRETH} from "../interfaces/IRocketTokenRETH.sol";
@@ -11,8 +9,6 @@ import {IRocketTokenRETH} from "../interfaces/IRocketTokenRETH.sol";
 import {Strategy} from "./Strategy.sol";
 
 contract RETHHoldingStrategy is Strategy {
-    using SafeMath for uint256;
-
     address public immutable ROCKET_DEPOSIT_POOL =
         0xDD3f50F8A6CafbE9b31a427582963f465E745AF8;
 
@@ -25,7 +21,7 @@ contract RETHHoldingStrategy is Strategy {
 
     function deposit() public payable override onlyController {
         uint256 amount = msg.value;
-        require(amount > 0, "zero value");
+        require(amount != 0, "zero value");
 
         IRocketDepositPool pool = IRocketDepositPool(ROCKET_DEPOSIT_POOL);
         uint256 max = pool.getMaximumDepositAmount();
@@ -49,7 +45,7 @@ contract RETHHoldingStrategy is Strategy {
     function _withdraw(
         uint256 _amount
     ) internal returns (uint256 actualAmount) {
-        require(_amount > 0, "zero value");
+        require(_amount != 0, "zero value");
 
         IRocketTokenRETH rETH = IRocketTokenRETH(RETH);
 
@@ -60,7 +56,9 @@ contract RETHHoldingStrategy is Strategy {
 
         rETH.burn(rETHAmount);
 
-        TransferHelper.safeTransferETH(controller, address(this).balance);
+        actualAmount = address(this).balance;
+
+        TransferHelper.safeTransferETH(controller, actualAmount);
     }
 
     function clear()
@@ -69,16 +67,17 @@ contract RETHHoldingStrategy is Strategy {
         onlyController
         returns (uint256 actualAmount)
     {
-        uint256 amount = IRocketTokenRETH(RETH).balanceOf(address(this));
+        IRocketTokenRETH rETH = IRocketTokenRETH(RETH);
+        uint256 amount = rETH.balanceOf(address(this));
+        rETH.burn(amount);
 
-        _withdraw(amount);
         actualAmount = address(this).balance;
 
         TransferHelper.safeTransferETH(controller, address(this).balance);
     }
 
     function getAllValue() public override returns (uint256 value) {
-        value = getInvestedValue().add(getPendingValue());
+        value = getInvestedValue() + getPendingValue();
     }
 
     function getInvestedValue() public override returns (uint256 value) {

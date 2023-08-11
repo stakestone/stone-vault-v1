@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.7;
+pragma solidity 0.8.21;
 
 interface IStableSwap {
     function lp_token() external view returns (address);

@@ -1,8 +1,7 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.7;
+pragma solidity 0.8.21;
 
 import {TransferHelper} from "@uniswap/v3-periphery/contracts/libraries/TransferHelper.sol";
-import {SafeMath} from "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 import {IBalancerVault} from "../interfaces/IBalancerVault.sol";
@@ -15,15 +14,13 @@ import {Strategy} from "./Strategy.sol";
 import {SwappingAggregator} from "./SwappingAggregator.sol";
 
 contract BalancerLPAuraStrategy is Strategy {
-    using SafeMath for uint256;
-
-    uint256 internal MULTIPLIER = 1e18;
-    uint256 internal PERCENTAGE = 1e6;
+    uint256 internal immutable MULTIPLIER = 1e18;
+    uint256 internal immutable PERCENTAGE = 1e6;
     uint256 internal SLIPPAGE = 999000;
 
-    bytes32 internal poolId =
+    bytes32 internal immutable poolId =
         0x5aee1e99fe86960377de9f88689616916d5dcabe000000000000000000000467;
-    uint256 internal auraPoolId = 50;
+    uint256 internal immutable auraPoolId = 50;
 
     address public immutable WSTETH =
         0x7f39C581F595B53c5cb19bD0b3f8dA6c935E2Ca0;
@@ -48,12 +45,14 @@ contract BalancerLPAuraStrategy is Strategy {
         address payable _swap,
         string memory _name
     ) Strategy(_controller, _name) {
+        require(_swap != address(0), "ZERO ADDRESS");
+
         SWAPPING = _swap;
     }
 
     function deposit() public payable override onlyController {
         uint256 amount = msg.value;
-        require(amount > 0, "zero value");
+        require(amount != 0, "zero value");
 
         TransferHelper.safeTransferETH(WSTETH, amount);
 
@@ -81,8 +80,9 @@ contract BalancerLPAuraStrategy is Strategy {
             block.timestamp
         );
 
-        TransferHelper.safeApprove(LP_TOKEN, BOOSTER, lpOut);
-        IBooster(BOOSTER).deposit(auraPoolId, lpOut, true);
+        uint256 lp_balance = IERC20(LP_TOKEN).balanceOf(address(this));
+        TransferHelper.safeApprove(LP_TOKEN, BOOSTER, lp_balance);
+        IBooster(BOOSTER).deposit(auraPoolId, lp_balance, true);
     }
 
     function withdraw(
@@ -101,7 +101,7 @@ contract BalancerLPAuraStrategy is Strategy {
         uint256 _amount,
         bool _isInstant
     ) internal returns (uint256 actualAmount) {
-        require(_amount > 0, "zero value");
+        require(_amount != 0, "zero value");
 
         uint256 wstETHOut = IWstETH(WSTETH).getWstETHByStETH(_amount);
         uint256 lpOut = getWithdrawLPOutAmount(wstETHOut);
@@ -140,37 +140,74 @@ contract BalancerLPAuraStrategy is Strategy {
         actualAmount = SwappingAggregator(SWAPPING).swap(WSTETH, balance);
 
         if (!_isInstant) {
-            actualAmount = actualAmount.add(sellAllRewards());
+            actualAmount = actualAmount + sellAllRewards();
         }
         TransferHelper.safeTransferETH(controller, address(this).balance);
     }
 
     function sellAllRewards() internal returns (uint256 actualAmount) {
         uint256 balance = IERC20(BAL_TOKEN).balanceOf(address(this));
-        TransferHelper.safeApprove(BAL_TOKEN, SWAPPING, balance);
-        actualAmount = SwappingAggregator(SWAPPING).swap(BAL_TOKEN, balance);
+        if (balance != 0) {
+            TransferHelper.safeApprove(BAL_TOKEN, SWAPPING, balance);
+            actualAmount = SwappingAggregator(SWAPPING).swap(
+                BAL_TOKEN,
+                balance
+            );
+        }
 
         balance = IERC20(AURA_TOKEN).balanceOf(address(this));
-        TransferHelper.safeApprove(AURA_TOKEN, SWAPPING, balance);
-        actualAmount = actualAmount.add(
-            SwappingAggregator(SWAPPING).swap(BAL_TOKEN, balance)
-        );
+        if (balance != 0) {
+            TransferHelper.safeApprove(AURA_TOKEN, SWAPPING, balance);
+            actualAmount =
+                actualAmount +
+                SwappingAggregator(SWAPPING).swap(AURA_TOKEN, balance);
+        }
     }
 
     function clear() public override onlyController returns (uint256 amount) {
-        amount = withdraw(IERC20(AURA_REWARD_POOL).balanceOf(address(this)));
+        uint256 lpOut = IERC20(AURA_REWARD_POOL).balanceOf(address(this));
+
+        IAuraRewardPool rewardPool = IAuraRewardPool(AURA_REWARD_POOL);
+        rewardPool.withdrawAndUnwrap(lpOut, true);
+
+        uint256 lpBalance = IERC20(LP_TOKEN).balanceOf(address(this));
+        TransferHelper.safeApprove(LP_TOKEN, VAULT, lpBalance);
+
+        IBalancerVault.SingleSwap memory singleSwap;
+        singleSwap.poolId = poolId;
+        singleSwap.kind = IBalancerVault.SwapKind.GIVEN_IN;
+        singleSwap.assetIn = LP_TOKEN;
+        singleSwap.assetOut = WSTETH;
+        singleSwap.amount = lpOut;
+
+        IBalancerVault.FundManagement memory fundManagement;
+        fundManagement.sender = address(this);
+        fundManagement.fromInternalBalance = false;
+        fundManagement.recipient = payable(address(this));
+        fundManagement.toInternalBalance = false;
+
+        IBalancerVault(VAULT).swap(
+            singleSwap,
+            fundManagement,
+            lpBalance,
+            block.timestamp
+        );
+
+        uint256 balance = IERC20(WSTETH).balanceOf(address(this));
+        amount = SwappingAggregator(SWAPPING).swap(WSTETH, balance);
+        amount = amount + sellAllRewards();
+
+        TransferHelper.safeTransferETH(controller, address(this).balance);
     }
 
     function getAllValue() public override returns (uint256 value) {
-        value = getInvestedValue().add(getPendingValue());
+        value = getInvestedValue() + getPendingValue();
     }
 
     function getInvestedValue() public override returns (uint256 value) {
         return
-            IERC20(AURA_REWARD_POOL)
-                .balanceOf(address(this))
-                .mul(getOnchainLpPrice())
-                .div(MULTIPLIER);
+            (IERC20(AURA_REWARD_POOL).balanceOf(address(this)) *
+                getOnchainLpPrice()) / MULTIPLIER;
     }
 
     function getPendingValue() public override returns (uint256 value) {
@@ -193,16 +230,11 @@ contract BalancerLPAuraStrategy is Strategy {
         uint256 _eAmount
     ) internal returns (uint256) {
         return
-            _eAmount.mul(lpPriceByWstETH).mul(PERCENTAGE).div(MULTIPLIER).div(
-                SLIPPAGE
-            );
+            (_eAmount * lpPriceByWstETH * PERCENTAGE) / MULTIPLIER / SLIPPAGE;
     }
 
     function getSwapOutAmount(uint256 _amount) internal returns (uint256) {
-        return
-            _amount.mul(lpPriceByWstETH).mul(SLIPPAGE).div(MULTIPLIER).div(
-                PERCENTAGE
-            );
+        return (_amount * lpPriceByWstETH * SLIPPAGE) / MULTIPLIER / PERCENTAGE;
     }
 
     function setLpPrice(uint256 _price) external onlyGovernance {

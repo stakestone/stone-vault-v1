@@ -1,13 +1,9 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.7;
-
-import {SafeMath} from "@openzeppelin/contracts/utils/math/SafeMath.sol";
+pragma solidity 0.8.21;
 
 import {StrategyController} from "../strategies/StrategyController.sol";
 
 abstract contract Strategy {
-    using SafeMath for uint256;
-
     address payable public immutable controller;
 
     address public governance;
@@ -22,6 +18,8 @@ abstract contract Strategy {
     event TransferGovernance(address oldOwner, address newOwner);
 
     constructor(address payable _controller, string memory _name) {
+        require(_controller != address(0), "ZERO ADDRESS");
+
         governance = msg.sender;
         controller = _controller;
         name = _name;
@@ -43,8 +41,6 @@ abstract contract Strategy {
     ) public virtual onlyController returns (uint256 actualAmount) {}
 
     function clear() public virtual onlyController returns (uint256 amount) {}
-
-    function destroy() public virtual onlyController {}
 
     function execPendingRequest(
         uint256 _amount

@@ -1,19 +1,16 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.7;
+pragma solidity 0.8.21;
 
 import {TransferHelper} from "@uniswap/v3-periphery/contracts/libraries/TransferHelper.sol";
 import {ISwapRouter} from "@uniswap/v3-periphery/contracts/interfaces/ISwapRouter.sol";
 import {IQuoter} from "@uniswap/v3-periphery/contracts/interfaces/IQuoter.sol";
 
-import {SafeMath} from "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 import {IStableSwap} from "../interfaces/IStableSwap.sol";
 import {IWETH9} from "../interfaces/IWETH9.sol";
 
 contract SwappingAggregator {
-    using SafeMath for uint256;
-
     uint256 internal constant MULTIPLIER = 1e18;
     uint256 internal constant ONE_HUNDRED_PERCENT = 1e6;
 
@@ -57,13 +54,22 @@ contract SwappingAggregator {
         uint256[] memory _slippages,
         uint24[] memory _fees
     ) {
+        uint256 length = _tokens.length;
         require(
-            _tokens.length == _uniPools.length &&
-                _tokens.length == _curvePools.length,
+            length == _uniPools.length && _tokens.length == _curvePools.length,
             "invalid length"
         );
 
-        for (uint256 i = 0; i < _tokens.length; i++) {
+        require(_wETH != address(0), "ZERO ADDRESS");
+
+        for (uint256 i; i < length; i++) {
+            require(
+                _tokens[i] != address(0) &&
+                    _uniPools[i] != address(0) &&
+                    _curvePools[i] != address(0),
+                "ZERO ADDRESS"
+            );
+
             uniV3Pools[_tokens[i]] = _uniPools[i];
             curvePools[_tokens[i]] = _curvePools[i];
             slippage[_tokens[i]] = _slippages[i];
@@ -81,16 +87,17 @@ contract SwappingAggregator {
     ) external returns (uint256 amount) {
         (DEX_TYPE dex, ) = getBestRouter(_token, _amount);
 
+        uint256 balance;
         if (dex == DEX_TYPE.UNISWAPV3) {
             amount = swapOnUniV3(_token, _amount);
-        }
-
-        if (dex == DEX_TYPE.CURVE) {
+            balance = address(this).balance;
+        } else {
             amount = swapOnCurve(_token, _amount);
+            balance = address(this).balance;
         }
 
-        if (address(this).balance > 0) {
-            TransferHelper.safeTransferETH(msg.sender, address(this).balance);
+        if (balance != 0) {
+            TransferHelper.safeTransferETH(msg.sender, balance);
         }
     }
 
@@ -217,7 +224,7 @@ contract SwappingAggregator {
         uint256 _amount,
         uint256 _slippage
     ) internal view returns (uint256 amount) {
-        amount = _amount.mul(_slippage).div(ONE_HUNDRED_PERCENT);
+        amount = (_amount * _slippage) / ONE_HUNDRED_PERCENT;
     }
 
     function setSlippage(

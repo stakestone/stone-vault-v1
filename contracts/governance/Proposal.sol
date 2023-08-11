@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.7;
+pragma solidity 0.8.21;
 
 import {SafeMath} from "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import {EnumerableSet} from "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
@@ -20,7 +20,7 @@ contract Proposal {
 
     uint256 public votePeriod = 7 * 24 * 60 * 60;
 
-    uint256 public minVotePeriod = 24 * 60 * 60;
+    uint256 public constant minVotePeriod = 24 * 60 * 60;
 
     EnumerableSet.AddressSet private proposals;
     mapping(address => ProposalDetail) public proposalDetails;
@@ -97,7 +97,7 @@ contract Proposal {
 
     function retrieveTokenFor(address _proposal) external {
         uint256 voteAmount = polls[msg.sender][_proposal];
-        require(voteAmount > 0, "not vote");
+        require(voteAmount != 0, "not vote");
         require(!canVote(_proposal), "proposal still active");
 
         polls[msg.sender][_proposal] = 0;
@@ -109,13 +109,14 @@ contract Proposal {
 
     function retrieveAllToken() external {
         uint256 withAmount;
-        for (uint i = 0; i < proposals.length(); i++) {
+
+        uint256 length = proposals.length();
+        for (uint i; i < length; i++) {
             address addr = proposals.at(i);
             uint256 voteAmount = polls[msg.sender][addr];
 
-            polls[msg.sender][addr] = 0;
-
-            if (!canVote(addr) && voteAmount > 0) {
+            if (!canVote(addr) && voteAmount != 0) {
+                polls[msg.sender][addr] = 0;
                 withAmount = withAmount.add(voteAmount);
 
                 emit RetrieveToken(addr, voteAmount);
@@ -129,9 +130,9 @@ contract Proposal {
 
         ProposalDetail storage detail = proposalDetails[_proposal];
 
-        invoke(stoneVault, detail.data);
-
         detail.executedTime = block.timestamp;
+
+        invoke(detail.data);
     }
 
     function setProposer(address _proposer) external onlyProposer {
@@ -156,7 +157,7 @@ contract Proposal {
 
         addrs = new address[](length);
 
-        for (uint256 i = 0; i < length; i++) {
+        for (uint256 i; i < length; i++) {
             addrs[i] = proposals.at(i);
         }
     }
@@ -178,19 +179,16 @@ contract Proposal {
         if (block.timestamp < detail.deadline) {
             return false;
         }
-        if (detail.executedTime > 0) {
+        if (detail.executedTime != 0) {
             return false;
         }
 
-        return detail.support > detail.oppose ? true : false;
+        return detail.support > detail.oppose;
     }
 
-    function invoke(
-        address target,
-        bytes memory data
-    ) internal returns (bytes memory result) {
+    function invoke(bytes memory data) internal returns (bytes memory result) {
         bool success;
-        (success, result) = target.call{value: 0}(data);
+        (success, result) = stoneVault.call{value: 0}(data);
         if (!success) {
             // solhint-disable-next-line no-inline-assembly
             assembly {
@@ -198,6 +196,6 @@ contract Proposal {
                 revert(0, returndatasize())
             }
         }
-        emit Invoked(target, data);
+        emit Invoked(stoneVault, data);
     }
 }

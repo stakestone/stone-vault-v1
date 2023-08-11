@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.7;
+pragma solidity 0.8.21;
 
-import {SafeMath} from "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import {ReentrancyGuard} from "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 import {TransferHelper} from "@uniswap/v3-periphery/contracts/libraries/TransferHelper.sol";
@@ -14,8 +13,6 @@ import {StrategyController} from "./strategies/StrategyController.sol";
 import {VaultMath} from "./libraries/VaultMath.sol";
 
 contract StoneVault is ReentrancyGuard, Ownable {
-    using SafeMath for uint256;
-
     uint256 internal constant MULTIPLIER = 1e18;
     uint256 internal constant ONE_HUNDRED_PERCENT = 1e6;
     uint256 internal constant MAXMIUM_FEE_RATE = ONE_HUNDRED_PERCENT / 100; // 1%
@@ -80,6 +77,9 @@ contract StoneVault is ReentrancyGuard, Ownable {
         uint256 vaultOut,
         uint256 sharePrice
     );
+    event StragetyAdded(address strategy);
+    event StragetyDestroyed(address strategy);
+    event PortfolioConfigUpdated(address[] strategies, uint256[] ratios);
     event FeeCharged(address indexed account, uint256 amount);
     event SetWithdrawFeeRate(uint256 oldRate, uint256 newRate);
     event SetFeeRecipient(address oldAddr, address newAddr);
@@ -96,6 +96,18 @@ contract StoneVault is ReentrancyGuard, Ownable {
         address[] memory _strategies,
         uint256[] memory _ratios
     ) {
+        require(
+            _minter != address(0) &&
+                _proposal != address(0) &&
+                _assetsVault != address(0),
+            "ZERO ADDRESS"
+        );
+
+        uint256 length = _strategies.length;
+        for (uint256 i; i < length; i++) {
+            require(_strategies[i] != address(0), "ZERO ADDRESS");
+        }
+
         minter = _minter;
         proposal = _proposal;
         assetsVault = _assetsVault;
@@ -124,29 +136,29 @@ contract StoneVault is ReentrancyGuard, Ownable {
     }
 
     function depositFor(
-        uint256 _amount,
         address _user
     ) external payable nonReentrant returns (uint256 mintAmount) {
-        mintAmount = _depositFor(_amount, _user);
+        mintAmount = _depositFor(msg.value, _user);
     }
 
     function _depositFor(
         uint256 _amount,
         address _user
     ) internal returns (uint256 mintAmount) {
-        require(_amount > 0, "too small");
+        require(_amount != 0, "too small");
 
         uint256 sharePrice;
+        uint256 currSharePrice = currentSharePrice();
+        uint256 latestSharePrice = roundPricePerShare[latestRoundID - 1];
         if (latestRoundID == 0) {
             sharePrice = MULTIPLIER;
         } else {
-            sharePrice = roundPricePerShare[latestRoundID - 1] >
-                currentSharePrice()
-                ? roundPricePerShare[latestRoundID - 1]
-                : currentSharePrice();
+            sharePrice = latestSharePrice > currSharePrice
+                ? latestSharePrice
+                : currSharePrice;
         }
 
-        mintAmount = _amount.mul(MULTIPLIER).div(sharePrice);
+        mintAmount = (_amount * MULTIPLIER) / sharePrice;
 
         AssetsVault(assetsVault).deposit{value: address(this).balance}();
         Minter(minter).mint(_user, mintAmount);
@@ -155,8 +167,8 @@ contract StoneVault is ReentrancyGuard, Ownable {
     }
 
     function requestWithdraw(uint256 _shares) external nonReentrant {
-        require(_shares > 0, "too small");
-        require(latestRoundID > 0, "should withdraw instantly");
+        require(_shares != 0, "too small");
+        require(latestRoundID != 0, "should withdraw instantly");
         Stone stoneToken = Stone(stone);
         Minter stoneMinter = Minter(minter);
 
@@ -169,12 +181,12 @@ contract StoneVault is ReentrancyGuard, Ownable {
             _shares
         );
 
-        withdrawingSharesInRound = withdrawingSharesInRound.add(_shares);
+        withdrawingSharesInRound = withdrawingSharesInRound + _shares;
 
         UserReceipt storage receipt = userReceipts[msg.sender];
 
         if (receipt.withdrawRound == latestRoundID) {
-            receipt.withdrawShares = receipt.withdrawShares.add(_shares);
+            receipt.withdrawShares = receipt.withdrawShares + _shares;
         } else if (receipt.withdrawRound == 0) {
             receipt.withdrawShares = _shares;
             receipt.withdrawRound = latestRoundID;
@@ -186,14 +198,14 @@ contract StoneVault is ReentrancyGuard, Ownable {
             );
 
             stoneMinter.burn(address(this), receipt.withdrawShares);
-            withdrawingSharesInPast = withdrawingSharesInPast.sub(
-                receipt.withdrawShares
-            );
+            withdrawingSharesInPast =
+                withdrawingSharesInPast -
+                receipt.withdrawShares;
 
             receipt.withdrawShares = _shares;
-            receipt.withdrawableAmount = receipt.withdrawableAmount.add(
-                withdrawAmount
-            );
+            receipt.withdrawableAmount =
+                receipt.withdrawableAmount +
+                withdrawAmount;
             receipt.withdrawRound = latestRoundID;
         }
 
@@ -201,13 +213,13 @@ contract StoneVault is ReentrancyGuard, Ownable {
     }
 
     function cancelWithdraw(uint256 _shares) external nonReentrant {
-        require(_shares > 0, "too small");
+        require(_shares != 0, "too small");
 
         UserReceipt storage receipt = userReceipts[msg.sender];
         require(receipt.withdrawRound == latestRoundID, "no pending withdraw");
         require(receipt.withdrawShares >= _shares, "exceed pending withdraw");
 
-        receipt.withdrawShares = receipt.withdrawShares.sub(_shares);
+        receipt.withdrawShares = receipt.withdrawShares - _shares;
 
         TransferHelper.safeTransfer(stone, msg.sender, _shares);
 
@@ -215,7 +227,7 @@ contract StoneVault is ReentrancyGuard, Ownable {
             receipt.withdrawRound = 0;
         }
 
-        withdrawingSharesInRound = withdrawingSharesInRound.sub(_shares);
+        withdrawingSharesInRound = withdrawingSharesInRound - _shares;
 
         emit CancelWithdraw(msg.sender, _shares, latestRoundID);
     }
@@ -224,14 +236,14 @@ contract StoneVault is ReentrancyGuard, Ownable {
         uint256 _amount,
         uint256 _shares
     ) external nonReentrant returns (uint256 actualWithdrawn) {
-        require(_amount > 0 || _shares > 0, "too small");
+        require(_amount != 0 || _shares != 0, "too small");
 
         AssetsVault aVault = AssetsVault(assetsVault);
         Minter stoneMinter = Minter(minter);
 
         (uint256 idleAmount, ) = getVaultAvailableAmount();
 
-        if (_amount > 0) {
+        if (_amount != 0) {
             UserReceipt storage receipt = userReceipts[msg.sender];
 
             if (
@@ -246,13 +258,13 @@ contract StoneVault is ReentrancyGuard, Ownable {
 
                 stoneMinter.burn(address(this), receipt.withdrawShares);
 
-                withdrawingSharesInPast = withdrawingSharesInPast.sub(
-                    receipt.withdrawShares
-                );
+                withdrawingSharesInPast =
+                    withdrawingSharesInPast -
+                    receipt.withdrawShares;
                 receipt.withdrawShares = 0;
-                receipt.withdrawableAmount = receipt.withdrawableAmount.add(
-                    withdrawAmount
-                );
+                receipt.withdrawableAmount =
+                    receipt.withdrawableAmount +
+                    withdrawAmount;
                 receipt.withdrawRound = 0;
             }
 
@@ -261,24 +273,24 @@ contract StoneVault is ReentrancyGuard, Ownable {
                 "exceed withdrawable"
             );
 
-            receipt.withdrawableAmount = receipt.withdrawableAmount.sub(
-                _amount
-            );
-            withdrawableAmountInPast = withdrawableAmountInPast.sub(_amount);
+            receipt.withdrawableAmount = receipt.withdrawableAmount - _amount;
+            withdrawableAmountInPast = withdrawableAmountInPast - _amount;
             actualWithdrawn = _amount;
 
             emit Withdrawn(msg.sender, _amount, latestRoundID);
         }
 
-        if (_shares > 0) {
+        if (_shares != 0) {
+            uint256 latestSharePrice = roundPricePerShare[latestRoundID - 1];
             uint256 sharePrice;
+
             if (latestRoundID == 0) {
                 sharePrice = MULTIPLIER;
             } else {
-                sharePrice = roundPricePerShare[latestRoundID - 1] <
-                    currentSharePrice()
-                    ? roundPricePerShare[latestRoundID - 1]
-                    : currentSharePrice();
+                uint256 currSharePrice = currentSharePrice();
+                sharePrice = latestSharePrice < currSharePrice
+                    ? latestSharePrice
+                    : currSharePrice;
             }
 
             uint256 ethAmount = VaultMath.sharesToAsset(_shares, sharePrice);
@@ -286,19 +298,19 @@ contract StoneVault is ReentrancyGuard, Ownable {
             stoneMinter.burn(msg.sender, _shares);
 
             if (ethAmount <= idleAmount) {
-                actualWithdrawn = actualWithdrawn.add(ethAmount);
+                actualWithdrawn = actualWithdrawn + ethAmount;
 
                 emit Withdrawn(msg.sender, ethAmount, latestRoundID);
             } else {
-                actualWithdrawn = actualWithdrawn.add(idleAmount);
-                ethAmount = ethAmount.sub(idleAmount);
+                actualWithdrawn = actualWithdrawn + idleAmount;
+                ethAmount = ethAmount - idleAmount;
 
                 StrategyController controller = StrategyController(
                     strategyController
                 );
                 uint256 actualAmount = controller.forceWithdraw(ethAmount);
 
-                actualWithdrawn = actualWithdrawn.add(actualAmount);
+                actualWithdrawn = actualWithdrawn + actualAmount;
 
                 emit WithdrawnFromStrategy(
                     msg.sender,
@@ -312,18 +324,18 @@ contract StoneVault is ReentrancyGuard, Ownable {
         require(aVault.getBalance() >= actualWithdrawn, "still need wait");
 
         uint256 withFee;
-        if (withdrawFeeRate > 0) {
-            withFee = actualWithdrawn.mul(withdrawFeeRate).div(
-                ONE_HUNDRED_PERCENT
-            );
+        if (withdrawFeeRate != 0) {
+            withFee = (actualWithdrawn * withdrawFeeRate) / ONE_HUNDRED_PERCENT;
             aVault.withdraw(feeRecipient, withFee);
 
             emit FeeCharged(msg.sender, withFee);
         }
-        aVault.withdraw(msg.sender, actualWithdrawn.sub(withFee));
+        aVault.withdraw(msg.sender, actualWithdrawn - withFee);
     }
 
     function rollToNextRound() external {
+        require(block.timestamp > rebaseTime, "already rebased");
+
         StrategyController controller = StrategyController(strategyController);
         AssetsVault aVault = AssetsVault(assetsVault);
 
@@ -332,19 +344,15 @@ contract StoneVault is ReentrancyGuard, Ownable {
             withdrawingSharesInRound,
             currentSharePrice()
         );
-        uint256 amountVaultNeed = withdrawableAmountInPast.add(
-            amountToWithdraw
-        );
+        uint256 amountVaultNeed = withdrawableAmountInPast + amountToWithdraw;
 
         uint256 vaultIn;
         uint256 vaultOut;
 
         if (vaultBalance > amountVaultNeed) {
-            vaultIn = vaultBalance.sub(amountVaultNeed);
-        }
-
-        if (vaultBalance < amountVaultNeed) {
-            vaultOut = amountVaultNeed.sub(vaultBalance);
+            vaultIn = vaultBalance - amountVaultNeed;
+        } else if (vaultBalance < amountVaultNeed) {
+            vaultOut = amountVaultNeed - vaultBalance;
         }
 
         controller.rebaseStrategies(vaultIn, vaultOut);
@@ -353,12 +361,12 @@ contract StoneVault is ReentrancyGuard, Ownable {
         settlementTime[latestRoundID] = block.timestamp;
         latestRoundID = latestRoundID + 1;
 
-        withdrawingSharesInPast = withdrawingSharesInPast.add(
-            withdrawingSharesInRound
-        );
-        withdrawableAmountInPast = withdrawableAmountInPast.add(
-            VaultMath.sharesToAsset(withdrawingSharesInRound, newSharePrice)
-        );
+        withdrawingSharesInPast =
+            withdrawingSharesInPast +
+            withdrawingSharesInRound;
+        withdrawableAmountInPast =
+            withdrawableAmountInPast +
+            VaultMath.sharesToAsset(withdrawingSharesInRound, newSharePrice);
         withdrawingSharesInRound = 0;
         rebaseTime = block.timestamp;
 
@@ -369,6 +377,14 @@ contract StoneVault is ReentrancyGuard, Ownable {
         StrategyController controller = StrategyController(strategyController);
 
         controller.addStrategy(_strategy);
+        emit StragetyAdded(_strategy);
+    }
+
+    function destroyStrategy(address _strategy) external onlyOwner {
+        StrategyController controller = StrategyController(strategyController);
+
+        controller.destroyStrategy(_strategy);
+        emit StragetyDestroyed(_strategy);
     }
 
     function updatePortfolioConfig(
@@ -378,6 +394,8 @@ contract StoneVault is ReentrancyGuard, Ownable {
         StrategyController controller = StrategyController(strategyController);
 
         controller.setStrategies(_strategies, _ratios);
+
+        emit PortfolioConfigUpdated(_strategies, _ratios);
     }
 
     function currentSharePrice() public returns (uint256 price) {
@@ -387,13 +405,12 @@ contract StoneVault is ReentrancyGuard, Ownable {
             return MULTIPLIER;
         }
 
-        uint256 etherAmount = AssetsVault(assetsVault)
-            .getBalance()
-            .add(StrategyController(strategyController).getAllStrategiesValue())
-            .sub(withdrawableAmountInPast);
-        uint256 activeShare = totalStone.sub(withdrawingSharesInPast);
+        uint256 etherAmount = AssetsVault(assetsVault).getBalance() +
+            StrategyController(strategyController).getAllStrategiesValue() -
+            withdrawableAmountInPast;
+        uint256 activeShare = totalStone - withdrawingSharesInPast;
 
-        return etherAmount.mul(MULTIPLIER).div(activeShare);
+        return (etherAmount * MULTIPLIER) / activeShare;
     }
 
     function getVaultAvailableAmount()
@@ -403,7 +420,7 @@ contract StoneVault is ReentrancyGuard, Ownable {
         AssetsVault vault = AssetsVault(assetsVault);
 
         if (vault.getBalance() > withdrawableAmountInPast) {
-            idleAmount = vault.getBalance().sub(withdrawableAmountInPast);
+            idleAmount = vault.getBalance() - withdrawableAmountInPast;
         }
 
         investedAmount = StrategyController(strategyController)
