@@ -149,10 +149,10 @@ contract StoneVault is ReentrancyGuard, Ownable {
 
         uint256 sharePrice;
         uint256 currSharePrice = currentSharePrice();
-        uint256 latestSharePrice = roundPricePerShare[latestRoundID - 1];
         if (latestRoundID == 0) {
             sharePrice = MULTIPLIER;
         } else {
+            uint256 latestSharePrice = roundPricePerShare[latestRoundID - 1];
             sharePrice = latestSharePrice > currSharePrice
                 ? latestSharePrice
                 : currSharePrice;
@@ -281,13 +281,16 @@ contract StoneVault is ReentrancyGuard, Ownable {
         }
 
         if (_shares != 0) {
-            uint256 latestSharePrice = roundPricePerShare[latestRoundID - 1];
             uint256 sharePrice;
 
             if (latestRoundID == 0) {
                 sharePrice = MULTIPLIER;
             } else {
                 uint256 currSharePrice = currentSharePrice();
+                uint256 latestSharePrice = roundPricePerShare[
+                    latestRoundID - 1
+                ];
+
                 sharePrice = latestSharePrice < currSharePrice
                     ? latestSharePrice
                     : currSharePrice;
