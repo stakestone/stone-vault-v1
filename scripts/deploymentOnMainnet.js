@@ -216,6 +216,7 @@ module.exports = async function (callback) {
                 [stETHFee, frxETHFee]
             );
             console.log("swappingAggregator: ", swappingAggregator.address);
+            swappingAggregatorAddr = swappingAggregator.address;
 
             data.swappingAggregatorAddr = swappingAggregator.address;
             fs.writeFileSync(path.resolve(__dirname, './mainnet.json'),
