@@ -63,12 +63,7 @@ module.exports = async function (callback) {
             console.log("stone: ", stone.address);
 
             data.stoneAddr = stone.address;
-            fs.writeFileSync(path.resolve(__dirname, './mainnet.json'),
-                JSON.stringify(data, null, 4),
-                {
-                    flag: 'w'
-                },
-            )
+            writeData(data);
         }
 
         let stoneVaultAddr;
@@ -87,12 +82,7 @@ module.exports = async function (callback) {
             console.log("minter: ", minter.address);
 
             data.minterAddr = minter.address;
-            fs.writeFileSync(path.resolve(__dirname, './mainnet.json'),
-                JSON.stringify(data, null, 4),
-                {
-                    flag: 'w'
-                },
-            )
+            writeData(data);
         }
 
         let assetsVaultAddr;
@@ -153,12 +143,7 @@ module.exports = async function (callback) {
             console.log("stoneVault: ", stoneVault.address);
 
             data.stoneVaultAddr = stoneVault.address;
-            fs.writeFileSync(path.resolve(__dirname, './mainnet.json'),
-                JSON.stringify(data, null, 4),
-                {
-                    flag: 'w'
-                },
-            )
+            writeData(data);
         }
 
         let proposal;
@@ -171,16 +156,19 @@ module.exports = async function (callback) {
             console.log("proposal: ", proposal.address);
 
             data.proposalAddr = proposal.address;
-            fs.writeFileSync(path.resolve(__dirname, './mainnet.json'),
-                JSON.stringify(data, null, 4),
-                {
-                    flag: 'w'
-                },
-            )
+            writeData(data);
         }
 
         const strategyControllerAddr = await stoneVault.strategyController();
         console.log("strategyController: ", strategyControllerAddr);
+
+        data.strategyControllerAddr = strategyControllerAddr;
+        fs.writeFileSync(path.resolve(__dirname, './mainnet.json'),
+            JSON.stringify(data, null, 4),
+            {
+                flag: 'w'
+            },
+        )
 
         let assetsVault;
         if (data.hasOwnProperty("assetsVaultAddr") && data.assetsVaultAddr != "") {
@@ -192,12 +180,7 @@ module.exports = async function (callback) {
             console.log("assetsVault: ", assetsVault.address);
 
             data.assetsVaultAddr = assetsVault.address;
-            fs.writeFileSync(path.resolve(__dirname, './mainnet.json'),
-                JSON.stringify(data, null, 4),
-                {
-                    flag: 'w'
-                },
-            )
+            writeData(data);
         }
 
         let swappingAggregatorAddr;
@@ -219,12 +202,7 @@ module.exports = async function (callback) {
             swappingAggregatorAddr = swappingAggregator.address;
 
             data.swappingAggregatorAddr = swappingAggregator.address;
-            fs.writeFileSync(path.resolve(__dirname, './mainnet.json'),
-                JSON.stringify(data, null, 4),
-                {
-                    flag: 'w'
-                },
-            )
+            writeData(data);
         }
 
         let stETHHoldingStrategy;
@@ -243,12 +221,7 @@ module.exports = async function (callback) {
             console.log("assetsVault: ", assetsVault.address);
 
             data.stETHHoldingStrategyAddr = stETHHoldingStrategy.address;
-            fs.writeFileSync(path.resolve(__dirname, './mainnet.json'),
-                JSON.stringify(data, null, 4),
-                {
-                    flag: 'w'
-                },
-            )
+            writeData(data);
         }
 
         let rETHHoldingStrategy;
@@ -264,12 +237,7 @@ module.exports = async function (callback) {
             console.log("assetsVault: ", assetsVault.address);
 
             data.rETHHoldingStrategyAddr = rETHHoldingStrategy.address;
-            fs.writeFileSync(path.resolve(__dirname, './mainnet.json'),
-                JSON.stringify(data, null, 4),
-                {
-                    flag: 'w'
-                },
-            )
+            writeData(data);
         }
 
         let sFraxETHHoldingStrategy;
@@ -286,12 +254,7 @@ module.exports = async function (callback) {
             console.log("sFraxETHHoldingStrategy: ", sFraxETHHoldingStrategy.address);
 
             data.sFraxETHHoldingStrategyAddr = sFraxETHHoldingStrategy.address;
-            fs.writeFileSync(path.resolve(__dirname, './mainnet.json'),
-                JSON.stringify(data, null, 4),
-                {
-                    flag: 'w'
-                },
-            )
+            writeData(data);
         }
 
         let balancerLPAuraStrategy;
@@ -308,12 +271,7 @@ module.exports = async function (callback) {
             console.log("BalancerLPAuraStrategy: ", balancerLPAuraStrategy.address);
 
             data.balancerLPAuraStrategyAddr = balancerLPAuraStrategy.address;
-            fs.writeFileSync(path.resolve(__dirname, './mainnet.json'),
-                JSON.stringify(data, null, 4),
-                {
-                    flag: 'w'
-                },
-            )
+            writeData(data);
         }
 
         // console.log("stoneVault.deposit");
@@ -331,5 +289,14 @@ module.exports = async function (callback) {
         const encoded = RLP.encode([deployer, nonce + index]);
         const rs = web3.utils.sha3(encoded);
         return '0x' + rs.substr(rs.length - 40, 40);
+    }
+
+    function writeData(data) {
+        fs.writeFileSync(path.resolve(__dirname, './mainnet.json'),
+            JSON.stringify(data, null, 4),
+            {
+                flag: 'w'
+            },
+        )
     }
 }
