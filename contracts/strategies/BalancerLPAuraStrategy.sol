@@ -178,7 +178,7 @@ contract BalancerLPAuraStrategy is Strategy {
         singleSwap.kind = IBalancerVault.SwapKind.GIVEN_IN;
         singleSwap.assetIn = LP_TOKEN;
         singleSwap.assetOut = WSTETH;
-        singleSwap.amount = lpOut;
+        singleSwap.amount = lpBalance;
 
         IBalancerVault.FundManagement memory fundManagement;
         fundManagement.sender = address(this);
@@ -189,7 +189,7 @@ contract BalancerLPAuraStrategy is Strategy {
         IBalancerVault(VAULT).swap(
             singleSwap,
             fundManagement,
-            lpBalance,
+            getSwapOutAmount(lpBalance),
             block.timestamp
         );
 
