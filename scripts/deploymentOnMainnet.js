@@ -81,6 +81,7 @@ module.exports = async function (callback) {
         let minter;
         if (data.hasOwnProperty("minterAddr") && data.minterAddr != "") {
             minterAddr = data.minterAddr;
+            minter = await Minter.at(minterAddr);
         } else {
             minter = await Minter.new(data.stoneAddr, stoneVaultAddr);
             console.log("minter: ", minter.address);
@@ -314,10 +315,10 @@ module.exports = async function (callback) {
             )
         }
 
-        console.log("stoneVault.deposit");
-        await stoneVault.deposit({
-            value: BigNumber(1e16).toString(10),
-        });
+        // console.log("stoneVault.deposit");
+        // await stoneVault.deposit({
+        //     value: BigNumber(1e16).toString(10),
+        // });
 
         callback();
     } catch (e) {
