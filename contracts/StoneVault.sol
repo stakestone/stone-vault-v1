@@ -407,7 +407,7 @@ contract StoneVault is ReentrancyGuard, Ownable {
         if (
             latestRoundID == 0 ||
             totalStone == 0 ||
-            totalStone == withdrawingSharesInPast ||
+            totalStone == withdrawingSharesInPast
         ) {
             return MULTIPLIER;
         }
