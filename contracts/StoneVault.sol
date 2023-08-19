@@ -405,7 +405,7 @@ contract StoneVault is ReentrancyGuard, Ownable {
         Stone stoneToken = Stone(stone);
         uint256 totalStone = stoneToken.totalSupply();
         if (
-            latestRoundID = 0 ||
+            latestRoundID == 0 ||
             totalStone == 0 ||
             totalStone == withdrawingSharesInPast ||
         ) {
