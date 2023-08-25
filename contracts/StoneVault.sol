@@ -16,6 +16,7 @@ contract StoneVault is ReentrancyGuard, Ownable {
     uint256 internal constant MULTIPLIER = 1e18;
     uint256 internal constant ONE_HUNDRED_PERCENT = 1e6;
     uint256 internal constant MAXMIUM_FEE_RATE = ONE_HUNDRED_PERCENT / 100; // 1%
+    uint256 public constant rebaseTimeInterval = 12 * 60 * 60;
 
     uint256 public constant VERSION = 1;
 
@@ -338,7 +339,10 @@ contract StoneVault is ReentrancyGuard, Ownable {
     }
 
     function rollToNextRound() external {
-        require(block.timestamp > rebaseTime, "already rebased");
+        require(
+            block.timestamp > rebaseTime + rebaseTimeInterval,
+            "already rebased"
+        );
 
         StrategyController controller = StrategyController(strategyController);
         AssetsVault aVault = AssetsVault(assetsVault);
