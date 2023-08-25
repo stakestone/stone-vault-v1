@@ -349,14 +349,15 @@ contract StoneVault is ReentrancyGuard, Ownable {
             currentSharePrice()
         );
         uint256 amountVaultNeed = withdrawableAmountInPast + amountToWithdraw;
+        uint256 allPendingValue = controller.getAllStrategyPendingValue();
 
         uint256 vaultIn;
         uint256 vaultOut;
 
         if (vaultBalance > amountVaultNeed) {
             vaultIn = vaultBalance - amountVaultNeed;
-        } else if (vaultBalance < amountVaultNeed) {
-            vaultOut = amountVaultNeed - vaultBalance;
+        } else if (vaultBalance + allPendingValue < amountVaultNeed) {
+            vaultOut = amountVaultNeed - vaultBalance - allPendingValue;
         }
 
         controller.rebaseStrategies(vaultIn, vaultOut);
