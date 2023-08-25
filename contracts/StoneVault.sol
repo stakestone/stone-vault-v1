@@ -16,6 +16,7 @@ contract StoneVault is ReentrancyGuard, Ownable {
     uint256 internal constant MULTIPLIER = 1e18;
     uint256 internal constant ONE_HUNDRED_PERCENT = 1e6;
     uint256 internal constant MAXMIUM_FEE_RATE = ONE_HUNDRED_PERCENT / 100; // 1%
+    uint256 public constant rebaseTimeInterval = 12 * 60 * 60;
 
     uint256 public constant VERSION = 1;
 
@@ -79,6 +80,7 @@ contract StoneVault is ReentrancyGuard, Ownable {
     );
     event StragetyAdded(address strategy);
     event StragetyDestroyed(address strategy);
+    event StragetyCleared(address strategy);
     event PortfolioConfigUpdated(address[] strategies, uint256[] ratios);
     event FeeCharged(address indexed account, uint256 amount);
     event SetWithdrawFeeRate(uint256 oldRate, uint256 newRate);
@@ -337,7 +339,10 @@ contract StoneVault is ReentrancyGuard, Ownable {
     }
 
     function rollToNextRound() external {
-        require(block.timestamp > rebaseTime, "already rebased");
+        require(
+            block.timestamp > rebaseTime + rebaseTimeInterval,
+            "already rebased"
+        );
 
         StrategyController controller = StrategyController(strategyController);
         AssetsVault aVault = AssetsVault(assetsVault);
@@ -348,14 +353,15 @@ contract StoneVault is ReentrancyGuard, Ownable {
             currentSharePrice()
         );
         uint256 amountVaultNeed = withdrawableAmountInPast + amountToWithdraw;
+        uint256 allPendingValue = controller.getAllStrategyPendingValue();
 
         uint256 vaultIn;
         uint256 vaultOut;
 
         if (vaultBalance > amountVaultNeed) {
             vaultIn = vaultBalance - amountVaultNeed;
-        } else if (vaultBalance < amountVaultNeed) {
-            vaultOut = amountVaultNeed - vaultBalance;
+        } else if (vaultBalance + allPendingValue < amountVaultNeed) {
+            vaultOut = amountVaultNeed - vaultBalance - allPendingValue;
         }
 
         controller.rebaseStrategies(vaultIn, vaultOut);
@@ -388,6 +394,13 @@ contract StoneVault is ReentrancyGuard, Ownable {
 
         controller.destroyStrategy(_strategy);
         emit StragetyDestroyed(_strategy);
+    }
+
+    function clearStrategy(address _strategy) external onlyOwner {
+        StrategyController controller = StrategyController(strategyController);
+
+        controller.clearStrategy(_strategy);
+        emit StragetyCleared(_strategy);
     }
 
     function updatePortfolioConfig(

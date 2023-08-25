@@ -62,16 +62,19 @@ contract SFraxETHHoldingStrategy is Strategy {
         uint256 shares = convertedShares < balance ? convertedShares : balance;
         uint256 assets = sfrxETH.redeem(shares, address(this), address(this));
 
-        TransferHelper.safeApprove(FRXETH, SWAPPING, assets);
-        actualAmount = SwappingAggregator(SWAPPING).swap(FRXETH, assets);
-
+        if (assets != 0) {
+            TransferHelper.safeApprove(FRXETH, SWAPPING, assets);
+            actualAmount = SwappingAggregator(SWAPPING).swap(FRXETH, assets);
+        }
         TransferHelper.safeTransferETH(controller, address(this).balance);
     }
 
     function clear() public override onlyController returns (uint256 amount) {
         uint256 max = ISfrxETH(SFRXETH).maxRedeem(address(this));
 
-        amount = _withdraw(max);
+        if (max != 0) {
+            amount = _withdraw(max);
+        }
     }
 
     function getAllValue() public override returns (uint256 value) {

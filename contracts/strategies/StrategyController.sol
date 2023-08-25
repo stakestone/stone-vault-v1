@@ -208,6 +208,12 @@ contract StrategyController {
         return Strategy(_strategy).getInvestedValue();
     }
 
+    function getStrategyPendingValue(
+        address _strategy
+    ) public returns (uint256 _value) {
+        return Strategy(_strategy).getPendingValue();
+    }
+
     function getAllStrategiesValue() public returns (uint256 _value) {
         uint256 length = strategies.length();
         for (uint i; i < length; i++) {
@@ -219,6 +225,13 @@ contract StrategyController {
         uint256 length = strategies.length();
         for (uint i; i < length; i++) {
             _value = _value + getStrategyValidValue(strategies.at(i));
+        }
+    }
+
+    function getAllStrategyPendingValue() public returns (uint256 _value) {
+        uint256 length = strategies.length();
+        for (uint i; i < length; i++) {
+            _value = _value + getStrategyPendingValue(strategies.at(i));
         }
     }
 
