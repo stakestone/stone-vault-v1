@@ -236,6 +236,33 @@ contract SwappingAggregator {
         slippage[_token] = _slippage;
     }
 
+    function setUniRouter(
+        address _token,
+        address _uniPool,
+        uint256 _slippage,
+        uint24 _fee
+    ) external onlyGovernance {
+        require(_token != address(0) && _uniPool != address(0), "ZERO ADDRESS");
+
+        uniV3Pools[_token] = _uniPool;
+        slippage[_token] = _slippage;
+        fees[_token] = _fee;
+    }
+
+    function setCurveRouter(
+        address _token,
+        address _curvePool,
+        uint256 _slippage
+    ) external onlyGovernance {
+        require(
+            _token != address(0) && _curvePool != address(0),
+            "ZERO ADDRESS"
+        );
+
+        curvePools[_token] = _curvePool;
+        slippage[_token] = _slippage;
+    }
+
     function setNewGovernance(address _governance) external onlyGovernance {
         emit TransferGovernance(governance, _governance);
 

@@ -18,6 +18,11 @@ contract STETHHoldingStrategy is Strategy {
 
     address public immutable LidoWithdrawalQueue;
 
+    uint256 public MAX_WITHDRAW_QUEUE_LENGTH = 20;
+    uint256 public MINIMUM_WITHDRAW_QUEUE_AMOUNT = 1e18;
+
+    event SetWithdrawQueueParams(uint256 length, uint256 amount);
+
     constructor(
         address payable _controller,
         string memory _name,
@@ -54,20 +59,31 @@ contract STETHHoldingStrategy is Strategy {
             LidoWithdrawalQueue
         );
 
-        lido.approve(LidoWithdrawalQueue, _amount);
-
-        uint256[] memory amounts = new uint256[](1);
-        amounts[0] = _amount;
-        uint256[] memory ids = withdrawalQueue.requestWithdrawals(
-            amounts,
+        uint256[] memory allIds = withdrawalQueue.getWithdrawalRequests(
             address(this)
         );
 
-        require(ids.length != 0, "Lido request withdrawal error");
+        if (
+            _amount >= MINIMUM_WITHDRAW_QUEUE_AMOUNT ||
+            allIds.length <= MAX_WITHDRAW_QUEUE_LENGTH
+        ) {
+            lido.approve(LidoWithdrawalQueue, _amount);
 
-        actualAmount = _amount;
+            uint256[] memory amounts = new uint256[](1);
+            amounts[0] = _amount;
+            uint256[] memory ids = withdrawalQueue.requestWithdrawals(
+                amounts,
+                address(this)
+            );
 
-        TransferHelper.safeTransferETH(controller, address(this).balance);
+            require(ids.length != 0, "Lido request withdrawal error");
+
+            actualAmount = _amount;
+
+            TransferHelper.safeTransferETH(controller, address(this).balance);
+        } else {
+            actualAmount = instantWithdraw(_amount);
+        }
     }
 
     function instantWithdraw(
@@ -76,21 +92,22 @@ contract STETHHoldingStrategy is Strategy {
         _amount = _amount < IERC20(STETH).balanceOf(address(this))
             ? _amount
             : IERC20(STETH).balanceOf(address(this));
-
-        TransferHelper.safeApprove(STETH, SWAPPING, _amount);
-
-        actualAmount = SwappingAggregator(SWAPPING).swap(STETH, _amount);
-
+        if (_amount != 0) {
+            TransferHelper.safeApprove(STETH, SWAPPING, _amount);
+            actualAmount = SwappingAggregator(SWAPPING).swap(STETH, _amount);
+        }
         TransferHelper.safeTransferETH(controller, address(this).balance);
     }
 
     function clear() public override onlyController returns (uint256 amount) {
         uint256 balance = IERC20(STETH).balanceOf(address(this));
 
-        TransferHelper.safeApprove(STETH, SWAPPING, balance);
-        amount = SwappingAggregator(SWAPPING).swap(STETH, balance);
+        if (balance != 0) {
+            TransferHelper.safeApprove(STETH, SWAPPING, balance);
+            amount = SwappingAggregator(SWAPPING).swap(STETH, balance);
 
-        TransferHelper.safeTransferETH(controller, address(this).balance);
+            TransferHelper.safeTransferETH(controller, address(this).balance);
+        }
     }
 
     function getAllValue() public override returns (uint256 value) {
@@ -115,6 +132,21 @@ contract STETHHoldingStrategy is Strategy {
         returns (uint256 pending, uint256 executable)
     {
         (, executable, pending) = checkPendingAssets();
+    }
+
+    function claimPendingAssets(uint256[] memory _ids) external {
+        uint256 length = _ids.length;
+        require(length != 0, "invalid length");
+
+        for (uint256 i; i < length; i++) {
+            if (_ids[i] == 0) continue;
+            ILidoWithdrawalQueue(LidoWithdrawalQueue).claimWithdrawal(_ids[i]);
+        }
+
+        TransferHelper.safeTransferETH(
+            StrategyController(controller).assetsVault(),
+            address(this).balance
+        );
     }
 
     function claimAllPendingAssets() external {
@@ -148,6 +180,8 @@ contract STETHHoldingStrategy is Strategy {
             return (new uint256[](0), 0, 0);
         }
 
+        ids = new uint256[](allIds.length);
+
         ILidoWithdrawalQueue.WithdrawalRequestStatus[] memory statuses = queue
             .getWithdrawalStatus(allIds);
 
@@ -160,13 +194,26 @@ contract STETHHoldingStrategy is Strategy {
                 continue;
             }
             if (status.isFinalized) {
-                ids[j] = allIds[i];
-                j += 1;
+                ids[j++] = allIds[i];
                 totalClaimable = totalClaimable + status.amountOfStETH;
             } else {
                 totalPending = totalPending + status.amountOfStETH;
             }
         }
+
+        assembly {
+            mstore(ids, j)
+        }
+    }
+
+    function setWithdrawQueueParams(
+        uint256 _length,
+        uint256 _amount
+    ) external onlyGovernance {
+        MAX_WITHDRAW_QUEUE_LENGTH = _length;
+        MINIMUM_WITHDRAW_QUEUE_AMOUNT = _amount;
+
+        emit SetWithdrawQueueParams(_length, _amount);
     }
 
     receive() external payable {}

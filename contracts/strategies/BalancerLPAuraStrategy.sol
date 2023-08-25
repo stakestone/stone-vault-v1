@@ -19,18 +19,19 @@ contract BalancerLPAuraStrategy is Strategy {
     uint256 internal SLIPPAGE = 999000;
 
     bytes32 internal immutable poolId =
-        0x5aee1e99fe86960377de9f88689616916d5dcabe000000000000000000000467;
-    uint256 internal immutable auraPoolId = 50;
+        0x42ed016f826165c2e5976fe5bc3df540c5ad0af700000000000000000000058b;
+    uint256 internal immutable auraPoolId = 139;
 
+    address public immutable STETH = 0xae7ab96520DE3A18E5e111B5EaAb095312D7fE84;
     address public immutable WSTETH =
         0x7f39C581F595B53c5cb19bD0b3f8dA6c935E2Ca0;
     address public immutable VAULT = 0xBA12222222228d8Ba445958a75a0704d566BF2C8;
     address public immutable LP_TOKEN =
-        0x5aEe1e99fE86960377DE9f88689616916D5DcaBe;
+        0x42ED016F826165C2e5976fe5bC3df540C5aD0Af7;
     address public immutable BOOSTER =
         0xA57b8d98dAE62B26Ec3bcC4a365338157060B234;
     address public immutable AURA_REWARD_POOL =
-        0xd26948E7a0223700e3C3cdEA21cA2471abCb8d47;
+        0x032B676d5D55e8ECbAe88ebEE0AA10fB5f72F6CB;
     address public immutable BAL_TOKEN =
         0xba100000625a3754423978a60c9317c58a424e3D;
     address public immutable AURA_TOKEN =
@@ -110,34 +111,40 @@ contract BalancerLPAuraStrategy is Strategy {
             ? lpOut
             : IERC20(AURA_REWARD_POOL).balanceOf(address(this));
 
-        IAuraRewardPool rewardPool = IAuraRewardPool(AURA_REWARD_POOL);
-        rewardPool.withdrawAndUnwrap(lpOut, true);
-
+        if (lpOut != 0) {
+            IAuraRewardPool rewardPool = IAuraRewardPool(AURA_REWARD_POOL);
+            rewardPool.withdrawAndUnwrap(lpOut, true);
+        }
         uint256 lpBalance = IERC20(LP_TOKEN).balanceOf(address(this));
-        TransferHelper.safeApprove(LP_TOKEN, VAULT, lpBalance);
 
-        IBalancerVault.SingleSwap memory singleSwap;
-        singleSwap.poolId = poolId;
-        singleSwap.kind = IBalancerVault.SwapKind.GIVEN_OUT;
-        singleSwap.assetIn = LP_TOKEN;
-        singleSwap.assetOut = WSTETH;
-        singleSwap.amount = wstETHOut;
+        if (lpBalance != 0) {
+            TransferHelper.safeApprove(LP_TOKEN, VAULT, lpBalance);
 
-        IBalancerVault.FundManagement memory fundManagement;
-        fundManagement.sender = address(this);
-        fundManagement.fromInternalBalance = false;
-        fundManagement.recipient = payable(address(this));
-        fundManagement.toInternalBalance = false;
+            IBalancerVault.SingleSwap memory singleSwap;
+            singleSwap.poolId = poolId;
+            singleSwap.kind = IBalancerVault.SwapKind.GIVEN_OUT;
+            singleSwap.assetIn = LP_TOKEN;
+            singleSwap.assetOut = WSTETH;
+            singleSwap.amount = wstETHOut;
 
-        IBalancerVault(VAULT).swap(
-            singleSwap,
-            fundManagement,
-            lpBalance,
-            block.timestamp
-        );
+            IBalancerVault.FundManagement memory fundManagement;
+            fundManagement.sender = address(this);
+            fundManagement.fromInternalBalance = false;
+            fundManagement.recipient = payable(address(this));
+            fundManagement.toInternalBalance = false;
+
+            IBalancerVault(VAULT).swap(
+                singleSwap,
+                fundManagement,
+                lpBalance,
+                block.timestamp
+            );
+        }
 
         uint256 balance = IERC20(WSTETH).balanceOf(address(this));
-        actualAmount = SwappingAggregator(SWAPPING).swap(WSTETH, balance);
+        if (balance != 0) {
+            actualAmount = SwappingAggregator(SWAPPING).swap(WSTETH, balance);
+        }
 
         if (!_isInstant) {
             actualAmount = actualAmount + sellAllRewards();
@@ -167,36 +174,48 @@ contract BalancerLPAuraStrategy is Strategy {
     function clear() public override onlyController returns (uint256 amount) {
         uint256 lpOut = IERC20(AURA_REWARD_POOL).balanceOf(address(this));
 
-        IAuraRewardPool rewardPool = IAuraRewardPool(AURA_REWARD_POOL);
-        rewardPool.withdrawAndUnwrap(lpOut, true);
+        if (lpOut != 0) {
+            IAuraRewardPool rewardPool = IAuraRewardPool(AURA_REWARD_POOL);
+            rewardPool.withdrawAndUnwrap(lpOut, true);
+        }
 
         uint256 lpBalance = IERC20(LP_TOKEN).balanceOf(address(this));
-        TransferHelper.safeApprove(LP_TOKEN, VAULT, lpBalance);
 
-        IBalancerVault.SingleSwap memory singleSwap;
-        singleSwap.poolId = poolId;
-        singleSwap.kind = IBalancerVault.SwapKind.GIVEN_IN;
-        singleSwap.assetIn = LP_TOKEN;
-        singleSwap.assetOut = WSTETH;
-        singleSwap.amount = lpBalance;
+        if (lpBalance != 0) {
+            TransferHelper.safeApprove(LP_TOKEN, VAULT, lpBalance);
 
-        IBalancerVault.FundManagement memory fundManagement;
-        fundManagement.sender = address(this);
-        fundManagement.fromInternalBalance = false;
-        fundManagement.recipient = payable(address(this));
-        fundManagement.toInternalBalance = false;
+            IBalancerVault.SingleSwap memory singleSwap;
+            singleSwap.poolId = poolId;
+            singleSwap.kind = IBalancerVault.SwapKind.GIVEN_IN;
+            singleSwap.assetIn = LP_TOKEN;
+            singleSwap.assetOut = WSTETH;
+            singleSwap.amount = lpBalance;
 
-        IBalancerVault(VAULT).swap(
-            singleSwap,
-            fundManagement,
-            getSwapOutAmount(lpBalance),
-            block.timestamp
-        );
+            IBalancerVault.FundManagement memory fundManagement;
+            fundManagement.sender = address(this);
+            fundManagement.fromInternalBalance = false;
+            fundManagement.recipient = payable(address(this));
+            fundManagement.toInternalBalance = false;
+
+            IBalancerVault(VAULT).swap(
+                singleSwap,
+                fundManagement,
+                getSwapOutAmount(lpBalance),
+                block.timestamp
+            );
+        }
 
         uint256 balance = IERC20(WSTETH).balanceOf(address(this));
-        amount = SwappingAggregator(SWAPPING).swap(WSTETH, balance);
-        amount = amount + sellAllRewards();
+        if (balance != 0) {
+            IWstETH(WSTETH).unwrap(balance);
+        }
 
+        balance = IERC20(STETH).balanceOf(address(this));
+        if (balance != 0) {
+            amount = SwappingAggregator(SWAPPING).swap(STETH, balance);
+        }
+
+        amount = amount + sellAllRewards();
         TransferHelper.safeTransferETH(controller, address(this).balance);
     }
 

@@ -54,7 +54,9 @@ contract RETHHoldingStrategy is Strategy {
             ? rETH.getRethValue(_amount)
             : IRocketTokenRETH(RETH).balanceOf(address(this));
 
-        rETH.burn(rETHAmount);
+        if (rETHAmount != 0) {
+            rETH.burn(rETHAmount);
+        }
 
         actualAmount = address(this).balance;
 
@@ -69,11 +71,14 @@ contract RETHHoldingStrategy is Strategy {
     {
         IRocketTokenRETH rETH = IRocketTokenRETH(RETH);
         uint256 amount = rETH.balanceOf(address(this));
-        rETH.burn(amount);
 
-        actualAmount = address(this).balance;
+        if (amount != 0) {
+            rETH.burn(amount);
 
-        TransferHelper.safeTransferETH(controller, address(this).balance);
+            actualAmount = address(this).balance;
+
+            TransferHelper.safeTransferETH(controller, address(this).balance);
+        }
     }
 
     function getAllValue() public override returns (uint256 value) {
