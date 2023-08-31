@@ -16,9 +16,11 @@ contract StoneVault is ReentrancyGuard, Ownable {
     uint256 internal constant MULTIPLIER = 1e18;
     uint256 internal constant ONE_HUNDRED_PERCENT = 1e6;
     uint256 internal constant MAXMIUM_FEE_RATE = ONE_HUNDRED_PERCENT / 100; // 1%
-    uint256 public constant rebaseTimeInterval = 12 * 60 * 60;
+    uint256 internal constant MINIMUM_REBASE_INTERVAL = 12 * 60 * 60;
 
     uint256 public constant VERSION = 1;
+
+    uint256 public rebaseTimeInterval = 12 * 60 * 60;
 
     address public immutable minter;
     address public immutable stone;
@@ -85,6 +87,7 @@ contract StoneVault is ReentrancyGuard, Ownable {
     event FeeCharged(address indexed account, uint256 amount);
     event SetWithdrawFeeRate(uint256 oldRate, uint256 newRate);
     event SetFeeRecipient(address oldAddr, address newAddr);
+    event SetRebaseInterval(uint256 interval);
 
     modifier onlyProposal() {
         require(proposal == msg.sender, "not proposal");
@@ -365,8 +368,22 @@ contract StoneVault is ReentrancyGuard, Ownable {
         }
 
         controller.rebaseStrategies(vaultIn, vaultOut);
+
         uint256 newSharePrice = currentSharePrice();
-        roundPricePerShare[latestRoundID] = newSharePrice;
+        if (vaultOut == 0 || vaultIn != 0) {
+            roundPricePerShare[latestRoundID] = newSharePrice;
+        } else {
+            uint256 vaultReserved = vaultBalance + allPendingValue >
+                withdrawableAmountInPast
+                ? aVault.getBalance() +
+                    allPendingValue -
+                    withdrawableAmountInPast
+                : aVault.getBalance() - vaultBalance;
+
+            roundPricePerShare[latestRoundID] = vaultReserved > 0
+                ? (vaultReserved * MULTIPLIER) / withdrawingSharesInRound
+                : newSharePrice;
+        }
         settlementTime[latestRoundID] = block.timestamp;
         latestRoundID = latestRoundID + 1;
 
@@ -461,6 +478,13 @@ contract StoneVault is ReentrancyGuard, Ownable {
         emit SetFeeRecipient(feeRecipient, _feeRecipient);
 
         feeRecipient = _feeRecipient;
+    }
+
+    function setRebaseInterval(uint256 _interval) external onlyOwner {
+        require(_interval <= MINIMUM_REBASE_INTERVAL, "invalid");
+
+        rebaseTimeInterval = _interval;
+        emit SetRebaseInterval(rebaseTimeInterval);
     }
 
     receive() external payable {}

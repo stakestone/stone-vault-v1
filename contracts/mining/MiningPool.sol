@@ -19,13 +19,15 @@ contract MiningPool is ReentrancyGuard {
 
     mapping(address => uint256) public stakeTime;
     mapping(address => uint256) public updateTime;
+    mapping(address => uint256) public currentPendingPoints;
 
     mapping(address => NFTDetail[]) public pendingNFT;
 
     mapping(address => address) public tokenAdapters;
 
     uint256 public cycle;
-    uint256 public currentPendingPoints;
+    uint256 public totalPoints;
+    uint256 public globalUpdateTime;
 
     uint256 public terminateTime;
 
@@ -44,10 +46,13 @@ contract MiningPool is ReentrancyGuard {
     }
 
     event TransferGovernance(address oldAddr, address newAddr);
+    event Terminated(uint256 time, uint256 points);
 
     constructor(uint256 _cycle) {
         governance = msg.sender;
         cycle = _cycle;
+
+        globalUpdateTime = block.timestamp;
     }
 
     function stake(address _token, uint256 _amount) external {
@@ -108,9 +113,22 @@ contract MiningPool is ReentrancyGuard {
         delete pendingNFT[msg.sender];
     }
 
+    function updateGlobal() internal {
+        uint256 value = getAllValue();
+        uint256 interval = block.timestamp - globalUpdateTime;
+
+        if (value != 0 && interval != 0) {
+            totalPoints += value * interval;
+        }
+
+        globalUpdateTime = block.timestamp;
+    }
+
     function updateReward(address _user, bool _isClaim) internal {
+        updateGlobal();
+
         uint256 current = block.timestamp;
-        if (terminateTime > 0) {
+        if (terminateTime != 0) {
             current = terminateTime;
         }
 
@@ -132,8 +150,8 @@ contract MiningPool is ReentrancyGuard {
                     points =
                         (previous + cycle - updateTime[_user]) *
                         value +
-                        currentPendingPoints;
-                    currentPendingPoints = 0;
+                        currentPendingPoints[_user];
+                    currentPendingPoints[_user] = 0;
                 } else {
                     points = cycle * value;
                 }
@@ -147,10 +165,14 @@ contract MiningPool is ReentrancyGuard {
                 stakeTime[_user] = current - remainder;
             }
             if (current > updateTime[_user]) {
-                currentPendingPoints = value * (current - updateTime[_user]);
+                currentPendingPoints[_user] =
+                    value *
+                    (current - updateTime[_user]);
             }
         } else {
-            currentPendingPoints += value * (current - updateTime[_user]);
+            currentPendingPoints[_user] +=
+                value *
+                (current - updateTime[_user]);
         }
 
         updateTime[_user] = current;
@@ -176,6 +198,18 @@ contract MiningPool is ReentrancyGuard {
         }
     }
 
+    function getAllValue() public view returns (uint256 value) {
+        uint256 length = tokens.length();
+        for (uint256 i; i < length; i++) {
+            address token = tokens.at(i);
+            uint256 amount = IERC20(token).balanceOf(address(this));
+            if (amount > 0) {
+                value += IMiningPoolTokenAdapter(tokenAdapters[token])
+                    .getStoneValue(amount);
+            }
+        }
+    }
+
     function getAllPositionValue(
         address _user
     ) public view returns (uint256 value) {
@@ -195,13 +229,13 @@ contract MiningPool is ReentrancyGuard {
 
         list = new address[](len);
 
-        for (uint256 i = 0; i < len; i++) {
+        for (uint256 i; i < len; i++) {
             list[i] = tokens.at(i);
         }
     }
 
     function checkPosition(address _user) public view returns (bool) {
-        for (uint256 i = 0; i < tokens.length(); i++) {
+        for (uint256 i; i < tokens.length(); i++) {
             if (stakedAmount[_user][tokens.at(i)] > 0) {
                 return true;
             }
@@ -239,6 +273,9 @@ contract MiningPool is ReentrancyGuard {
 
     function terminate(address _nft) external onlyGovernance {
         terminateTime = block.timestamp;
+        updateGlobal();
+
+        emit Terminated(terminateTime, totalPoints);
     }
 
     function setNewGovernance(address _governance) external onlyGovernance {
