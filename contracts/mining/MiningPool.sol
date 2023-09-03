@@ -144,6 +144,8 @@ contract MiningPool is ReentrancyGuard {
         uint256 value = getAllPositionValue(_user);
 
         if (acc > 0) {
+            stakeTime[_user] = current - remainder;
+
             for (uint256 i; i < acc; i++) {
                 uint256 points;
                 if (i == 0) {
@@ -158,16 +160,15 @@ contract MiningPool is ReentrancyGuard {
                 pendingNFT[_user].push(
                     NFTDetail(
                         points,
-                        stakeTime[_user] + i * cycle - remainder,
-                        stakeTime[_user] + (i + 1) * cycle - remainder
+                        stakeTime[_user] - (i + 1) * cycle,
+                        stakeTime[_user] - (i * cycle)
                     )
                 );
-                stakeTime[_user] = current - remainder;
             }
-            if (current > updateTime[_user]) {
+            if (current > stakeTime[_user]) {
                 currentPendingPoints[_user] =
                     value *
-                    (current - updateTime[_user]);
+                    (current - stakeTime[_user]);
             }
         } else {
             currentPendingPoints[_user] +=
