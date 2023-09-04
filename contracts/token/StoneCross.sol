@@ -108,4 +108,11 @@ contract StoneCross is OFT {
             revert("unknown packet type");
         }
     }
+
+    function getQuota() external returns (uint256) {
+        uint256 amount = quota[block.timestamp / DAY_INTERVAL];
+        if (cap > amount && enable) {
+            return cap - amount;
+        }
+    }
 }

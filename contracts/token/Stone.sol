@@ -184,4 +184,11 @@ contract Stone is BasedOFT {
     function tokenPrice() public returns (uint256 price) {
         price = Minter(minter).getTokenPrice();
     }
+
+    function getQuota() external returns (uint256) {
+        uint256 amount = quota[block.timestamp / DAY_INTERVAL];
+        if (cap > amount && enable) {
+            return cap - amount;
+        }
+    }
 }
