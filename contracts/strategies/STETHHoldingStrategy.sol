@@ -21,6 +21,9 @@ contract STETHHoldingStrategy is Strategy {
     uint256 public MAX_WITHDRAW_QUEUE_LENGTH = 20;
     uint256 public MINIMUM_WITHDRAW_QUEUE_AMOUNT = 1e18;
 
+    bool public buyOnDex;
+    bool public sellOnDex;
+
     event SetWithdrawQueueParams(uint256 length, uint256 amount);
 
     constructor(
@@ -46,7 +49,15 @@ contract STETHHoldingStrategy is Strategy {
         uint256 amount = msg.value;
         require(amount != 0, "zero value");
 
-        ILido(STETH).submit{value: amount}(address(0));
+        if (!buyOnDex) {
+            ILido(STETH).submit{value: amount}(address(0));
+        } else {
+            SwappingAggregator(SWAPPING).swap{value: amount}(
+                STETH,
+                amount,
+                false
+            );
+        }
     }
 
     function withdraw(
@@ -64,8 +75,8 @@ contract STETHHoldingStrategy is Strategy {
         );
 
         if (
-            _amount >= MINIMUM_WITHDRAW_QUEUE_AMOUNT ||
-            allIds.length <= MAX_WITHDRAW_QUEUE_LENGTH
+            (_amount > MINIMUM_WITHDRAW_QUEUE_AMOUNT ||
+                allIds.length < MAX_WITHDRAW_QUEUE_LENGTH) && !sellOnDex
         ) {
             lido.approve(LidoWithdrawalQueue, _amount);
 
@@ -94,7 +105,11 @@ contract STETHHoldingStrategy is Strategy {
             : IERC20(STETH).balanceOf(address(this));
         if (_amount != 0) {
             TransferHelper.safeApprove(STETH, SWAPPING, _amount);
-            actualAmount = SwappingAggregator(SWAPPING).swap(STETH, _amount);
+            actualAmount = SwappingAggregator(SWAPPING).swap(
+                STETH,
+                _amount,
+                true
+            );
         }
         TransferHelper.safeTransferETH(controller, address(this).balance);
     }
@@ -104,7 +119,7 @@ contract STETHHoldingStrategy is Strategy {
 
         if (balance != 0) {
             TransferHelper.safeApprove(STETH, SWAPPING, balance);
-            amount = SwappingAggregator(SWAPPING).swap(STETH, balance);
+            amount = SwappingAggregator(SWAPPING).swap(STETH, balance, true);
 
             TransferHelper.safeTransferETH(controller, address(this).balance);
         }
@@ -214,6 +229,14 @@ contract STETHHoldingStrategy is Strategy {
         MINIMUM_WITHDRAW_QUEUE_AMOUNT = _amount;
 
         emit SetWithdrawQueueParams(_length, _amount);
+    }
+
+    function setRouter(
+        bool _buyOnDex,
+        bool _sellOnDex
+    ) external onlyGovernance {
+        buyOnDex = _buyOnDex;
+        sellOnDex = _sellOnDex;
     }
 
     receive() external payable {}

@@ -16,7 +16,7 @@ import {SwappingAggregator} from "./SwappingAggregator.sol";
 contract BalancerLPAuraStrategy is Strategy {
     uint256 internal immutable MULTIPLIER = 1e18;
     uint256 internal immutable PERCENTAGE = 1e6;
-    uint256 internal SLIPPAGE = 999000;
+    uint256 internal SLIPPAGE = 900000;
 
     bytes32 internal immutable poolId =
         0x42ed016f826165c2e5976fe5bc3df540c5ad0af700000000000000000000058b;
@@ -122,10 +122,10 @@ contract BalancerLPAuraStrategy is Strategy {
 
             IBalancerVault.SingleSwap memory singleSwap;
             singleSwap.poolId = poolId;
-            singleSwap.kind = IBalancerVault.SwapKind.GIVEN_OUT;
+            singleSwap.kind = IBalancerVault.SwapKind.GIVEN_IN;
             singleSwap.assetIn = LP_TOKEN;
             singleSwap.assetOut = WSTETH;
-            singleSwap.amount = wstETHOut;
+            singleSwap.amount = lpBalance;
 
             IBalancerVault.FundManagement memory fundManagement;
             fundManagement.sender = address(this);
@@ -136,14 +136,19 @@ contract BalancerLPAuraStrategy is Strategy {
             IBalancerVault(VAULT).swap(
                 singleSwap,
                 fundManagement,
-                lpBalance,
+                // wstETHOut,
+                0,
                 block.timestamp
             );
         }
 
         uint256 balance = IERC20(WSTETH).balanceOf(address(this));
         if (balance != 0) {
-            actualAmount = SwappingAggregator(SWAPPING).swap(WSTETH, balance);
+            actualAmount = SwappingAggregator(SWAPPING).swap(
+                WSTETH,
+                balance,
+                true
+            );
         }
 
         if (!_isInstant) {
@@ -158,7 +163,8 @@ contract BalancerLPAuraStrategy is Strategy {
             TransferHelper.safeApprove(BAL_TOKEN, SWAPPING, balance);
             actualAmount = SwappingAggregator(SWAPPING).swap(
                 BAL_TOKEN,
-                balance
+                balance,
+                true
             );
         }
 
@@ -167,7 +173,7 @@ contract BalancerLPAuraStrategy is Strategy {
             TransferHelper.safeApprove(AURA_TOKEN, SWAPPING, balance);
             actualAmount =
                 actualAmount +
-                SwappingAggregator(SWAPPING).swap(AURA_TOKEN, balance);
+                SwappingAggregator(SWAPPING).swap(AURA_TOKEN, balance, true);
         }
     }
 
@@ -212,7 +218,7 @@ contract BalancerLPAuraStrategy is Strategy {
 
         balance = IERC20(STETH).balanceOf(address(this));
         if (balance != 0) {
-            amount = SwappingAggregator(SWAPPING).swap(STETH, balance);
+            amount = SwappingAggregator(SWAPPING).swap(STETH, balance, true);
         }
 
         amount = amount + sellAllRewards();
@@ -241,7 +247,7 @@ contract BalancerLPAuraStrategy is Strategy {
         return (0, 0);
     }
 
-    function getOnchainLpPrice() internal returns (uint256) {
+    function getOnchainLpPrice() public view returns (uint256) {
         return IComposableStablePool(LP_TOKEN).getRate();
     }
 

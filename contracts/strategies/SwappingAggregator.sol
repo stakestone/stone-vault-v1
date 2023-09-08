@@ -83,88 +83,129 @@ contract SwappingAggregator {
 
     function swap(
         address _token,
-        uint256 _amount
-    ) external returns (uint256 amount) {
-        (DEX_TYPE dex, ) = getBestRouter(_token, _amount);
+        uint256 _amount,
+        bool _isSell
+    ) external payable returns (uint256 amount) {
+        (DEX_TYPE dex, ) = getBestRouter(_token, _amount, _isSell);
 
         uint256 balance;
         if (dex == DEX_TYPE.UNISWAPV3) {
-            amount = swapOnUniV3(_token, _amount);
+            amount = swapOnUniV3(_token, _amount, _isSell);
             balance = address(this).balance;
         } else {
-            amount = swapOnCurve(_token, _amount);
+            amount = swapOnCurve(_token, _amount, _isSell);
             balance = address(this).balance;
         }
 
         if (balance != 0) {
             TransferHelper.safeTransferETH(msg.sender, balance);
         }
+
+        if (!_isSell) {
+            TransferHelper.safeTransfer(
+                _token,
+                msg.sender,
+                IERC20(_token).balanceOf(address(this))
+            );
+        }
     }
 
     function swapOnUniV3(
         address _token,
-        uint256 _amount
-    ) public returns (uint256 amount) {
+        uint256 _amount,
+        bool _isSell
+    ) public payable returns (uint256 amount) {
         uint256 minReceived = calMinimumReceivedAmount(
             _amount,
             slippage[_token]
         );
 
         address pool = uniV3Pools[_token];
-        TransferHelper.safeTransferFrom(
-            _token,
-            msg.sender,
-            address(this),
-            _amount
-        );
-        TransferHelper.safeApprove(_token, pool, _amount);
+        if (_isSell) {
+            TransferHelper.safeTransferFrom(
+                _token,
+                msg.sender,
+                address(this),
+                _amount
+            );
+            TransferHelper.safeApprove(_token, pool, _amount);
 
-        ISwapRouter.ExactInputSingleParams memory params = ISwapRouter
-            .ExactInputSingleParams({
-                tokenIn: _token,
-                tokenOut: WETH9,
-                fee: fees[_token],
-                recipient: address(this),
-                deadline: block.timestamp,
-                amountIn: _amount,
-                amountOutMinimum: minReceived,
-                sqrtPriceLimitX96: 0
-            });
+            ISwapRouter.ExactInputSingleParams memory params = ISwapRouter
+                .ExactInputSingleParams({
+                    tokenIn: _token,
+                    tokenOut: WETH9,
+                    fee: fees[_token],
+                    recipient: address(this),
+                    deadline: block.timestamp,
+                    amountIn: _amount,
+                    amountOutMinimum: minReceived,
+                    sqrtPriceLimitX96: 0
+                });
 
-        amount = ISwapRouter(pool).exactInputSingle(params);
+            amount = ISwapRouter(pool).exactInputSingle(params);
 
-        IWETH9(WETH9).withdraw(amount);
+            IWETH9(WETH9).withdraw(amount);
+        } else {
+            IWETH9(WETH9).deposit{value: msg.value}();
+
+            TransferHelper.safeApprove(WETH9, pool, _amount);
+
+            ISwapRouter.ExactInputSingleParams memory params = ISwapRouter
+                .ExactInputSingleParams({
+                    tokenIn: WETH9,
+                    tokenOut: _token,
+                    fee: fees[_token],
+                    recipient: address(this),
+                    deadline: block.timestamp,
+                    amountIn: _amount,
+                    amountOutMinimum: minReceived,
+                    sqrtPriceLimitX96: 0
+                });
+
+            amount = ISwapRouter(pool).exactInputSingle(params);
+        }
     }
 
     function swapOnCurve(
         address _token,
-        uint256 _amount
-    ) public returns (uint256 amount) {
+        uint256 _amount,
+        bool _isSell
+    ) public payable returns (uint256 amount) {
         uint256 minReceived = calMinimumReceivedAmount(
             _amount,
             slippage[_token]
         );
 
         address pool = curvePools[_token];
-        TransferHelper.safeTransferFrom(
-            _token,
-            msg.sender,
-            address(this),
-            _amount
-        );
-        TransferHelper.safeApprove(_token, pool, _amount);
-
         (int128 e, int128 t) = getCurveCoinIndex(_token);
 
-        amount = IStableSwap(pool).exchange(t, e, _amount, minReceived);
+        if (_isSell) {
+            TransferHelper.safeTransferFrom(
+                _token,
+                msg.sender,
+                address(this),
+                _amount
+            );
+            TransferHelper.safeApprove(_token, pool, _amount);
+
+            amount = IStableSwap(pool).exchange(t, e, _amount, minReceived);
+        } else {
+            amount = IStableSwap(pool).exchange{value: msg.value}(
+                e,
+                t,
+                _amount,
+                minReceived
+            );
+        }
     }
 
     function getBestRouter(
         address _token,
-        uint256 _amount
+        uint256 _amount,
+        bool _isSell
     ) public returns (DEX_TYPE dex, uint256 out) {
-        uint256 uniV3Out = getUniV3Out(_token, _amount);
-        uint256 curveOut = getCurveOut(_token, _amount);
+        uint256 uniV3Out = getUniV3Out(_token, _amount, _isSell);
+        uint256 curveOut = getCurveOut(_token, _amount, _isSell);
 
         require(uniV3Out != 0 || curveOut != 0, "no liquidity");
 
@@ -176,24 +217,36 @@ contract SwappingAggregator {
 
     function getUniV3Out(
         address _token,
-        uint256 _amount
+        uint256 _amount,
+        bool _isSell
     ) public returns (uint256 out) {
         if (uniV3Pools[_token] == address(0)) {
             return 0;
         }
 
-        out = IQuoter(QUOTER).quoteExactInputSingle(
-            _token,
-            WETH9,
-            fees[_token],
-            _amount,
-            0
-        );
+        if (_isSell) {
+            out = IQuoter(QUOTER).quoteExactInputSingle(
+                _token,
+                WETH9,
+                fees[_token],
+                _amount,
+                0
+            );
+        } else {
+            out = IQuoter(QUOTER).quoteExactInputSingle(
+                WETH9,
+                _token,
+                fees[_token],
+                _amount,
+                0
+            );
+        }
     }
 
     function getCurveOut(
         address _token,
-        uint256 _amount
+        uint256 _amount,
+        bool _isSell
     ) public returns (uint256 out) {
         if (curvePools[_token] == address(0)) {
             return 0;
@@ -202,7 +255,11 @@ contract SwappingAggregator {
         (int128 e, int128 t) = getCurveCoinIndex(_token);
 
         IStableSwap pool = IStableSwap(curvePools[_token]);
-        out = pool.get_dy(t, e, _amount);
+        if (_isSell) {
+            out = pool.get_dy(t, e, _amount);
+        } else {
+            out = pool.get_dy(e, t, _amount);
+        }
     }
 
     function getCurveCoinIndex(

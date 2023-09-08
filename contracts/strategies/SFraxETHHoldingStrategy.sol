@@ -2,6 +2,7 @@
 pragma solidity 0.8.21;
 
 import {TransferHelper} from "@uniswap/v3-periphery/contracts/libraries/TransferHelper.sol";
+import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 import {IFrxETHMinter} from "../interfaces/IFrxETHMinter.sol";
 import {ISfrxETH} from "../interfaces/ISfrxETH.sol";
@@ -18,6 +19,9 @@ contract SFraxETHHoldingStrategy is Strategy {
         0xac3E018457B222d93114458476f3E3416Abbe38F;
     address payable public immutable SWAPPING;
 
+    bool public buyOnDex;
+    bool public sellOnDex;
+
     constructor(
         address payable _controller,
         address payable _swap,
@@ -32,9 +36,23 @@ contract SFraxETHHoldingStrategy is Strategy {
         uint256 amount = msg.value;
         require(amount != 0, "zero value");
 
-        IFrxETHMinter(FRXETH_MINTER).submitAndDeposit{value: amount}(
-            address(this)
-        );
+        if (!buyOnDex) {
+            IFrxETHMinter(FRXETH_MINTER).submitAndDeposit{value: amount}(
+                address(this)
+            );
+        } else {
+            SwappingAggregator(SWAPPING).swap{value: amount}(
+                FRXETH,
+                amount,
+                false
+            );
+
+            uint256 balance = IERC20(FRXETH).balanceOf(address(this));
+
+            TransferHelper.safeApprove(FRXETH, SFRXETH, balance);
+
+            ISfrxETH(SFRXETH).deposit(balance, address(this));
+        }
     }
 
     function withdraw(
@@ -64,7 +82,11 @@ contract SFraxETHHoldingStrategy is Strategy {
 
         if (assets != 0) {
             TransferHelper.safeApprove(FRXETH, SWAPPING, assets);
-            actualAmount = SwappingAggregator(SWAPPING).swap(FRXETH, assets);
+            actualAmount = SwappingAggregator(SWAPPING).swap(
+                FRXETH,
+                assets,
+                true
+            );
         }
         TransferHelper.safeTransferETH(controller, address(this).balance);
     }
@@ -96,6 +118,14 @@ contract SFraxETHHoldingStrategy is Strategy {
         returns (uint256 pending, uint256 executable)
     {
         return (0, 0);
+    }
+
+    function setRouter(
+        bool _buyOnDex,
+        bool _sellOnDex
+    ) external onlyGovernance {
+        buyOnDex = _buyOnDex;
+        sellOnDex = _sellOnDex;
     }
 
     receive() external payable {}
