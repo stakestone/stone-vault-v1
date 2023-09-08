@@ -15,4 +15,9 @@ interface ISfrxETH {
         address receiver,
         address owner
     ) external returns (uint256 assets);
+
+    function deposit(
+        uint256 assets,
+        address receiver
+    ) external returns (uint256 shares);
 }

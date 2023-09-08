@@ -7,6 +7,7 @@ import {IRocketDepositPool} from "../interfaces/IRocketDepositPool.sol";
 import {IRocketTokenRETH} from "../interfaces/IRocketTokenRETH.sol";
 
 import {Strategy} from "./Strategy.sol";
+import {SwappingAggregator} from "./SwappingAggregator.sol";
 
 contract RETHHoldingStrategy is Strategy {
     address public immutable ROCKET_DEPOSIT_POOL =
@@ -14,20 +15,34 @@ contract RETHHoldingStrategy is Strategy {
 
     address public immutable RETH = 0xae78736Cd615f374D3085123A210448E74Fc6393;
 
+    address payable public immutable SWAPPING;
+
+    bool public buyOnDex;
+    bool public sellOnDex;
+
     constructor(
         address payable _controller,
+        address payable _swap,
         string memory _name
-    ) Strategy(_controller, _name) {}
+    ) Strategy(_controller, _name) {
+        require(_swap != address(0), "ZERO ADDRESS");
+
+        SWAPPING = _swap;
+    }
 
     function deposit() public payable override onlyController {
         uint256 amount = msg.value;
         require(amount != 0, "zero value");
 
-        IRocketDepositPool pool = IRocketDepositPool(ROCKET_DEPOSIT_POOL);
-        uint256 max = pool.getMaximumDepositAmount();
-        require(amount < max, "exceed max");
+        if (!buyOnDex) {
+            IRocketDepositPool pool = IRocketDepositPool(ROCKET_DEPOSIT_POOL);
+            uint256 max = pool.getMaximumDepositAmount();
+            require(amount < max, "exceed max");
 
-        pool.deposit{value: amount}();
+            pool.deposit{value: amount}();
+        } else {
+            SwappingAggregator(SWAPPING).swap(RETH, amount, false);
+        }
     }
 
     function withdraw(
@@ -54,12 +69,17 @@ contract RETHHoldingStrategy is Strategy {
             ? rETH.getRethValue(_amount)
             : IRocketTokenRETH(RETH).balanceOf(address(this));
 
-        if (rETHAmount != 0) {
+        if (rETHAmount == 0) {
+            return 0;
+        }
+
+        if (!sellOnDex) {
             rETH.burn(rETHAmount);
+        } else {
+            SwappingAggregator(SWAPPING).swap(RETH, rETHAmount, true);
         }
 
         actualAmount = address(this).balance;
-
         TransferHelper.safeTransferETH(controller, actualAmount);
     }
 
@@ -72,13 +92,18 @@ contract RETHHoldingStrategy is Strategy {
         IRocketTokenRETH rETH = IRocketTokenRETH(RETH);
         uint256 amount = rETH.balanceOf(address(this));
 
-        if (amount != 0) {
-            rETH.burn(amount);
-
-            actualAmount = address(this).balance;
-
-            TransferHelper.safeTransferETH(controller, address(this).balance);
+        if (amount == 0) {
+            return 0;
         }
+
+        if (!sellOnDex) {
+            rETH.burn(amount);
+        } else {
+            SwappingAggregator(SWAPPING).swap(RETH, amount, true);
+        }
+
+        actualAmount = address(this).balance;
+        TransferHelper.safeTransferETH(controller, address(this).balance);
     }
 
     function getAllValue() public override returns (uint256 value) {
@@ -101,6 +126,14 @@ contract RETHHoldingStrategy is Strategy {
         returns (uint256 pending, uint256 executable)
     {
         return (0, 0);
+    }
+
+    function setRouter(
+        bool _buyOnDex,
+        bool _sellOnDex
+    ) external onlyGovernance {
+        buyOnDex = _buyOnDex;
+        sellOnDex = _sellOnDex;
     }
 
     receive() external payable {}
