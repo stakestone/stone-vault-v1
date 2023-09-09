@@ -6,4 +6,9 @@ interface IAuraRewardPool {
         uint256 amount,
         bool claim
     ) external returns (bool);
+
+    function deposit(
+        uint256 assets,
+        address receiver
+    ) external returns (uint256 shares);
 }
