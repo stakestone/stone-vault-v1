@@ -5,17 +5,20 @@ import {TransferHelper} from "@uniswap/v3-periphery/contracts/libraries/Transfer
 import {ISwapRouter} from "@uniswap/v3-periphery/contracts/interfaces/ISwapRouter.sol";
 import {IQuoter} from "@uniswap/v3-periphery/contracts/interfaces/IQuoter.sol";
 
+import {ReentrancyGuard} from "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 import {IStableSwap} from "../interfaces/IStableSwap.sol";
 import {IWETH9} from "../interfaces/IWETH9.sol";
 
-contract SwappingAggregator {
+contract SwappingAggregator is ReentrancyGuard {
     uint256 internal constant MULTIPLIER = 1e18;
     uint256 internal constant ONE_HUNDRED_PERCENT = 1e6;
 
     address internal immutable QUOTER =
         0xb27308f9F90D607463bb33eA1BeBb41C27CE5AB6;
+    address internal immutable ROUTER =
+        0xE592427A0AEce92De3Edee1F18E0157C05861564;
 
     address internal immutable WETH9;
 
@@ -97,29 +100,16 @@ contract SwappingAggregator {
             _isSell
         );
 
+        require(!_isSell && _amount == msg.value, "wrong value");
+
         if (expected == 0) {
             return 0;
         }
 
-        uint256 balance;
         if (dex == DEX_TYPE.UNISWAPV3) {
             amount = swapOnUniV3(_token, _amount, _isSell);
-            balance = address(this).balance;
         } else {
             amount = swapOnCurve(_token, _amount, _isSell);
-            balance = address(this).balance;
-        }
-
-        if (!_isSell) {
-            TransferHelper.safeTransfer(
-                _token,
-                msg.sender,
-                IERC20(_token).balanceOf(address(this))
-            );
-        }
-
-        if (balance != 0) {
-            TransferHelper.safeTransferETH(msg.sender, balance);
         }
     }
 
@@ -127,7 +117,7 @@ contract SwappingAggregator {
         address _token,
         uint256 _amount,
         bool _isSell
-    ) public payable returns (uint256 amount) {
+    ) public payable nonReentrant returns (uint256 amount) {
         uint256 minReceived = calMinimumReceivedAmount(
             _amount,
             slippage[_token]
@@ -141,7 +131,7 @@ contract SwappingAggregator {
                 address(this),
                 _amount
             );
-            TransferHelper.safeApprove(_token, pool, _amount);
+            TransferHelper.safeApprove(_token, ROUTER, _amount);
 
             ISwapRouter.ExactInputSingleParams memory params = ISwapRouter
                 .ExactInputSingleParams({
@@ -155,14 +145,15 @@ contract SwappingAggregator {
                     sqrtPriceLimitX96: 0
                 });
 
-            amount = ISwapRouter(pool).exactInputSingle(params);
+            amount = ISwapRouter(ROUTER).exactInputSingle(params);
 
             IWETH9(WETH9).withdraw(amount);
+
+            TransferHelper.safeTransferETH(msg.sender, address(this).balance);
         } else {
-            require(_amount == msg.value, "wrong value");
             IWETH9(WETH9).deposit{value: msg.value}();
 
-            TransferHelper.safeApprove(WETH9, pool, _amount);
+            TransferHelper.safeApprove(WETH9, ROUTER, _amount);
 
             ISwapRouter.ExactInputSingleParams memory params = ISwapRouter
                 .ExactInputSingleParams({
@@ -176,7 +167,13 @@ contract SwappingAggregator {
                     sqrtPriceLimitX96: 0
                 });
 
-            amount = ISwapRouter(pool).exactInputSingle(params);
+            amount = ISwapRouter(ROUTER).exactInputSingle(params);
+
+            TransferHelper.safeTransfer(
+                _token,
+                msg.sender,
+                IERC20(_token).balanceOf(address(this))
+            );
         }
     }
 
@@ -184,7 +181,7 @@ contract SwappingAggregator {
         address _token,
         uint256 _amount,
         bool _isSell
-    ) public payable returns (uint256 amount) {
+    ) public payable nonReentrant returns (uint256 amount) {
         uint256 minReceived = calMinimumReceivedAmount(
             _amount,
             slippage[_token]
@@ -219,6 +216,8 @@ contract SwappingAggregator {
                 IWETH9 weth = IWETH9(WETH9);
                 weth.withdraw(weth.balanceOf(address(this)));
             }
+
+            TransferHelper.safeTransferETH(msg.sender, address(this).balance);
         } else {
             if (wrapped) {
                 IWETH9(WETH9).deposit{value: msg.value}();
@@ -239,6 +238,12 @@ contract SwappingAggregator {
                     minReceived
                 );
             }
+
+            TransferHelper.safeTransfer(
+                _token,
+                msg.sender,
+                IERC20(_token).balanceOf(address(this))
+            );
         }
     }
 
