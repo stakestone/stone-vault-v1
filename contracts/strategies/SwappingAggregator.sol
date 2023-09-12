@@ -24,6 +24,7 @@ contract SwappingAggregator {
 
     mapping(address => address) public uniV3Pools; // token => pool
     mapping(address => address) public curvePools;
+    mapping(address => uint8) public curvePoolType; // 0 - stableswap; 1 - two crypto swap
     mapping(address => uint256) public slippage;
     mapping(address => uint24) public fees;
 
@@ -51,12 +52,15 @@ contract SwappingAggregator {
         address[] memory _tokens,
         address[] memory _uniPools,
         address[] memory _curvePools,
+        uint8[] memory _curvePoolTypes,
         uint256[] memory _slippages,
         uint24[] memory _fees
     ) {
         uint256 length = _tokens.length;
         require(
-            length == _uniPools.length && _tokens.length == _curvePools.length,
+            length == _uniPools.length &&
+                length == _curvePools.length &&
+                length == _curvePoolTypes.length,
             "invalid length"
         );
 
@@ -72,6 +76,7 @@ contract SwappingAggregator {
 
             uniV3Pools[_tokens[i]] = _uniPools[i];
             curvePools[_tokens[i]] = _curvePools[i];
+            curvePoolType[_curvePools[i]] = _curvePoolTypes[i];
             slippage[_tokens[i]] = _slippages[i];
             fees[_tokens[i]] = _fees[i];
         }
@@ -86,7 +91,15 @@ contract SwappingAggregator {
         uint256 _amount,
         bool _isSell
     ) external payable returns (uint256 amount) {
-        (DEX_TYPE dex, ) = getBestRouter(_token, _amount, _isSell);
+        (DEX_TYPE dex, uint256 expected) = getBestRouter(
+            _token,
+            _amount,
+            _isSell
+        );
+
+        if (expected == 0) {
+            return 0;
+        }
 
         uint256 balance;
         if (dex == DEX_TYPE.UNISWAPV3) {
@@ -97,16 +110,16 @@ contract SwappingAggregator {
             balance = address(this).balance;
         }
 
-        if (balance != 0) {
-            TransferHelper.safeTransferETH(msg.sender, balance);
-        }
-
         if (!_isSell) {
             TransferHelper.safeTransfer(
                 _token,
                 msg.sender,
                 IERC20(_token).balanceOf(address(this))
             );
+        }
+
+        if (balance != 0) {
+            TransferHelper.safeTransferETH(msg.sender, balance);
         }
     }
 
@@ -146,6 +159,7 @@ contract SwappingAggregator {
 
             IWETH9(WETH9).withdraw(amount);
         } else {
+            require(_amount == msg.value, "wrong value");
             IWETH9(WETH9).deposit{value: msg.value}();
 
             TransferHelper.safeApprove(WETH9, pool, _amount);
@@ -177,7 +191,9 @@ contract SwappingAggregator {
         );
 
         address pool = curvePools[_token];
-        (int128 e, int128 t) = getCurveCoinIndex(_token);
+        (uint256 e, uint256 t, bool wrapped) = getCurveCoinIndex(_token);
+
+        uint8 poolType = curvePoolType[pool];
 
         if (_isSell) {
             TransferHelper.safeTransferFrom(
@@ -188,14 +204,41 @@ contract SwappingAggregator {
             );
             TransferHelper.safeApprove(_token, pool, _amount);
 
-            amount = IStableSwap(pool).exchange(t, e, _amount, minReceived);
+            if (poolType == 0) {
+                amount = IStableSwap(pool).exchange(
+                    int128(int256(t)),
+                    int128(int256(e)),
+                    _amount,
+                    minReceived
+                );
+            } else {
+                amount = IStableSwap(pool).exchange(t, e, _amount, minReceived);
+            }
+
+            if (wrapped) {
+                IWETH9 weth = IWETH9(WETH9);
+                weth.withdraw(weth.balanceOf(address(this)));
+            }
         } else {
-            amount = IStableSwap(pool).exchange{value: msg.value}(
-                e,
-                t,
-                _amount,
-                minReceived
-            );
+            if (wrapped) {
+                IWETH9(WETH9).deposit{value: msg.value}();
+            }
+
+            if (poolType == 0) {
+                amount = IStableSwap(pool).exchange{value: msg.value}(
+                    int128(int256(e)),
+                    int128(int256(t)),
+                    _amount,
+                    minReceived
+                );
+            } else {
+                amount = IStableSwap(pool).exchange{value: msg.value}(
+                    e,
+                    t,
+                    _amount,
+                    minReceived
+                );
+            }
         }
     }
 
@@ -206,8 +249,6 @@ contract SwappingAggregator {
     ) public returns (DEX_TYPE dex, uint256 out) {
         uint256 uniV3Out = getUniV3Out(_token, _amount, _isSell);
         uint256 curveOut = getCurveOut(_token, _amount, _isSell);
-
-        require(uniV3Out != 0 || curveOut != 0, "no liquidity");
 
         return
             uniV3Out > curveOut
@@ -248,27 +289,50 @@ contract SwappingAggregator {
         uint256 _amount,
         bool _isSell
     ) public returns (uint256 out) {
-        if (curvePools[_token] == address(0)) {
+        address poolAddr = curvePools[_token];
+
+        if (poolAddr == address(0)) {
             return 0;
         }
 
-        (int128 e, int128 t) = getCurveCoinIndex(_token);
+        (uint256 e, uint256 t, ) = getCurveCoinIndex(_token);
 
-        IStableSwap pool = IStableSwap(curvePools[_token]);
+        IStableSwap pool = IStableSwap(poolAddr);
+        uint8 poolType = curvePoolType[poolAddr];
         if (_isSell) {
-            out = pool.get_dy(t, e, _amount);
+            if (poolType == 0) {
+                out = pool.get_dy(
+                    int128(int256(t)),
+                    int128(int256(e)),
+                    _amount
+                );
+            } else {
+                out = pool.get_dy(t, e, _amount);
+            }
         } else {
-            out = pool.get_dy(e, t, _amount);
+            if (poolType == 0) {
+                out = pool.get_dy(
+                    int128(int256(e)),
+                    int128(int256(t)),
+                    _amount
+                );
+            } else {
+                out = pool.get_dy(e, t, _amount);
+            }
         }
     }
 
     function getCurveCoinIndex(
         address _token
-    ) public view returns (int128 i, int128 j) {
+    ) public view returns (uint256 i, uint256 j, bool wrapped) {
         // i for Ether, j for another token
         IStableSwap pool = IStableSwap(curvePools[_token]);
 
-        if (pool.coins(0) == CURVE_ETH) {
+        if (pool.coins(0) == WETH9 || pool.coins(1) == WETH9) {
+            wrapped = true;
+        }
+
+        if (pool.coins(0) == CURVE_ETH || pool.coins(0) == WETH9) {
             i = 0;
             j = 1;
         } else {
@@ -309,6 +373,7 @@ contract SwappingAggregator {
     function setCurveRouter(
         address _token,
         address _curvePool,
+        uint8 _curvePoolType,
         uint256 _slippage
     ) external onlyGovernance {
         require(
@@ -317,6 +382,7 @@ contract SwappingAggregator {
         );
 
         curvePools[_token] = _curvePool;
+        curvePoolType[_curvePool] = _curvePoolType;
         slippage[_token] = _slippage;
     }
 
