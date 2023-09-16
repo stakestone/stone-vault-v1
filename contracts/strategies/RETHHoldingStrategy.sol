@@ -41,7 +41,11 @@ contract RETHHoldingStrategy is Strategy {
 
             pool.deposit{value: amount}();
         } else {
-            SwappingAggregator(SWAPPING).swap(RETH, amount, false);
+            SwappingAggregator(SWAPPING).swap{value: amount}(
+                RETH,
+                amount,
+                false
+            );
         }
     }
 
@@ -76,6 +80,7 @@ contract RETHHoldingStrategy is Strategy {
         if (!sellOnDex) {
             rETH.burn(rETHAmount);
         } else {
+            rETH.approve(SWAPPING, rETHAmount);
             SwappingAggregator(SWAPPING).swap(RETH, rETHAmount, true);
         }
 
