@@ -80,7 +80,7 @@ contract RETHHoldingStrategy is Strategy {
         if (!sellOnDex) {
             rETH.burn(rETHAmount);
         } else {
-            rETH.approve(SWAPPING, rETHAmount);
+            TransferHelper.safeApprove(RETH, SWAPPING, rETHAmount);
             SwappingAggregator(SWAPPING).swap(RETH, rETHAmount, true);
         }
 
@@ -104,6 +104,7 @@ contract RETHHoldingStrategy is Strategy {
         if (!sellOnDex) {
             rETH.burn(amount);
         } else {
+            TransferHelper.safeApprove(RETH, SWAPPING, amount);
             SwappingAggregator(SWAPPING).swap(RETH, amount, true);
         }
 
