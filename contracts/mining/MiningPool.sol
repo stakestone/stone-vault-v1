@@ -70,9 +70,9 @@ contract MiningPool is ReentrancyGuard {
     ) internal nonReentrant {
         require(tokens.contains(_token), "unsupported token");
 
-        TransferHelper.safeTransferFrom(_token, _user, address(this), _amount);
-
         updateReward(_user, false);
+
+        TransferHelper.safeTransferFrom(_token, _user, address(this), _amount);
 
         stakedAmount[_user][_token] = stakedAmount[_user][_token] + _amount;
     }
@@ -181,6 +181,9 @@ contract MiningPool is ReentrancyGuard {
         if (!checkPosition(_user)) {
             stakeTime[_user] = 0;
             updateTime[_user] = 0;
+
+            totalPoints = totalPoints - currentPendingPoints[_user];
+            currentPendingPoints[_user] = 0;
         }
     }
 
@@ -197,6 +200,12 @@ contract MiningPool is ReentrancyGuard {
             uint256 acc = (current - previous) / cycle;
             amount += acc;
         }
+    }
+
+    function getPendingNFTLength(
+        address _user
+    ) public view returns (uint256 amount) {
+        amount = pendingNFT[_user].length;
     }
 
     function getAllValue() public view returns (uint256 value) {
