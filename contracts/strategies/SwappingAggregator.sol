@@ -99,13 +99,12 @@ contract SwappingAggregator is ReentrancyGuard {
             _amount,
             _isSell
         );
-
-        require(!_isSell && _amount == msg.value, "wrong value");
-
+        if (!_isSell) {
+            require(_amount == msg.value, "wrong value");
+        }
         if (expected == 0) {
             return 0;
         }
-
         if (dex == DEX_TYPE.UNISWAPV3) {
             amount = swapOnUniV3(_token, _amount, _isSell);
         } else {
@@ -117,7 +116,7 @@ contract SwappingAggregator is ReentrancyGuard {
         address _token,
         uint256 _amount,
         bool _isSell
-    ) public payable nonReentrant returns (uint256 amount) {
+    ) internal nonReentrant returns (uint256 amount) {
         uint256 minReceived = calMinimumReceivedAmount(
             _amount,
             slippage[_token]
@@ -153,7 +152,11 @@ contract SwappingAggregator is ReentrancyGuard {
         } else {
             IWETH9(WETH9).deposit{value: msg.value}();
 
-            TransferHelper.safeApprove(WETH9, ROUTER, _amount);
+            TransferHelper.safeApprove(
+                WETH9,
+                ROUTER,
+                IWETH9(WETH9).balanceOf(address(this))
+            );
 
             ISwapRouter.ExactInputSingleParams memory params = ISwapRouter
                 .ExactInputSingleParams({
@@ -181,7 +184,7 @@ contract SwappingAggregator is ReentrancyGuard {
         address _token,
         uint256 _amount,
         bool _isSell
-    ) public payable nonReentrant returns (uint256 amount) {
+    ) internal nonReentrant returns (uint256 amount) {
         uint256 minReceived = calMinimumReceivedAmount(
             _amount,
             slippage[_token]
@@ -219,24 +222,46 @@ contract SwappingAggregator is ReentrancyGuard {
 
             TransferHelper.safeTransferETH(msg.sender, address(this).balance);
         } else {
-            if (wrapped) {
-                IWETH9(WETH9).deposit{value: msg.value}();
-            }
-
             if (poolType == 0) {
-                amount = IStableSwap(pool).exchange{value: msg.value}(
-                    int128(int256(e)),
-                    int128(int256(t)),
-                    _amount,
-                    minReceived
-                );
+                if (!wrapped) {
+                    amount = IStableSwap(pool).exchange{value: _amount}(
+                        int128(int256(e)),
+                        int128(int256(t)),
+                        _amount,
+                        minReceived
+                    );
+                } else {
+                    IWETH9 weth = IWETH9(WETH9);
+                    weth.deposit{value: _amount}();
+                    weth.approve(pool, _amount);
+
+                    amount = IStableSwap(pool).exchange(
+                        int128(int256(e)),
+                        int128(int256(t)),
+                        _amount,
+                        minReceived
+                    );
+                }
             } else {
-                amount = IStableSwap(pool).exchange{value: msg.value}(
-                    e,
-                    t,
-                    _amount,
-                    minReceived
-                );
+                if (!wrapped) {
+                    amount = IStableSwap(pool).exchange{value: _amount}(
+                        e,
+                        t,
+                        _amount,
+                        minReceived
+                    );
+                } else {
+                    IWETH9 weth = IWETH9(WETH9);
+                    weth.deposit{value: _amount}();
+                    weth.approve(pool, _amount);
+
+                    amount = IStableSwap(pool).exchange(
+                        e,
+                        t,
+                        _amount,
+                        minReceived
+                    );
+                }
             }
 
             TransferHelper.safeTransfer(
@@ -368,7 +393,7 @@ contract SwappingAggregator is ReentrancyGuard {
         uint256 _slippage,
         uint24 _fee
     ) external onlyGovernance {
-        require(_token != address(0) && _uniPool != address(0), "ZERO ADDRESS");
+        require(_token != address(0), "ZERO ADDRESS");
 
         uniV3Pools[_token] = _uniPool;
         slippage[_token] = _slippage;
@@ -381,10 +406,7 @@ contract SwappingAggregator is ReentrancyGuard {
         uint8 _curvePoolType,
         uint256 _slippage
     ) external onlyGovernance {
-        require(
-            _token != address(0) && _curvePool != address(0),
-            "ZERO ADDRESS"
-        );
+        require(_token != address(0), "ZERO ADDRESS");
 
         curvePools[_token] = _curvePool;
         curvePoolType[_curvePool] = _curvePoolType;

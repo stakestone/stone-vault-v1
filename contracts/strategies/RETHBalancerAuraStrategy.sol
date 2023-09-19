@@ -108,7 +108,6 @@ contract RETHBalancerAuraStrategy is Strategy {
     ) internal returns (uint256 actualAmount) {
         require(_amount != 0, "zero value");
 
-        // uint256 wstETHOut = IWstETH(WSTETH).getWstETHByStETH(_amount);
         uint256 lpOut = getMaxLPOutAmount(_amount);
         lpOut = lpOut < IERC20(AURA_REWARD_POOL).balanceOf(address(this))
             ? lpOut
