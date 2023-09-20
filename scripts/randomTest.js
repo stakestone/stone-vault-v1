@@ -151,8 +151,8 @@ async function myfunction(st_buyOnDex, st_sellOnDex, r_buyOnDex, r_sellOnDex, sF
 
 module.exports = async function (callback) {
     try {
-        for (const st_buyOnDex of [0])
-            for (const st_sellOnDex of [0])
+        for (const st_buyOnDex of [0, 1])
+            for (const st_sellOnDex of [0, 1])
                 for (const r_buyOnDex of [1])
                     for (const r_sellOnDex of [0, 1])
                         for (const sF_buyOnDex of [0, 1])
