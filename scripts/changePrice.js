@@ -36,9 +36,9 @@ module.exports = async function (callback) {
         const sfraxETHAddr = "0xac3E018457B222d93114458476f3E3416Abbe38F";
 
         const rETHBalAuraAddr = "0xDd1fE5AD401D4777cE89959b7fa587e569Bf125D";
-        const rETHBalancerAuraStrategy = "0xf60b394638Ecbc2020Ac3E296E04Fd955A3eB460";//deposit rETH+wETH
+        // const rETHBalancerAuraStrategy = "0xf60b394638Ecbc2020Ac3E296E04Fd955A3eB460";//deposit rETH+wETH
 
-        const swappingAggregatorAddr = "0x9bB2a4B892A1c3C7E111050916B122646E9F2533";
+        const swappingAggregatorAddr = "0xD682C2b9814FB096c843984Da9810916CB2206e0";
         const swappingAggregator = await SwappingAggregator.at(swappingAggregatorAddr);
         // 每个交易的token都需要approve
         let token = await MockToken.at(stETHAddr);
@@ -151,15 +151,15 @@ module.exports = async function (callback) {
         //比较价格
         const number = BigNumber(1e18);
 
-        getUniV3Out = await swappingAggregator.getUniV3Out.call(stETHAddr, number, true);
-        console.log("getUniV3Out sell price is : ", BigNumber(getUniV3Out).div(1e18).toString(10));
-        getUniV3Out = await swappingAggregator.getUniV3Out.call(stETHAddr, number, false);
-        console.log("getUniV3Out buy price is : ", number.div(BigNumber(getUniV3Out)).toString(10));
+        // getUniV3Out = await swappingAggregator.getUniV3Out.call(stETHAddr, number, true);
+        // console.log("getUniV3Out sell price is : ", BigNumber(getUniV3Out).div(1e18).toString(10));
+        // getUniV3Out = await swappingAggregator.getUniV3Out.call(stETHAddr, number, false);
+        // console.log("getUniV3Out buy price is : ", number.div(BigNumber(getUniV3Out)).toString(10));
 
-        getCurveOut = await swappingAggregator.getCurveOut.call(stETHAddr, number, true);
-        console.log("getCurveOut sell price is : ", BigNumber(getCurveOut).div(1e18).toString(10));
-        getCurveOut = await swappingAggregator.getCurveOut.call(stETHAddr, number, false);
-        console.log("getCurveOut buy price is : ", number.div(BigNumber(getCurveOut)).toString(10));
+        // getCurveOut = await swappingAggregator.getCurveOut.call(stETHAddr, number, true);
+        // console.log("getCurveOut sell price is : ", BigNumber(getCurveOut).div(1e18).toString(10));
+        // getCurveOut = await swappingAggregator.getCurveOut.call(stETHAddr, number, false);
+        // console.log("getCurveOut buy price is : ", number.div(BigNumber(getCurveOut)).toString(10));
         getUniV3Out = await swappingAggregator.getUniV3Out.call(rETHAddr, number, true);
         console.log("getUniV3Out rETHAddr sell price is : ", BigNumber(getUniV3Out).div(1e18).toString(10));
         getUniV3Out = await swappingAggregator.getUniV3Out.call(rETHAddr, number, false);
@@ -182,9 +182,10 @@ module.exports = async function (callback) {
         console.log("getCurveOut frxETHAddr buy price is : ", number.div(BigNumber(getCurveOut)).toString(10));
 
 
-        const stETHHoldingStrategyAddr = "0xF97C478f34E1dBA7E399b973f4b720bA5885290b";
-        const rETHHoldingStrategyAddr = "0xbc84fF8A2F781EB76Febb8558699bba83Acb38Ef";
-        const sFraxETHHoldingStrategyAddr = "0xc6f830BB162e6CFb7b4Bac242B0E43cF1984c853";
+        const stETHHoldingStrategyAddr = "0xfB153D3b08871F9e113E3e474eAC0d944BF9164f";
+        const rETHHoldingStrategyAddr = "0xf60b394638Ecbc2020Ac3E296E04Fd955A3eB460";
+        const sFraxETHHoldingStrategyAddr = "0xA0A2917cB9fBf3159730Cb502e83Cc7b32202c7f";
+        const rETHBalancerAuraStrategy = "0x4DC916664dAe3ae8EECce340a36Af8DE2Af7986f";//deposit rETH+wETH
 
         let stETHBalance = BigNumber(await token.balanceOf(stETHHoldingStrategyAddr));
         console.log("stETHBalance of strategy is :.... ", stETHBalance.toString(10));

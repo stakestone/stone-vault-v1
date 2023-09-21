@@ -15,21 +15,22 @@ const deployer = "0xc772FAf13E8fC346e7b1678F5f2084F884c56F92";
 module.exports = async function (callback) {
     try {
 
-        const stETHHoldingStrategy = await STETHHoldingStrategy.at("0xF97C478f34E1dBA7E399b973f4b720bA5885290b");
+        const stETHHoldingStrategy = await STETHHoldingStrategy.at("0xfB153D3b08871F9e113E3e474eAC0d944BF9164f");
         const gover = await stETHHoldingStrategy.governance();
 
         console.log(".......st: ", gover);
         // await stETHHoldingStrategy.setRouter(0, 0);
         console.log(".......st");
-        const rETHHoldingStrategy = await RETHHoldingStrategy.at("0xbc84fF8A2F781EB76Febb8558699bba83Acb38Ef");
+        const rETHHoldingStrategy = await RETHHoldingStrategy.at("0xf60b394638Ecbc2020Ac3E296E04Fd955A3eB460");
         console.log(".......st");
         // await rETHHoldingStrategy.setRouter(1, 0);
         console.log(".......st");
-        const sFraxETHHoldingStrategy = await SFraxETHHoldingStrategy.at("0xc6f830BB162e6CFb7b4Bac242B0E43cF1984c853");
+        const sFraxETHHoldingStrategy = await SFraxETHHoldingStrategy.at("0xA0A2917cB9fBf3159730Cb502e83Cc7b32202c7f");
         // await sFraxETHHoldingStrategy.setRouter(0, 0);
 
         let st_buyOnDex = await stETHHoldingStrategy.buyOnDex();
         let st_sellOnDex = await stETHHoldingStrategy.sellOnDex();
+
         let r_buyOnDex = await rETHHoldingStrategy.buyOnDex();
         let r_sellOnDex = await rETHHoldingStrategy.sellOnDex();
 

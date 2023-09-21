@@ -10,24 +10,24 @@ const StrategyController = artifacts.require("StrategyController");
 module.exports = async function (callback) {
     try {
 
-        const strategyController = await StrategyController.at("0x52Df50Fb1de14c3D2b239eE59e3997b946934443");
+        const strategyController = await StrategyController.at("0x331dFc50239F09D8B91c2f6fcF594AaA03A35546");
         strategies = await strategyController.getStrategies();
         console.log("strategies are : ", strategies);
         console.log("strategy length is : ", strategies[0].length);
         // // const stoneVault = await StoneVault.at("");
-        // let strategy1 = strategies[0][0];
-        // console.log("strategy1 is : ", strategies[0][0]);
-        // let strategy2 = strategies[0][1];
-        // console.log("strategy2 is : ", strategies[0][1]);
-        // let strategy3 = strategies[0][2];
-        // console.log("strategy3 is : ", strategies[0][2]);
-        // let strategy4 = strategies[0][3];
-        // console.log("strategy4 is : ", strategies[0][3]);
+        let strategy1 = strategies[0][0];
+        console.log("strategy1 is : ", strategies[0][0]);
+        let strategy2 = strategies[0][1];
+        console.log("strategy2 is : ", strategies[0][1]);
+        let strategy3 = strategies[0][2];
+        console.log("strategy3 is : ", strategies[0][2]);
+        let strategy4 = strategies[0][3];
+        console.log("strategy4 is : ", strategies[0][3]);
 
-        // console.log("strategy1's portion is : ", strategies[1][0].toString(10));
-        // console.log("strategy2's portion is : ", strategies[1][1].toString(10));
-        // console.log("strategy3's portion is : ", strategies[1][2].toString(10));
-        // console.log("strategy4's portion is : ", strategies[1][3].toString(10));
+        console.log("strategy1's portion is : ", strategies[1][0].toString(10));
+        console.log("strategy2's portion is : ", strategies[1][1].toString(10));
+        console.log("strategy3's portion is : ", strategies[1][2].toString(10));
+        console.log("strategy4's portion is : ", strategies[1][3].toString(10));
 
         // let strategy_vaule = BigNumber(await strategyController.getStrategyValue.call(strategies[0][0]));
         // console.log("strategy_vaule is : ", strategy_vaule.toString(10));
