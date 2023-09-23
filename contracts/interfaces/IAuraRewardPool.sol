@@ -11,4 +11,6 @@ interface IAuraRewardPool {
         uint256 assets,
         address receiver
     ) external returns (uint256 shares);
+
+    function earned(address account) external view returns (uint256);
 }
