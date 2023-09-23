@@ -119,7 +119,9 @@ contract RETHHoldingStrategy is Strategy {
     function getInvestedValue() public override returns (uint256 value) {
         IRocketTokenRETH rETH = IRocketTokenRETH(RETH);
 
-        value = rETH.getEthValue(rETH.balanceOf(address(this)));
+        value =
+            rETH.getEthValue(rETH.balanceOf(address(this))) +
+            address(this).balance;
     }
 
     function getPendingValue() public override returns (uint256 value) {

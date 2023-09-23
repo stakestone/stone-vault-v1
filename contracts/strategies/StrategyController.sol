@@ -315,7 +315,8 @@ contract StrategyController {
     function _couldDestroyStrategy(
         address _strategy
     ) internal returns (bool status) {
-        return ratios[_strategy] == 0 && Strategy(_strategy).getAllValue() == 0;
+        return
+            ratios[_strategy] == 0 && Strategy(_strategy).getAllValue() < 1e4;
     }
 
     receive() external payable {}
