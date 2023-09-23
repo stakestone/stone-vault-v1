@@ -6,6 +6,8 @@ interface ISfrxETH {
 
     function maxRedeem(address owner) external view returns (uint256);
 
+    function maxWithdraw(address owner) external view returns (uint256);
+
     function previewRedeem(uint256 shares) external view returns (uint256);
 
     function convertToShares(uint256 assets) external view returns (uint256);

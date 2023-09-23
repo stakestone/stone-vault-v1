@@ -113,7 +113,9 @@ contract SFraxETHHoldingStrategy is Strategy {
     }
 
     function getInvestedValue() public override returns (uint256 value) {
-        value = ISfrxETH(SFRXETH).maxRedeem(address(this));
+        value =
+            ISfrxETH(SFRXETH).maxWithdraw(address(this)) +
+            address(this).balance;
     }
 
     function getPendingValue() public override returns (uint256 value) {

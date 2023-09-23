@@ -349,11 +349,12 @@ contract StoneVault is ReentrancyGuard, Ownable {
 
         StrategyController controller = StrategyController(strategyController);
         AssetsVault aVault = AssetsVault(assetsVault);
+        uint256 previewSharePrice = currentSharePrice();
 
         uint256 vaultBalance = aVault.getBalance();
         uint256 amountToWithdraw = VaultMath.sharesToAsset(
             withdrawingSharesInRound,
-            currentSharePrice()
+            previewSharePrice
         );
         uint256 amountVaultNeed = withdrawableAmountInPast + amountToWithdraw;
         uint256 allPendingValue = controller.getAllStrategyPendingValue();
@@ -370,20 +371,10 @@ contract StoneVault is ReentrancyGuard, Ownable {
         controller.rebaseStrategies(vaultIn, vaultOut);
 
         uint256 newSharePrice = currentSharePrice();
-        if (vaultOut == 0 || vaultIn != 0 || withdrawingSharesInRound == 0) {
-            roundPricePerShare[latestRoundID] = newSharePrice;
-        } else {
-            uint256 vaultReserved = vaultBalance + allPendingValue >
-                withdrawableAmountInPast
-                ? aVault.getBalance() +
-                    allPendingValue -
-                    withdrawableAmountInPast
-                : aVault.getBalance() - vaultBalance;
+        roundPricePerShare[latestRoundID] = previewSharePrice < newSharePrice
+            ? previewSharePrice
+            : newSharePrice;
 
-            roundPricePerShare[latestRoundID] = vaultReserved > 0
-                ? (vaultReserved * MULTIPLIER) / withdrawingSharesInRound
-                : newSharePrice;
-        }
         settlementTime[latestRoundID] = block.timestamp;
         latestRoundID = latestRoundID + 1;
 

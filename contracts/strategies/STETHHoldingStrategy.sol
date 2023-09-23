@@ -130,7 +130,7 @@ contract STETHHoldingStrategy is Strategy {
     }
 
     function getInvestedValue() public override returns (uint256 value) {
-        value = IERC20(STETH).balanceOf(address(this));
+        value = IERC20(STETH).balanceOf(address(this)) + address(this).balance;
     }
 
     function getPendingValue() public override returns (uint256 value) {

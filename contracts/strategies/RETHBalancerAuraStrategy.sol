@@ -33,8 +33,10 @@ contract RETHBalancerAuraStrategy is Strategy {
         0xba100000625a3754423978a60c9317c58a424e3D;
     address public immutable AURA_TOKEN =
         0xC0c293ce456fF0ED870ADd98a0828Dd4d2903DBF;
+    address public immutable EXTRA_REWARD =
+        0xf66a72886749c96b18526E8E124cC2e18b7c72D2;
 
-    address payable public immutable SWAPPING;
+    address payable public SWAPPING;
 
     constructor(
         address payable _controller,
@@ -236,6 +238,11 @@ contract RETHBalancerAuraStrategy is Strategy {
         TransferHelper.safeTransferETH(controller, address(this).balance);
     }
 
+    function getExtraRewards() public view returns (uint256 bal, uint256 aura) {
+        bal = IAuraRewardPool(AURA_REWARD_POOL).earned(address(this));
+        aura = IAuraRewardPool(EXTRA_REWARD).earned(address(this));
+    }
+
     function claimRewards() public {
         IAuraRewardPool rewardPool = IAuraRewardPool(AURA_REWARD_POOL);
         rewardPool.withdrawAndUnwrap(0, true);
@@ -247,8 +254,10 @@ contract RETHBalancerAuraStrategy is Strategy {
 
     function getInvestedValue() public override returns (uint256 value) {
         return
+            address(this).balance +
             (IERC20(AURA_REWARD_POOL).balanceOf(address(this)) *
-                getOnchainLpPrice()) / MULTIPLIER;
+                getOnchainLpPrice()) /
+            MULTIPLIER;
     }
 
     function getPendingValue() public override returns (uint256 value) {
@@ -292,6 +301,10 @@ contract RETHBalancerAuraStrategy is Strategy {
 
     function setSlippage(uint256 _slippage) external onlyGovernance {
         SLIPPAGE = _slippage;
+    }
+
+    function setAggregator(address _aggregator) external onlyGovernance {
+        SWAPPING = payable(_aggregator);
     }
 
     receive() external payable {}
