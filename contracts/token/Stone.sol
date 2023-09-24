@@ -3,7 +3,6 @@ pragma solidity 0.8.21;
 
 import "@layerzerolabs/solidity-examples/contracts/token/oft/extension/BasedOFT.sol";
 
-import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 import {Minter} from "./Minter.sol";
 
 contract Stone is BasedOFT {
@@ -33,7 +32,7 @@ contract Stone is BasedOFT {
         address _minter,
         address _layerZeroEndpoint,
         uint256 _cap
-    ) BasedOFT("Stone Liquidity Ether Token", "STONE", _layerZeroEndpoint) {
+    ) BasedOFT("StakeStone Ether", "STONE", _layerZeroEndpoint) {
         minter = _minter;
         cap = _cap;
     }
@@ -185,7 +184,7 @@ contract Stone is BasedOFT {
         price = Minter(minter).getTokenPrice();
     }
 
-    function getQuota() external returns (uint256) {
+    function getQuota() external view returns (uint256) {
         uint256 amount = quota[block.timestamp / DAY_INTERVAL];
         if (cap > amount && enable) {
             return cap - amount;

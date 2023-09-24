@@ -12,7 +12,7 @@ contract StrategyController {
 
     uint256 internal constant ONE_HUNDRED_PERCENT = 1e6;
 
-    address public immutable stoneVault;
+    address public stoneVault;
     address payable public immutable assetsVault;
 
     EnumerableSet.AddressSet private strategies;
@@ -317,6 +317,10 @@ contract StrategyController {
     ) internal returns (bool status) {
         return
             ratios[_strategy] == 0 && Strategy(_strategy).getAllValue() < 1e4;
+    }
+
+    function setNewVault(address _vault) external onlyVault {
+        stoneVault = _vault;
     }
 
     receive() external payable {}
