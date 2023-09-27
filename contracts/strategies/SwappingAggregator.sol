@@ -94,6 +94,12 @@ contract SwappingAggregator is ReentrancyGuard {
         uint256 _amount,
         bool _isSell
     ) external payable returns (uint256 amount) {
+        if (
+            uniV3Pools[_token] == address(0) && curvePools[_token] == address(0)
+        ) {
+            return 0;
+        }
+
         (DEX_TYPE dex, uint256 expected) = getBestRouter(
             _token,
             _amount,

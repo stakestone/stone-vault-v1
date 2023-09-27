@@ -14,11 +14,15 @@ const StrategyController = artifacts.require("StrategyController");
 const STETHHoldingStrategy = artifacts.require("STETHHoldingStrategy");
 const RETHHoldingStrategy = artifacts.require("RETHHoldingStrategy");
 const SFraxETHHoldingStrategy = artifacts.require("SFraxETHHoldingStrategy");
-const BalancerLPAuraStrategy = artifacts.require("BalancerLPAuraStrategy");
+const RETHBalancerAuraStrategy = artifacts.require("RETHBalancerAuraStrategy");
 
 const SwappingAggregator = artifacts.require("SwappingAggregator");
 
-const deployer = "";
+const MiningPool = artifacts.require("MiningPool");
+const StoneAdapter = artifacts.require("StoneAdapter");
+const StoneNFT = artifacts.require("StoneNFT");
+
+const deployer = "0xc1364aD857462e1B60609D9e56b5E24C5c21a312";
 
 const data = require("./mainnet.json");
 
@@ -29,21 +33,21 @@ module.exports = async function (callback) {
         const wETHAddr = "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2";
 
         const stETHAddr = "0xae7ab96520DE3A18E5e111B5EaAb095312D7fE84";
-        const stETHUniPool = "0x8f8eaaF88448ba31BdffF6aD8c42830c032C6392";
+        const stETHUniPool = "0x63818BbDd21E69bE108A23aC1E84cBf66399Bd7D";
         const stETHCurvePool = "0xdc24316b9ae028f1497c275eb9192a3ea0f67022";
-        const stETHSlippage = 999000;
+        const stETHSlippage = 998000;
         const stETHFee = 10000;
 
         const rETHAddr = "0xae78736Cd615f374D3085123A210448E74Fc6393";
         const rETHUniPool = "0xa4e0faA58465A2D369aa21B3e42d43374c6F9613";
         const rETHCurvePool = "0x0f3159811670c117c372428d4e69ac32325e4d0f";
-        const rETHSlippage = 999000;
+        const rETHSlippage = 1080000;
         const rETHFee = 500;
 
         const frxETHAddr = "0x5E8422345238F34275888049021821E8E08CAa1f";
         const frxETHUniPool = "0x8a15b2Dc9c4f295DCEbB0E7887DD25980088fDCB";
         const frxETHCurvePool = "0xa1f8a6807c402e4a15ef4eba36528a3fed24e577";
-        const frxETHSlippage = 999000;
+        const frxETHSlippage = 998000;
         const frxETHFee = 500;
 
         let swappingAggregatorAddr;
@@ -55,11 +59,12 @@ module.exports = async function (callback) {
         } else {
             swappingAggregator = await SwappingAggregator.new(
                 wETHAddr,
-                [stETHAddr, frxETHAddr],
-                [stETHUniPool, frxETHUniPool],
-                [stETHCurvePool, frxETHCurvePool],
-                [stETHSlippage, frxETHSlippage],
-                [stETHFee, frxETHFee]
+                [stETHAddr, frxETHAddr, rETHAddr],
+                [stETHUniPool, frxETHUniPool, rETHUniPool],
+                [stETHCurvePool, frxETHCurvePool, rETHCurvePool],
+                [0, 0, 1],
+                [stETHSlippage, frxETHSlippage, rETHSlippage],
+                [stETHFee, frxETHFee, rETHFee]
             );
             console.log("swappingAggregator: ", swappingAggregator.address);
             swappingAggregatorAddr = swappingAggregator.address;
@@ -69,8 +74,9 @@ module.exports = async function (callback) {
         }
 
         let minterAddr;
-        if (data.hasOwnProperty("minterAddr") && data.minterAddr != "") {
-            minterAddr = data.minterAddr;
+        if ((data.hasOwnProperty("minterAddr") && data.minterAddr != "")
+            || (data.hasOwnProperty("minterAddrTemp") && await isContractExists(data.minterAddrTemp))) {
+            minterAddr = data.hasOwnProperty("minterAddr") ? data.minterAddr : data.minterAddrTemp;
             console.log("minterAddr: ", minterAddr);
         } else {
             minterAddr = await getFutureAddr(1);
@@ -86,7 +92,7 @@ module.exports = async function (callback) {
             stone = await Stone.at(data.stoneAddr);
             console.log("stone: ", stone.address);
         } else {
-            stone = await Stone.new(data.minterAddrTemp, layerZeroEndpoint);
+            stone = await Stone.new(data.minterAddrTemp, layerZeroEndpoint, BigNumber(10000).times(1e18).toString(10));
             console.log("stone: ", stone.address);
 
             data.stoneAddr = stone.address;
@@ -94,8 +100,9 @@ module.exports = async function (callback) {
         }
 
         let stoneVaultAddr;
-        if (data.hasOwnProperty("stoneVaultAddr") && data.stoneVaultAddr != "") {
-            stoneVaultAddr = data.stoneVaultAddr;
+        if ((data.hasOwnProperty("stoneVaultAddr") && data.stoneVaultAddr != "")
+            || (data.hasOwnProperty("stoneVaultAddrTemp") && await isContractExists(data.stoneVaultAddrTemp))) {
+            stoneVaultAddr = data.hasOwnProperty("stoneVaultAddr") ? data.stoneVaultAddr : data.stoneVaultAddrTemp;
         } else {
             stoneVaultAddr = await getFutureAddr(1);
 
@@ -106,8 +113,9 @@ module.exports = async function (callback) {
         }
 
         let minter;
-        if (data.hasOwnProperty("minterAddr") && data.minterAddr != "") {
-            minterAddr = data.minterAddr;
+        if ((data.hasOwnProperty("minterAddr") && data.minterAddr != "")
+            || (data.hasOwnProperty("minterAddrTemp") && await isContractExists(data.minterAddrTemp))) {
+            minterAddr = data.hasOwnProperty("minterAddr") ? data.minterAddr : data.minterAddrTemp;
             minter = await Minter.at(minterAddr);
         } else {
             minter = await Minter.new(data.stoneAddr, data.stoneVaultAddrTemp);
@@ -118,8 +126,9 @@ module.exports = async function (callback) {
         }
 
         let proposalAddr;
-        if (data.hasOwnProperty("proposalAddr") && data.proposalAddr != "") {
-            proposalAddr = data.proposalAddr;
+        if ((data.hasOwnProperty("proposalAddr") && data.proposalAddr != "")
+            || (data.hasOwnProperty("proposalAddrTemp") && await isContractExists(data.proposalAddrTemp))) {
+            proposalAddr = data.hasOwnProperty("proposalAddr") ? data.proposalAddr : data.proposalAddrTemp;
         } else {
             proposalAddr = await getFutureAddr(1);
 
@@ -130,8 +139,9 @@ module.exports = async function (callback) {
         }
 
         let assetsVaultAddr;
-        if (data.hasOwnProperty("assetsVaultAddr") && data.assetsVaultAddr != "") {
-            assetsVaultAddr = data.assetsVaultAddr;
+        if ((data.hasOwnProperty("assetsVaultAddr") && data.assetsVaultAddr != "")
+            || (data.hasOwnProperty("assetsVaultAddrTemp") && await isContractExists(data.assetsVaultAddrTemp))) {
+            assetsVaultAddr = data.hasOwnProperty("assetsVaultAddr") ? data.assetsVaultAddr : data.assetsVaultAddrTemp;
         } else {
             assetsVaultAddr = await getFutureAddr(2);
 
@@ -142,8 +152,9 @@ module.exports = async function (callback) {
         }
 
         let stETHHoldingStrategyAddr;
-        if (data.hasOwnProperty("stETHHoldingStrategyAddr") && data.stETHHoldingStrategyAddr != "") {
-            stETHHoldingStrategyAddr = data.stETHHoldingStrategyAddr;
+        if ((data.hasOwnProperty("stETHHoldingStrategyAddr") && data.stETHHoldingStrategyAddr != "")
+            || (data.hasOwnProperty("stETHHoldingStrategyAddrTemp") && await isContractExists(data.stETHHoldingStrategyAddrTemp))) {
+            stETHHoldingStrategyAddr = data.hasOwnProperty("stETHHoldingStrategyAddr") ? data.stETHHoldingStrategyAddr : data.stETHHoldingStrategyAddrTemp;
         } else {
             stETHHoldingStrategyAddr = await getFutureAddr(3);
 
@@ -154,8 +165,9 @@ module.exports = async function (callback) {
         }
 
         let rETHHoldingStrategyAddr;
-        if (data.hasOwnProperty("rETHHoldingStrategyAddr") && data.rETHHoldingStrategyAddr != "") {
-            rETHHoldingStrategyAddr = data.rETHHoldingStrategyAddr;
+        if ((data.hasOwnProperty("rETHHoldingStrategyAddr") && data.rETHHoldingStrategyAddr != "")
+            || (data.hasOwnProperty("rETHHoldingStrategyAddrTemp") && await isContractExists(data.rETHHoldingStrategyAddrTemp))) {
+            rETHHoldingStrategyAddr = data.hasOwnProperty("rETHHoldingStrategyAddr") ? data.rETHHoldingStrategyAddr : data.rETHHoldingStrategyAddrTemp;
         } else {
             rETHHoldingStrategyAddr = await getFutureAddr(4);
 
@@ -166,8 +178,9 @@ module.exports = async function (callback) {
         }
 
         let sFraxETHHoldingStrategyAddr;
-        if (data.hasOwnProperty("sFraxETHHoldingStrategyAddr") && data.sFraxETHHoldingStrategyAddr != "") {
-            sFraxETHHoldingStrategyAddr = data.sFraxETHHoldingStrategyAddr;
+        if ((data.hasOwnProperty("sFraxETHHoldingStrategyAddr") && data.sFraxETHHoldingStrategyAddr != "")
+            || (data.hasOwnProperty("sFraxETHHoldingStrategyAddrTemp") && await isContractExists(data.sFraxETHHoldingStrategyAddrTemp))) {
+            sFraxETHHoldingStrategyAddr = data.hasOwnProperty("sFraxETHHoldingStrategyAddr") ? data.sFraxETHHoldingStrategyAddr : data.sFraxETHHoldingStrategyAddrTemp;
         } else {
             sFraxETHHoldingStrategyAddr = await getFutureAddr(5);
 
@@ -177,21 +190,23 @@ module.exports = async function (callback) {
             }
         }
 
-        let balancerLPAuraStrategyAddr;
-        if (data.hasOwnProperty("balancerLPAuraStrategyAddr") && data.balancerLPAuraStrategyAddr != "") {
-            balancerLPAuraStrategyAddr = data.balancerLPAuraStrategyAddr;
+        let rETHBalancerAuraStrategyAddr;
+        if ((data.hasOwnProperty("rETHBalancerAuraStrategyAddr") && data.rETHBalancerAuraStrategyAddr != "")
+            || (data.hasOwnProperty("rETHBalancerAuraStrategyAddrTemp") && await isContractExists(data.rETHBalancerAuraStrategyAddrTemp))) {
+            rETHBalancerAuraStrategyAddr = data.hasOwnProperty("rETHBalancerAuraStrategyAddr") ? data.rETHBalancerAuraStrategyAddr : data.rETHBalancerAuraStrategyAddrTemp;
         } else {
-            balancerLPAuraStrategyAddr = await getFutureAddr(6);
+            rETHBalancerAuraStrategyAddr = await getFutureAddr(6);
 
-            if (!data.hasOwnProperty("balancerLPAuraStrategyAddrTemp")) {
-                data.balancerLPAuraStrategyAddrTemp = balancerLPAuraStrategyAddr;
+            if (!data.hasOwnProperty("rETHBalancerAuraStrategyAddrTemp")) {
+                data.rETHBalancerAuraStrategyAddrTemp = rETHBalancerAuraStrategyAddr;
                 writeData(data);
             }
         }
 
         let stoneVault;
-        if (data.hasOwnProperty("stoneVaultAddr") && data.stoneVaultAddr != "") {
-            stoneVaultAddr = data.stoneVaultAddr;
+        if ((data.hasOwnProperty("stoneVaultAddr") && data.stoneVaultAddr != "")
+            || (data.hasOwnProperty("stoneVaultAddrTemp") && await isContractExists(data.stoneVaultAddrTemp))) {
+            stoneVaultAddr = data.hasOwnProperty("stoneVaultAddr") ? data.stoneVaultAddr : data.stoneVaultAddrTemp;
             stoneVault = await StoneVault.at(stoneVaultAddr);
             console.log("stoneVault: ", stoneVault.address);
         } else {
@@ -199,8 +214,18 @@ module.exports = async function (callback) {
                 minter.address,
                 data.proposalAddrTemp,
                 data.assetsVaultAddrTemp,
-                [data.stETHHoldingStrategyAddrTemp, data.rETHHoldingStrategyAddrTemp, data.sFraxETHHoldingStrategyAddrTemp, data.balancerLPAuraStrategyAddrTemp],
-                [5e5, 3e5, 1e5, 1e5]
+                [
+                    data.stETHHoldingStrategyAddrTemp,
+                    data.rETHHoldingStrategyAddrTemp,
+                    data.sFraxETHHoldingStrategyAddrTemp,
+                    data.rETHBalancerAuraStrategyAddrTemp
+                ],
+                [
+                    50000,
+                    0,
+                    400000,
+                    550000
+                ]
             );
             console.log("stoneVault: ", stoneVault.address);
 
@@ -209,8 +234,9 @@ module.exports = async function (callback) {
         }
 
         let proposal;
-        if (data.hasOwnProperty("proposalAddr") && data.proposalAddr != "") {
-            proposalAddr = data.proposalAddr;
+        if ((data.hasOwnProperty("proposalAddr") && data.proposalAddr != "")
+            || (data.hasOwnProperty("proposalAddrTemp") && await isContractExists(data.proposalAddrTemp))) {
+            proposalAddr = data.hasOwnProperty("proposalAddr") ? data.proposalAddr : data.proposalAddrTemp;
             proposal = await Proposal.at(proposalAddr);
             console.log("proposal: ", proposal.address);
         } else {
@@ -233,8 +259,9 @@ module.exports = async function (callback) {
         )
 
         let assetsVault;
-        if (data.hasOwnProperty("assetsVaultAddr") && data.assetsVaultAddr != "") {
-            assetsVaultAddr = data.proposalAddr;
+        if ((data.hasOwnProperty("assetsVaultAddr") && data.assetsVaultAddr != "")
+            || (data.hasOwnProperty("assetsVaultAddrTemp") && await isContractExists(data.assetsVaultAddrTemp))) {
+            assetsVaultAddr = data.hasOwnProperty("assetsVaultAddr") ? data.proposalAddr : data.assetsVaultAddrTemp;
             assetsVault = await AssetsVault.at(assetsVaultAddr);
             console.log("assetsVault: ", assetsVault.address);
         } else {
@@ -246,14 +273,15 @@ module.exports = async function (callback) {
         }
 
         let stETHHoldingStrategy;
-        if (data.hasOwnProperty("stETHHoldingStrategyAddr") && data.stETHHoldingStrategyAddr != "") {
-            stETHHoldingStrategyAddr = data.stETHHoldingStrategyAddr;
+        if ((data.hasOwnProperty("stETHHoldingStrategyAddr") && data.stETHHoldingStrategyAddr != "")
+            || (data.hasOwnProperty("stETHHoldingStrategyAddrTemp") && await isContractExists(data.stETHHoldingStrategyAddrTemp))) {
+            stETHHoldingStrategyAddr = data.hasOwnProperty("stETHHoldingStrategyAddr") ? data.stETHHoldingStrategyAddr : data.stETHHoldingStrategyAddrTemp;
             stETHHoldingStrategy = await STETHHoldingStrategy.at(stETHHoldingStrategyAddr);
             console.log("stETHHoldingStrategy: ", stETHHoldingStrategy.address);
         } else {
             stETHHoldingStrategy = await STETHHoldingStrategy.new(
                 strategyControllerAddr,
-                "stETH Holding Strategy",
+                "Lido Staked Ether(stETH)",
                 stETHAddr,
                 lidoWithdrawalQueueAddr,
                 swappingAggregatorAddr
@@ -265,14 +293,16 @@ module.exports = async function (callback) {
         }
 
         let rETHHoldingStrategy;
-        if (data.hasOwnProperty("rETHHoldingStrategyAddr") && data.rETHHoldingStrategyAddr != "") {
-            rETHHoldingStrategyAddr = data.rETHHoldingStrategyAddr;
+        if ((data.hasOwnProperty("rETHHoldingStrategyAddr") && data.rETHHoldingStrategyAddr != "")
+            || (data.hasOwnProperty("rETHHoldingStrategyAddrTemp") && await isContractExists(data.rETHHoldingStrategyAddrTemp))) {
+            rETHHoldingStrategyAddr = data.hasOwnProperty("rETHHoldingStrategyAddr") ? data.rETHHoldingStrategyAddr : data.rETHHoldingStrategyAddrTemp;
             rETHHoldingStrategy = await RETHHoldingStrategy.at(rETHHoldingStrategyAddr);
             console.log("rETHHoldingStrategy: ", rETHHoldingStrategy.address);
         } else {
             rETHHoldingStrategy = await RETHHoldingStrategy.new(
                 strategyControllerAddr,
-                "rETH Holding Strategy",
+                swappingAggregatorAddr,
+                "Rocket Pool ETH(rETH)",
             );
             console.log("rETHHoldingStrategy: ", rETHHoldingStrategy.address);
 
@@ -281,15 +311,16 @@ module.exports = async function (callback) {
         }
 
         let sFraxETHHoldingStrategy;
-        if (data.hasOwnProperty("sFraxETHHoldingStrategyAddr") && data.sFraxETHHoldingStrategyAddr != "") {
-            sFraxETHHoldingStrategyAddr = data.sFraxETHHoldingStrategyAddr;
+        if ((data.hasOwnProperty("sFraxETHHoldingStrategyAddr") && data.sFraxETHHoldingStrategyAddr != "")
+            || (data.hasOwnProperty("sFraxETHHoldingStrategyAddrTemp") && await isContractExists(data.sFraxETHHoldingStrategyAddrTemp))) {
+            sFraxETHHoldingStrategyAddr = data.hasOwnProperty("sFraxETHHoldingStrategyAddr") ? data.sFraxETHHoldingStrategyAddr : data.sFraxETHHoldingStrategyAddrTemp;
             sFraxETHHoldingStrategy = await SFraxETHHoldingStrategy.at(sFraxETHHoldingStrategyAddr);
             console.log("sFraxETHHoldingStrategy: ", sFraxETHHoldingStrategy.address);
         } else {
             sFraxETHHoldingStrategy = await SFraxETHHoldingStrategy.new(
                 strategyControllerAddr,
                 swappingAggregatorAddr,
-                "sfrxETH Holding Strategy",
+                "Staked Frax Ether(sfrxETH)",
             );
             console.log("sFraxETHHoldingStrategy: ", sFraxETHHoldingStrategy.address);
 
@@ -297,27 +328,75 @@ module.exports = async function (callback) {
             writeData(data);
         }
 
-        let balancerLPAuraStrategy;
-        if (data.hasOwnProperty("balancerLPAuraStrategyAddr") && data.balancerLPAuraStrategyAddr != "") {
-            balancerLPAuraStrategyAddr = data.balancerLPAuraStrategyAddr;
-            balancerLPAuraStrategy = await BalancerLPAuraStrategy.at(balancerLPAuraStrategyAddr);
-            console.log("BalancerLPAuraStrategy: ", balancerLPAuraStrategy.address);
+        let rETHBalancerAuraStrategy;
+        if ((data.hasOwnProperty("rETHBalancerAuraStrategyAddr") && data.rETHBalancerAuraStrategyAddr != "")
+            || (data.hasOwnProperty("rETHBalancerAuraStrategyAddrTemp") && await isContractExists(data.rETHBalancerAuraStrategyAddrTemp))) {
+            rETHBalancerAuraStrategyAddr = data.hasOwnProperty("rETHBalancerAuraStrategyAddr") ? data.rETHBalancerAuraStrategyAddr : data.rETHBalancerAuraStrategyAddrTemp;
+            rETHBalancerAuraStrategy = await RETHBalancerAuraStrategy.at(rETHBalancerAuraStrategyAddr);
+            console.log("RETHBalancerAuraStrategy: ", rETHBalancerAuraStrategy.address);
         } else {
-            balancerLPAuraStrategy = await BalancerLPAuraStrategy.new(
+            rETHBalancerAuraStrategy = await RETHBalancerAuraStrategy.new(
                 strategyControllerAddr,
                 swappingAggregatorAddr,
-                "Balancer Aura Strategy",
+                "rBalancer(Aura) rETH-WETH ",
             );
-            console.log("BalancerLPAuraStrategy: ", balancerLPAuraStrategy.address);
+            console.log("RETHBalancerAuraStrategy: ", rETHBalancerAuraStrategy.address);
 
-            data.balancerLPAuraStrategyAddr = balancerLPAuraStrategy.address;
+            data.rETHBalancerAuraStrategyAddr = rETHBalancerAuraStrategy.address;
             writeData(data);
         }
 
-        // console.log("stoneVault.deposit");
-        // await stoneVault.deposit({
-        //     value: BigNumber(1e16).toString(10),
-        // });
+        let miningPoolAddr;
+        let miningPool;
+        if (data.hasOwnProperty("miningPoolAddr") && data.miningPoolAddr != "") {
+            miningPoolAddr = data.miningPoolAddr;
+            miningPool = await MiningPool.at(miningPoolAddr);
+            console.log("MiningPool: ", miningPool.address);
+        } else {
+            miningPool = await MiningPool.new(28 * 24 * 60 * 60);
+            console.log("MiningPool: ", miningPool.address);
+
+            data.miningPoolAddr = miningPool.address;
+            writeData(data);
+        }
+
+        let stoneAdapterAddr;
+        let stoneAdapter;
+        if (data.hasOwnProperty("stoneAdapterAddr") && data.stoneAdapterAddr != "") {
+            stoneAdapterAddr = data.stoneAdapterAddr;
+            stoneAdapter = await StoneAdapter.at(stoneAdapterAddr);
+            console.log("StoneAdapter: ", stoneAdapter.address);
+        } else {
+            stoneAdapter = await StoneAdapter.new();
+            console.log("StoneAdapter: ", stoneAdapter.address);
+
+            data.stoneAdapterAddr = stoneAdapter.address;
+            writeData(data);
+        }
+
+        let stoneNFTAddr;
+        let stoneNFT;
+        if (data.hasOwnProperty("stoneNFTAddr") && data.stoneNFTAddr != "") {
+            stoneNFTAddr = data.stoneNFTAddr;
+            stoneNFT = await StoneNFT.at(stoneNFTAddr);
+            console.log("StoneNFT: ", stoneNFT.address);
+        } else {
+            stoneNFT = await StoneNFT.new(data.miningPoolAddr);
+            console.log("StoneNFT: ", stoneNFT.address);
+
+            data.stoneNFTAddr = stoneNFT.address;
+            writeData(data);
+        }
+
+        await miningPool.setSupportedTokens(
+            [stone.address],
+            [stoneAdapter.address],
+            [true]
+        );
+
+        await miningPool.setNFT(stoneNFT.address);
+
+        await rETHHoldingStrategy.setRouter(true, true);
 
         callback();
     } catch (e) {
@@ -329,6 +408,17 @@ module.exports = async function (callback) {
         const encoded = RLP.encode([deployer, nonce + index]);
         const rs = web3.utils.sha3(encoded);
         return '0x' + rs.substr(rs.length - 40, 40);
+    }
+
+    async function isContractExists(address) {
+        const rs = await web3.eth.getCode(address);
+
+        if (rs != '0x') {
+            return true;
+        } else {
+            return false;
+        }
+
     }
 
     function writeData(data) {

@@ -23,7 +23,7 @@ contract StoneCross is OFT {
     constructor(
         address _layerZeroEndpoint,
         uint256 _cap
-    ) OFT("Stone Liquidity Ether Token", "STONE", _layerZeroEndpoint) {
+    ) OFT("StakeStone Ether", "STONE", _layerZeroEndpoint) {
         updatedTime = block.timestamp;
         cap = _cap;
     }

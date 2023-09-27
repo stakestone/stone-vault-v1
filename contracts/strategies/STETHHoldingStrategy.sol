@@ -19,7 +19,7 @@ contract STETHHoldingStrategy is Strategy {
     address public immutable LidoWithdrawalQueue;
 
     uint256 public MAX_WITHDRAW_QUEUE_LENGTH = 20;
-    uint256 public MINIMUM_WITHDRAW_QUEUE_AMOUNT = 1e18;
+    uint256 public MINIMUM_WITHDRAW_QUEUE_AMOUNT = 1e19;
 
     bool public buyOnDex;
     bool public sellOnDex;

@@ -32,6 +32,10 @@ contract AssetsVault {
         TransferHelper.safeTransferETH(_to, _amount);
     }
 
+    function setNewVault(address _vault) external onlyPermit {
+        stoneVault = _vault;
+    }
+
     function getBalance() external view returns (uint256 amount) {
         amount = address(this).balance;
     }

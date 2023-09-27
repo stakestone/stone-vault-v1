@@ -16,17 +16,18 @@ contract StoneVault is ReentrancyGuard, Ownable {
     uint256 internal constant MULTIPLIER = 1e18;
     uint256 internal constant ONE_HUNDRED_PERCENT = 1e6;
     uint256 internal constant MAXMIUM_FEE_RATE = ONE_HUNDRED_PERCENT / 100; // 1%
-    uint256 internal constant MINIMUM_REBASE_INTERVAL = 12 * 60 * 60;
+    uint256 internal constant MINIMUM_REBASE_INTERVAL = 7 * 24 * 60 * 60;
 
     uint256 public constant VERSION = 1;
 
-    uint256 public rebaseTimeInterval = 12 * 60 * 60;
+    uint256 public rebaseTimeInterval = 24 * 60 * 60;
 
     address public immutable minter;
     address public immutable stone;
-    address public immutable proposal;
     address payable public immutable strategyController;
     address payable public immutable assetsVault;
+
+    address public proposal;
 
     address public feeRecipient;
 
@@ -420,6 +421,16 @@ contract StoneVault is ReentrancyGuard, Ownable {
         controller.setStrategies(_strategies, _ratios);
 
         emit PortfolioConfigUpdated(_strategies, _ratios);
+    }
+
+    function updateProposal(address _proposal) external onlyProposal {
+        proposal = _proposal;
+    }
+
+    function migrateVault(address _vault) external onlyProposal {
+        Minter(minter).setNewVault(_vault);
+        AssetsVault(assetsVault).setNewVault(_vault);
+        StrategyController(strategyController).setNewVault(_vault);
     }
 
     function currentSharePrice() public returns (uint256 price) {

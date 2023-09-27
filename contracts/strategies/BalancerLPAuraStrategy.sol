@@ -16,7 +16,7 @@ import {SwappingAggregator} from "./SwappingAggregator.sol";
 contract BalancerLPAuraStrategy is Strategy {
     uint256 internal immutable MULTIPLIER = 1e18;
     uint256 internal immutable PERCENTAGE = 1e6;
-    uint256 internal SLIPPAGE = 900000;
+    uint256 internal SLIPPAGE = 998000;
 
     bytes32 internal immutable poolId =
         0x42ed016f826165c2e5976fe5bc3df540c5ad0af700000000000000000000058b;
@@ -39,7 +39,7 @@ contract BalancerLPAuraStrategy is Strategy {
 
     address payable public immutable SWAPPING;
 
-    uint256 public lpPriceByWstETH;
+    uint256 public lpPriceByWstETH = 1005082552259188622;
 
     constructor(
         address payable _controller,
