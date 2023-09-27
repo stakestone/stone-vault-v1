@@ -182,10 +182,10 @@ module.exports = async function (callback) {
         console.log("getCurveOut frxETHAddr buy price is : ", number.div(BigNumber(getCurveOut)).toString(10));
 
 
-        const stETHHoldingStrategyAddr = "0xfB153D3b08871F9e113E3e474eAC0d944BF9164f";
-        const rETHHoldingStrategyAddr = "0xf60b394638Ecbc2020Ac3E296E04Fd955A3eB460";
-        const sFraxETHHoldingStrategyAddr = "0xA0A2917cB9fBf3159730Cb502e83Cc7b32202c7f";
-        const rETHBalancerAuraStrategy = "0x4DC916664dAe3ae8EECce340a36Af8DE2Af7986f";//deposit rETH+wETH
+        const stETHHoldingStrategyAddr = "0x1Ba189CBA10Af7fBf28Fc991D3d5Cdd945C21A94";
+        const rETHHoldingStrategyAddr = "0x4cc700Ed0C9D76A8F7c082e4f17b675152B067d9";
+        const sFraxETHHoldingStrategyAddr = "0xd470bc940E3699e9F5fe942373ebfE51E637282D";
+        const rETHBalancerAuraStrategy = "0xEe856F34175064A7469BbEB89ec3717bEE45316F";//deposit rETH+wETH
 
         let stETHBalance = BigNumber(await token.balanceOf(stETHHoldingStrategyAddr));
         console.log("stETHBalance of strategy is :.... ", stETHBalance.toString(10));

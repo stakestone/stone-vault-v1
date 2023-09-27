@@ -21,12 +21,14 @@
 
 module.exports = async function (callback) {
     try {
-        let logs = (await web3.eth.getTransactionReceipt("0x207a8698b6e427b085832c645006fe1be3c383f3ecab1aad4a59dd619f8d9e95")).logs;
-        for (var i = 0; i < logs.length; i++) {
-            console.log(logs[i]);
-        }
-
+        let logs = (await web3.eth.getTransactionReceipt("0xf739d26f2711433b96278fd284112eee5516d16fa1ef70800529c6ca493b06d0")).logs;
+        // for (var i = 0; i < logs.length; i++) {
+        //     console.log(logs[i]);
+        // }
+        console.log(logs);
         callback();
+
+
     } catch (e) {
         callback(e);
     }

@@ -10,7 +10,7 @@ const StrategyController = artifacts.require("StrategyController");
 module.exports = async function (callback) {
     try {
 
-        const strategyController = await StrategyController.at("0x331dFc50239F09D8B91c2f6fcF594AaA03A35546");
+        const strategyController = await StrategyController.at("0x30CAD1dAA1bD1A6f92AA62F259cf3D00a606605D");
         strategies = await strategyController.getStrategies();
         console.log("strategies are : ", strategies);
         console.log("strategy length is : ", strategies[0].length);

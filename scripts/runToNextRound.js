@@ -6,7 +6,7 @@ const StoneVault = artifacts.require("StoneVault");
 
 module.exports = async function (callback) {
     try {
-        const vault = "0xF97C478f34E1dBA7E399b973f4b720bA5885290b";
+        const vault = "0xA62F9C5af106FeEE069F38dE51098D9d81B90572";
         const stoneVault = await StoneVault.at(vault);
         const result = await stoneVault.rollToNextRound();
         console.log("settlement finished!");

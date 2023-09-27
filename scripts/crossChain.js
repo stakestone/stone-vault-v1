@@ -28,21 +28,21 @@ module.exports = async function (callback) {
         // );
 
         //mantle testnet
-        const stone = await Stone.at("0x1aFd76746861B6051a049487895d7793CECC3FD6");
-        await stone.sendFrom(
+        const stone = await Stone.at("0x920800a3a0d690d027FC97C09F8C36216481C4a2");
+        let result = await stone.sendFrom(
             "0xc772FAf13E8fC346e7b1678F5f2084F884c56F92",
-            10121,
+            10181,
             "0xc772FAf13E8fC346e7b1678F5f2084F884c56F92",
-            BigNumber(1e16).toString(10),
+            BigNumber(1e17).toString(10),
             "0xc772FAf13E8fC346e7b1678F5f2084F884c56F92",
             ZERO_ADDRESS,
             ethers.utils.solidityPack(["bytes"], ["0x"]),
             {
-                value: BigNumber(8e17).toString(10),    //layzero gas fee
+                value: BigNumber(1e17).toString(10),    //layzero gas fee
                 from: "0xc772FAf13E8fC346e7b1678F5f2084F884c56F92"
             }
         );
-
+        console.log("result is : ", result);
         // await stone.transferOwnership("0xc772FAf13E8fC346e7b1678F5f2084F884c56F92");
         // owner = await stone.owner();
         // console.log("owner: ", owner);

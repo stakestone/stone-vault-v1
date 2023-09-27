@@ -7,38 +7,38 @@ const Stone = artifacts.require("Stone");
 const StoneVault = artifacts.require("StoneVault");
 const StrategyController = artifacts.require("StrategyController");
 const taker1 = "0x725B030882405f909fe2D6ab378543c39FF2C5c7";
-const deployer = "0xc772FAf13E8fC346e7b1678F5f2084F884c56F92";
+const deployer = "0x72632D09C2d7Cd5009F3a8541F47803Ec4bAF535";
 const Abi = web3.eth.abi;
 
 module.exports = async function (callback) {
     try {
-        const strategyController = await StrategyController.at("0x52Df50Fb1de14c3D2b239eE59e3997b946934443");
+        const strategyController = await StrategyController.at("0x30CAD1dAA1bD1A6f92AA62F259cf3D00a606605D");
         console.log("strategyController: ", strategyController.address);
-        const proposal = await Proposal.at("0xD081BE7f329e13c4097cFa3668f1E690Cde9c08d");
+        const proposal = await Proposal.at("0xD172e923F593e9175EE18924F17842b100F65575");
 
         const period = 1 * 60; //1min
         await proposal.setVotePeriod(period);
 
-        const stETHHoldingStrategyAddr = "0xF97C478f34E1dBA7E399b973f4b720bA5885290b";
-        const rETHHoldingStrategyAddr = "0xbc84fF8A2F781EB76Febb8558699bba83Acb38Ef";
-        const sFraxETHHoldingStrategyAddr = "0xc6f830BB162e6CFb7b4Bac242B0E43cF1984c853";
-        const rETHBalancerAuraStrategy = "0xf60b394638Ecbc2020Ac3E296E04Fd955A3eB460";
+        const stETHHoldingStrategyAddr = "0x1Ba189CBA10Af7fBf28Fc991D3d5Cdd945C21A94";
+        const rETHHoldingStrategyAddr = "0x4cc700Ed0C9D76A8F7c082e4f17b675152B067d9";
+        const sFraxETHHoldingStrategyAddr = "0xd470bc940E3699e9F5fe942373ebfE51E637282D";
+        const rETHBalancerAuraStrategy = "0xEe856F34175064A7469BbEB89ec3717bEE45316F";
 
         const fn2 = "updatePortfolioConfig(address[],uint256[])";
         const selector2 = Abi.encodeFunctionSignature(fn2);
         const encodedParams3 = Abi.encodeParameters(
             ["address[]", "uint256[]"],
-            [[stETHHoldingStrategyAddr, rETHBalancerAuraStrategy, sFraxETHHoldingStrategyAddr], [3e5, 2e5, 3e5]]
+            [[stETHHoldingStrategyAddr, rETHHoldingStrategyAddr, sFraxETHHoldingStrategyAddr, rETHBalancerAuraStrategy], [3e5, 2e5, 3e5, 2e5]]
 
         );
         const data3 = `${selector2}${encodedParams3.split("0x")[1]}`
         console.log("data3: ", data3);
 
         await proposal.propose(data3);
-        const vault = "0xD682C2b9814FB096c843984Da9810916CB2206e0";
+        const vault = "0x49f2e87401B909070eef6E647841C4211daE14Ee";
         const stoneVault = await StoneVault.at(vault);
 
-        const st = "0x9964C9a0F5c0Fd5E86Cf2d86765E0ae1eeCa680D";
+        const st = "0x3ebdc890d8Fc00FfD2E22055A8d9114f33124FC4";
         const stone = await Stone.at(st);
 
         proposals = await proposal.getProposals();
@@ -51,7 +51,7 @@ module.exports = async function (callback) {
             from: deployer
         });
         console.log("start vote");
-        await proposal.voteFor(latestProposal, BigNumber(1e16), true, {
+        await proposal.voteFor(latestProposal, BigNumber(1e14), true, {
             from: deployer
         })
         await sleep(60);

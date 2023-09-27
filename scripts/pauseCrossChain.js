@@ -7,7 +7,7 @@ const Stone = artifacts.require("Stone");
 module.exports = async function (callback) {
     try {
 
-        const stone = await Stone.at("0x18df04C3B4704aCa415246daD2441464593d38f4");
+        const stone = await Stone.at("0x3ebdc890d8Fc00FfD2E22055A8d9114f33124FC4");
         // 10181
         const enable = false;
         await stone.setEnableFor(
