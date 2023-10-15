@@ -109,11 +109,16 @@ contract NFTMiningPool is ReentrancyGuard, IERC721Receiver {
         for (uint256 i; i < length; i++) {
             uint256 id = _ids[i];
             address owner = ownedBy[id];
+
+            require(owner == msg.sender, "not owner");
             ownedBy[id] = address(0);
 
             for (uint256 j; j < stakedLPs[msg.sender].length; j++) {
-                stakedLPs[msg.sender][j] = 0;
-                break;
+                uint256 oid = stakedLPs[msg.sender][j];
+                if (oid == id) {
+                    stakedLPs[msg.sender][j] = 0;
+                    break;
+                }
             }
 
             lpNFT.transferFrom(address(this), msg.sender, id);
