@@ -73,6 +73,8 @@ contract NFTMiningPool is ReentrancyGuard, IERC721Receiver {
         address _user,
         uint256[] memory _ids
     ) internal nonReentrant {
+        require(terminateTime == 0, "terminated");
+
         updateReward(_user, false);
 
         INonfungiblePositionManager lpNFT = INonfungiblePositionManager(
@@ -293,6 +295,8 @@ contract NFTMiningPool is ReentrancyGuard, IERC721Receiver {
     }
 
     function terminate(address _nft) external onlyGovernance {
+        require(terminateTime == 0, "terminated");
+
         terminateTime = block.timestamp;
 
         emit Terminated(terminateTime);
