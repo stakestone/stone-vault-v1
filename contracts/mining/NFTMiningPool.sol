@@ -101,8 +101,6 @@ contract NFTMiningPool is ReentrancyGuard, IERC721Receiver {
     }
 
     function unstake(uint256[] memory _ids) external nonReentrant {
-        updateReward(msg.sender, false);
-
         INonfungiblePositionManager lpNFT = INonfungiblePositionManager(
             lp_token
         );
@@ -129,16 +127,20 @@ contract NFTMiningPool is ReentrancyGuard, IERC721Receiver {
         }
 
         refreshStakedLP(msg.sender);
+
+        updateReward(msg.sender, false);
     }
 
     function claim() external nonReentrant {
         require(nft != address(0), "invalid nft");
 
-        updateReward(msg.sender, true);
+        if (checkPosition(msg.sender)) {
+            updateReward(msg.sender, true);
+        }
 
         uint256 length = pendingNFT[msg.sender].length;
 
-        require(length > 0, "no claimable");
+        require(length > 0, "no rewards");
 
         for (uint i; i < length; i++) {
             NFTDetail memory detail = pendingNFT[msg.sender][i];
@@ -188,8 +190,6 @@ contract NFTMiningPool is ReentrancyGuard, IERC721Receiver {
             stakeTime[_user] = current - remainder;
 
             for (uint256 i; i < acc; i++) {
-                uint256 points;
-
                 pendingNFT[_user].push(
                     NFTDetail(
                         0,
