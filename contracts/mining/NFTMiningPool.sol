@@ -84,8 +84,22 @@ contract NFTMiningPool is ReentrancyGuard, IERC721Receiver {
         uint256 length = _ids.length;
         for (uint256 i; i < length; i++) {
             uint256 id = _ids[i];
-            (, , address token0, address token1, , , , , , , , ) = lpNFT
-                .positions(id);
+            (
+                ,
+                ,
+                address token0,
+                address token1,
+                ,
+                ,
+                ,
+                uint128 liquidity,
+                ,
+                ,
+                ,
+
+            ) = lpNFT.positions(id);
+
+            require(liquidity > 0, "no liquidity");
 
             require(
                 (token0 == stone && token1 == weth) ||
