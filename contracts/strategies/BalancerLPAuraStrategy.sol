@@ -84,6 +84,8 @@ contract BalancerLPAuraStrategy is Strategy {
         uint256 lp_balance = IERC20(LP_TOKEN).balanceOf(address(this));
         TransferHelper.safeApprove(LP_TOKEN, BOOSTER, lp_balance);
         IBooster(BOOSTER).deposit(auraPoolId, lp_balance, true);
+
+        latestUpdateTime = block.timestamp;
     }
 
     function withdraw(
@@ -155,6 +157,8 @@ contract BalancerLPAuraStrategy is Strategy {
             actualAmount = actualAmount + sellAllRewards();
         }
         TransferHelper.safeTransferETH(controller, address(this).balance);
+
+        latestUpdateTime = block.timestamp;
     }
 
     function sellAllRewards() internal returns (uint256 actualAmount) {

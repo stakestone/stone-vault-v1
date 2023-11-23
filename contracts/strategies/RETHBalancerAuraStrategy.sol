@@ -90,6 +90,8 @@ contract RETHBalancerAuraStrategy is Strategy {
         );
 
         require(share > 0, "mint error");
+
+        latestUpdateTime = block.timestamp;
     }
 
     function withdraw(
@@ -165,6 +167,8 @@ contract RETHBalancerAuraStrategy is Strategy {
             actualAmount = actualAmount + sellAllRewards();
         }
         TransferHelper.safeTransferETH(controller, address(this).balance);
+
+        latestUpdateTime = block.timestamp;
     }
 
     function sellAllRewards() internal returns (uint256 actualAmount) {

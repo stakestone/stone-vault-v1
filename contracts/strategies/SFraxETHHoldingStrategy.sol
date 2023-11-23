@@ -53,6 +53,8 @@ contract SFraxETHHoldingStrategy is Strategy {
 
             ISfrxETH(SFRXETH).deposit(balance, address(this));
         }
+
+        latestUpdateTime = block.timestamp;
     }
 
     function withdraw(
@@ -89,6 +91,8 @@ contract SFraxETHHoldingStrategy is Strategy {
             );
         }
         TransferHelper.safeTransferETH(controller, address(this).balance);
+
+        latestUpdateTime = block.timestamp;
     }
 
     function clear() public override onlyController returns (uint256 amount) {

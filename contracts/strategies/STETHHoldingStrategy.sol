@@ -58,6 +58,8 @@ contract STETHHoldingStrategy is Strategy {
                 false
             );
         }
+
+        latestUpdateTime = block.timestamp;
     }
 
     function withdraw(
@@ -95,6 +97,8 @@ contract STETHHoldingStrategy is Strategy {
         } else {
             actualAmount = instantWithdraw(_amount);
         }
+
+        latestUpdateTime = block.timestamp;
     }
 
     function instantWithdraw(
@@ -112,6 +116,8 @@ contract STETHHoldingStrategy is Strategy {
             );
         }
         TransferHelper.safeTransferETH(controller, address(this).balance);
+
+        latestUpdateTime = block.timestamp;
     }
 
     function clear() public override onlyController returns (uint256 amount) {

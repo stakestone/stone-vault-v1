@@ -47,6 +47,8 @@ contract RETHHoldingStrategy is Strategy {
                 false
             );
         }
+
+        latestUpdateTime = block.timestamp;
     }
 
     function withdraw(
@@ -86,6 +88,8 @@ contract RETHHoldingStrategy is Strategy {
 
         actualAmount = address(this).balance;
         TransferHelper.safeTransferETH(controller, actualAmount);
+
+        latestUpdateTime = block.timestamp;
     }
 
     function clear()
