@@ -89,6 +89,7 @@ contract SFraxETHHoldingStrategy is Strategy {
                 assets,
                 true
             );
+            actualAmount = actualAmount > _amount ? _amount : actualAmount;
         }
         TransferHelper.safeTransferETH(controller, address(this).balance);
 

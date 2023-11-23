@@ -154,8 +154,9 @@ contract BalancerLPAuraStrategy is Strategy {
         }
 
         if (!_isInstant) {
-            actualAmount = actualAmount + sellAllRewards();
+            sellAllRewards();
         }
+        actualAmount = actualAmount > _amount ? _amount : actualAmount;
         TransferHelper.safeTransferETH(controller, address(this).balance);
 
         latestUpdateTime = block.timestamp;

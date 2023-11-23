@@ -114,6 +114,7 @@ contract STETHHoldingStrategy is Strategy {
                 _amount,
                 true
             );
+            actualAmount = actualAmount > _amount ? _amount : actualAmount;
         }
         TransferHelper.safeTransferETH(controller, address(this).balance);
 

@@ -86,7 +86,10 @@ contract RETHHoldingStrategy is Strategy {
             SwappingAggregator(SWAPPING).swap(RETH, rETHAmount, true);
         }
 
-        actualAmount = address(this).balance;
+        actualAmount = address(this).balance > _amount
+            ? _amount
+            : address(this).balance;
+
         TransferHelper.safeTransferETH(controller, actualAmount);
 
         latestUpdateTime = block.timestamp;
