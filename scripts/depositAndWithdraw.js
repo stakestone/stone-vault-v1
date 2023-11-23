@@ -5,7 +5,7 @@ const BigNumber = require('bignumber.js');
 const StoneVault = artifacts.require("StoneVault");
 const deployer = "0xc772FAf13E8fC346e7b1678F5f2084F884c56F92"
 const Stone = artifacts.require("Stone");
-const taker1 = "0x725B030882405f909fe2D6ab378543c39FF2C5c7";
+const taker1 = "0xa9B3cBcF3668e819bd35ba308dECb640DF143394";
 
 module.exports = async function (callback) {
     try {
@@ -15,11 +15,11 @@ module.exports = async function (callback) {
         const st = "0x1Aff5cd754f271b80b7598d4aA77a4F16363c515";
         const stone = await Stone.at(st);
         await stone.approve(stoneVault.address, BigNumber(100000).times(1e18), {
-            from: deployer
+            from: taker1
         });
         await stoneVault.deposit({
-            value: BigNumber(5e17),
-            from: deployer
+            value: BigNumber(3e17),
+            from: taker1
         });
         // let userStone = BigNumber(await stone.balanceOf(deployer));
         // console.log("userStone is : ", userStone.toString(10));
