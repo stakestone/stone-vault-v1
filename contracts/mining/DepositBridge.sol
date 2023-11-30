@@ -63,6 +63,6 @@ contract DepositBridge is ReentrancyGuard {
         require(msg.value > nativeFee, "too little");
 
         uint256 amount = msg.value - nativeFee;
-        this.bridgeTo{value: amount}(msg.value, stdAddr, nativeFee);
+        this.bridgeTo{value: msg.value}(amount, stdAddr, nativeFee);
     }
 }
