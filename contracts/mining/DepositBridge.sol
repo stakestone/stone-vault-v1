@@ -56,7 +56,7 @@ contract DepositBridge is ReentrancyGuard {
     }
 
     receive() external payable {
-        bytes memory stdAddr = abi.encode(msg.sender);
+        bytes memory stdAddr = abi.encodePacked(msg.sender);
 
         (uint nativeFee, ) = this.estimateSendFee(msg.value, stdAddr);
 
