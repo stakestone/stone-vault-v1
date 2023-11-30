@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.21;
 
-import {StoneVault} from "../StoneVault.sol";
-import {Stone} from "../token/Stone.sol";
+import {IStoneVault} from "../interfaces/IStoneVault.sol";
+import {IStone} from "../interfaces/IStone.sol";
 
 import {ReentrancyGuard} from "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 
@@ -26,10 +26,10 @@ contract DepositBridge is ReentrancyGuard {
     ) public payable nonReentrant {
         require(msg.value >= _amount + _gasPaidForCrossChain, "wrong amount");
 
-        StoneVault stoneVault = StoneVault(vault);
+        IStoneVault stoneVault = IStoneVault(vault);
         uint256 stoneMinted = stoneVault.deposit{value: _amount}();
 
-        Stone stoneToken = Stone(stone);
+        IStone stoneToken = IStone(stone);
         stoneToken.sendFrom{value: _gasPaidForCrossChain}(
             address(this),
             dstChainId,
@@ -46,7 +46,7 @@ contract DepositBridge is ReentrancyGuard {
         bytes calldata _dstAddress
     ) public view returns (uint nativeFee, uint zroFee) {
         return
-            Stone(stone).estimateSendFee(
+            IStone(stone).estimateSendFee(
                 dstChainId,
                 _dstAddress,
                 _amount,
