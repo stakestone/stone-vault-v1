@@ -23,11 +23,11 @@ contract DepositBridge is ReentrancyGuard {
         uint256 _amount,
         bytes calldata _dstAddress,
         uint256 _gasPaidForCrossChain
-    ) public payable nonReentrant {
+    ) public payable nonReentrant returns (uint256 stoneMinted) {
         require(msg.value >= _amount + _gasPaidForCrossChain, "wrong amount");
 
         IStoneVault stoneVault = IStoneVault(vault);
-        uint256 stoneMinted = stoneVault.deposit{value: _amount}();
+        stoneMinted = stoneVault.deposit{value: _amount}();
 
         IStone stoneToken = IStone(stone);
         stoneToken.sendFrom{value: _gasPaidForCrossChain}(
@@ -55,5 +55,14 @@ contract DepositBridge is ReentrancyGuard {
             );
     }
 
-    receive() external payable {}
+    receive() external payable {
+        bytes memory stdAddr = abi.encode(msg.sender);
+
+        (uint nativeFee, ) = this.estimateSendFee(msg.value, stdAddr);
+
+        require(msg.value > nativeFee, "too little");
+
+        uint256 amount = msg.value - nativeFee;
+        this.bridgeTo{value: amount}(msg.value, stdAddr, nativeFee);
+    }
 }
