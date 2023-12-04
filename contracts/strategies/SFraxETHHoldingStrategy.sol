@@ -32,7 +32,7 @@ contract SFraxETHHoldingStrategy is Strategy {
         SWAPPING = _swap;
     }
 
-    function deposit() public payable override onlyController {
+    function deposit() public payable override onlyController notAtSameBlock {
         uint256 amount = msg.value;
         require(amount != 0, "zero value");
 
@@ -59,13 +59,25 @@ contract SFraxETHHoldingStrategy is Strategy {
 
     function withdraw(
         uint256 _amount
-    ) public override onlyController returns (uint256 actualAmount) {
+    )
+        public
+        override
+        onlyController
+        notAtSameBlock
+        returns (uint256 actualAmount)
+    {
         actualAmount = _withdraw(_amount);
     }
 
     function instantWithdraw(
         uint256 _amount
-    ) public override onlyController returns (uint256 actualAmount) {
+    )
+        public
+        override
+        onlyController
+        notAtSameBlock
+        returns (uint256 actualAmount)
+    {
         actualAmount = _withdraw(_amount);
     }
 
