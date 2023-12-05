@@ -12,6 +12,14 @@ contract DepositBridge is ReentrancyGuard {
 
     uint16 public immutable dstChainId;
 
+    event BridgeTo(
+        address indexed srcAddr,
+        bytes dstAddr,
+        uint256 etherAmount,
+        uint256 stoneAmount,
+        uint256 gasPaid
+    );
+
     constructor(address _stone, address payable _vault, uint16 _dstChainId) {
         stone = _stone;
         vault = _vault;
@@ -20,6 +28,15 @@ contract DepositBridge is ReentrancyGuard {
     }
 
     function bridgeTo(
+        uint256 _amount,
+        bytes calldata _dstAddress,
+        uint256 _gasPaidForCrossChain
+    ) public payable returns (uint256 stoneMinted) {
+        bridge(msg.sender, _amount, _dstAddress, _gasPaidForCrossChain);
+    }
+
+    function bridge(
+        address _srcAddr,
         uint256 _amount,
         bytes calldata _dstAddress,
         uint256 _gasPaidForCrossChain
@@ -35,9 +52,17 @@ contract DepositBridge is ReentrancyGuard {
             dstChainId,
             _dstAddress,
             stoneMinted,
-            payable(msg.sender),
+            payable(_srcAddr),
             address(0),
             bytes("")
+        );
+
+        emit BridgeTo(
+            _srcAddr,
+            _dstAddress,
+            _amount,
+            stoneMinted,
+            _gasPaidForCrossChain
         );
     }
 
@@ -56,13 +81,14 @@ contract DepositBridge is ReentrancyGuard {
     }
 
     receive() external payable {
-        bytes memory stdAddr = abi.encodePacked(msg.sender);
+        bytes memory dstAddr = abi.encodePacked(msg.sender);
 
-        (uint nativeFee, ) = this.estimateSendFee(msg.value, stdAddr);
+        (uint nativeFee, ) = this.estimateSendFee(msg.value, dstAddr);
 
         require(msg.value > nativeFee, "too little");
 
         uint256 amount = msg.value - nativeFee;
-        this.bridgeTo{value: msg.value}(amount, stdAddr, nativeFee);
+
+        this.bridge{value: msg.value}(msg.sender, amount, dstAddr, nativeFee);
     }
 }
