@@ -32,7 +32,12 @@ contract DepositBridge is ReentrancyGuard {
         bytes calldata _dstAddress,
         uint256 _gasPaidForCrossChain
     ) public payable returns (uint256 stoneMinted) {
-        bridge(msg.sender, _amount, _dstAddress, _gasPaidForCrossChain);
+        stoneMinted = bridge(
+            msg.sender,
+            _amount,
+            _dstAddress,
+            _gasPaidForCrossChain
+        );
     }
 
     function bridge(
