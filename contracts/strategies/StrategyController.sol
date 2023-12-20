@@ -56,7 +56,7 @@ contract StrategyController {
         if (balanceBeforeRepay >= _amount) {
             _repayToVault();
 
-            actualAmount = balanceBeforeRepay;
+            actualAmount = _amount;
         } else {
             actualAmount =
                 _forceWithdraw(_amount - balanceBeforeRepay) +
