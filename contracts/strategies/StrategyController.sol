@@ -48,10 +48,6 @@ contract StrategyController {
         _initStrategies(_strategies, _ratios);
     }
 
-    function onlyRebaseStrategies() external {
-        _rebase(0, 0);
-    }
-
     function forceWithdraw(
         uint256 _amount
     ) external onlyVault returns (uint256 actualAmount) {
