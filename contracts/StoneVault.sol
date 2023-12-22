@@ -99,6 +99,7 @@ contract StoneVault is ReentrancyGuard, Ownable {
         address _minter,
         address _proposal,
         address payable _assetsVault,
+        uint256 _rebaseTime,
         address[] memory _strategies,
         uint256[] memory _ratios
     ) {
@@ -119,6 +120,8 @@ contract StoneVault is ReentrancyGuard, Ownable {
         assetsVault = _assetsVault;
 
         feeRecipient = msg.sender;
+
+        rebaseTime = _rebaseTime;
 
         StrategyController controller = new StrategyController(
             _assetsVault,

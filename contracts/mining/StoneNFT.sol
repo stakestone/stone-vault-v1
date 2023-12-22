@@ -40,7 +40,7 @@ contract StoneNFT is ERC721, ERC721Enumerable, Ownable {
         tokenId = _tokenIdCounter.current();
         propertiesById[tokenId] = NFTDetail(_points, _to, _startTime, _endTime);
         _tokenIdCounter.increment();
-        _safeMint(_to, tokenId);
+        _mint(_to, tokenId);
     }
 
     function setPool(address _pool) external onlyOwner {

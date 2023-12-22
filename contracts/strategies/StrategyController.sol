@@ -48,10 +48,6 @@ contract StrategyController {
         _initStrategies(_strategies, _ratios);
     }
 
-    function onlyRebaseStrategies() external {
-        _rebase(0, 0);
-    }
-
     function forceWithdraw(
         uint256 _amount
     ) external onlyVault returns (uint256 actualAmount) {
@@ -60,7 +56,7 @@ contract StrategyController {
         if (balanceBeforeRepay >= _amount) {
             _repayToVault();
 
-            actualAmount = balanceBeforeRepay;
+            actualAmount = _amount;
         } else {
             actualAmount =
                 _forceWithdraw(_amount - balanceBeforeRepay) +
@@ -180,11 +176,17 @@ contract StrategyController {
         uint256 _amount
     ) internal returns (uint256 actualAmount) {
         uint256 length = strategies.length();
+
+        uint256 allRatios;
+        for (uint i; i < length; i++) {
+            address strategy = strategies.at(i);
+            allRatios += ratios[strategy];
+        }
+
         for (uint i; i < length; i++) {
             address strategy = strategies.at(i);
 
-            uint256 withAmount = (_amount * ratios[strategy]) /
-                ONE_HUNDRED_PERCENT;
+            uint256 withAmount = (_amount * ratios[strategy]) / allRatios;
 
             if (withAmount != 0) {
                 actualAmount =

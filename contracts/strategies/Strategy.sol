@@ -8,10 +8,21 @@ abstract contract Strategy {
 
     address public governance;
 
+    uint256 public latestUpdateTime;
+    uint256 public bufferTime = 600;
+
     string public name;
 
     modifier onlyGovernance() {
         require(governance == msg.sender, "not governace");
+        _;
+    }
+
+    modifier notAtSameBlock() {
+        require(
+            latestUpdateTime + bufferTime < block.timestamp,
+            "at the same block"
+        );
         _;
     }
 
@@ -30,15 +41,27 @@ abstract contract Strategy {
         _;
     }
 
-    function deposit() public payable virtual onlyController {}
+    function deposit() public payable virtual onlyController notAtSameBlock {}
 
     function withdraw(
         uint256 _amount
-    ) public virtual onlyController returns (uint256 actualAmount) {}
+    )
+        public
+        virtual
+        onlyController
+        notAtSameBlock
+        returns (uint256 actualAmount)
+    {}
 
     function instantWithdraw(
         uint256 _amount
-    ) public virtual onlyController returns (uint256 actualAmount) {}
+    )
+        public
+        virtual
+        onlyController
+        notAtSameBlock
+        returns (uint256 actualAmount)
+    {}
 
     function clear() public virtual onlyController returns (uint256 amount) {}
 
@@ -61,5 +84,9 @@ abstract contract Strategy {
     function setGovernance(address governance_) external onlyGovernance {
         emit TransferGovernance(governance, governance_);
         governance = governance_;
+    }
+
+    function setBufferTime(uint256 _time) external onlyGovernance {
+        bufferTime = _time;
     }
 }

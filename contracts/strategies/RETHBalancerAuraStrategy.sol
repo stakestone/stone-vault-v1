@@ -21,34 +21,46 @@ contract RETHBalancerAuraStrategy is Strategy {
     bytes32 internal immutable poolId =
         0x1e19cf2d73a72ef1332c882f20534b6519be0276000200000000000000000112;
 
-    address public immutable WETH = 0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2;
-    address public immutable RETH = 0xae78736Cd615f374D3085123A210448E74Fc6393;
-    address public immutable VAULT = 0xBA12222222228d8Ba445958a75a0704d566BF2C8;
-    address public immutable LP_TOKEN =
-        0x1E19CF2D73a72Ef1332C882F20534B6519Be0276;
+    address public immutable WETH;
+    address public immutable RETH;
+    address public immutable VAULT;
+    address public immutable LP_TOKEN;
 
-    address public immutable AURA_REWARD_POOL =
-        0xDd1fE5AD401D4777cE89959b7fa587e569Bf125D;
-    address public immutable BAL_TOKEN =
-        0xba100000625a3754423978a60c9317c58a424e3D;
-    address public immutable AURA_TOKEN =
-        0xC0c293ce456fF0ED870ADd98a0828Dd4d2903DBF;
-    address public immutable EXTRA_REWARD =
-        0xf66a72886749c96b18526E8E124cC2e18b7c72D2;
+    address public immutable AURA_REWARD_POOL;
+    address public immutable BAL_TOKEN;
+    address public immutable AURA_TOKEN;
+    address public immutable EXTRA_REWARD;
 
     address payable public SWAPPING;
 
     constructor(
         address payable _controller,
         address payable _swap,
-        string memory _name
-    ) Strategy(_controller, _name) {
+        address _WETH,
+        address _RETH,
+        address _VAULT,
+        address _LP_TOKEN,
+        address _AURA_REWARD_POOL,
+        address _BAL_TOKEN,
+        address _AURA_TOKEN,
+        address _EXTRA_REWARD,
+        bytes32 _poolId
+    ) Strategy(_controller, "Rocket Pool ETH(rETH)") {
         require(_swap != address(0), "ZERO ADDRESS");
 
         SWAPPING = _swap;
+        WETH = _WETH;
+        RETH = _RETH;
+        VAULT = _VAULT;
+        LP_TOKEN = _LP_TOKEN;
+        AURA_REWARD_POOL = _AURA_REWARD_POOL;
+        BAL_TOKEN = _BAL_TOKEN;
+        AURA_TOKEN = _AURA_TOKEN;
+        EXTRA_REWARD = _EXTRA_REWARD;
+        poolId = _poolId;
     }
 
-    function deposit() public payable override onlyController {
+    function deposit() public payable override onlyController notAtSameBlock {
         uint256 amount = msg.value;
         require(amount != 0, "zero value");
 
@@ -90,17 +102,31 @@ contract RETHBalancerAuraStrategy is Strategy {
         );
 
         require(share > 0, "mint error");
+
+        latestUpdateTime = block.timestamp;
     }
 
     function withdraw(
         uint256 _amount
-    ) public override onlyController returns (uint256 actualAmount) {
+    )
+        public
+        override
+        onlyController
+        notAtSameBlock
+        returns (uint256 actualAmount)
+    {
         actualAmount = _withdraw(_amount, false);
     }
 
     function instantWithdraw(
         uint256 _amount
-    ) public override onlyController returns (uint256 actualAmount) {
+    )
+        public
+        override
+        onlyController
+        notAtSameBlock
+        returns (uint256 actualAmount)
+    {
         actualAmount = _withdraw(_amount, true);
     }
 
@@ -162,9 +188,12 @@ contract RETHBalancerAuraStrategy is Strategy {
             actualAmount = address(this).balance;
         }
         if (!_isInstant) {
-            actualAmount = actualAmount + sellAllRewards();
+            sellAllRewards();
         }
+        actualAmount = actualAmount > _amount ? _amount : actualAmount;
         TransferHelper.safeTransferETH(controller, address(this).balance);
+
+        latestUpdateTime = block.timestamp;
     }
 
     function sellAllRewards() internal returns (uint256 actualAmount) {

@@ -30,7 +30,7 @@ contract RETHHoldingStrategy is Strategy {
         SWAPPING = _swap;
     }
 
-    function deposit() public payable override onlyController {
+    function deposit() public payable override onlyController notAtSameBlock {
         uint256 amount = msg.value;
         require(amount != 0, "zero value");
 
@@ -47,17 +47,31 @@ contract RETHHoldingStrategy is Strategy {
                 false
             );
         }
+
+        latestUpdateTime = block.timestamp;
     }
 
     function withdraw(
         uint256 _amount
-    ) public override onlyController returns (uint256 actualAmount) {
+    )
+        public
+        override
+        onlyController
+        notAtSameBlock
+        returns (uint256 actualAmount)
+    {
         actualAmount = _withdraw(_amount);
     }
 
     function instantWithdraw(
         uint256 _amount
-    ) public override onlyController returns (uint256 actualAmount) {
+    )
+        public
+        override
+        onlyController
+        notAtSameBlock
+        returns (uint256 actualAmount)
+    {
         actualAmount = _withdraw(_amount);
     }
 
@@ -84,8 +98,13 @@ contract RETHHoldingStrategy is Strategy {
             SwappingAggregator(SWAPPING).swap(RETH, rETHAmount, true);
         }
 
-        actualAmount = address(this).balance;
+        actualAmount = address(this).balance > _amount
+            ? _amount
+            : address(this).balance;
+
         TransferHelper.safeTransferETH(controller, actualAmount);
+
+        latestUpdateTime = block.timestamp;
     }
 
     function clear()

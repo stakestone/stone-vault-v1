@@ -45,7 +45,7 @@ contract STETHHoldingStrategy is Strategy {
         SWAPPING = _swap;
     }
 
-    function deposit() public payable override onlyController {
+    function deposit() public payable override onlyController notAtSameBlock {
         uint256 amount = msg.value;
         require(amount != 0, "zero value");
 
@@ -58,11 +58,19 @@ contract STETHHoldingStrategy is Strategy {
                 false
             );
         }
+
+        latestUpdateTime = block.timestamp;
     }
 
     function withdraw(
         uint256 _amount
-    ) public override onlyController returns (uint256 actualAmount) {
+    )
+        public
+        override
+        onlyController
+        notAtSameBlock
+        returns (uint256 actualAmount)
+    {
         require(_amount != 0, "zero value");
 
         ILido lido = ILido(STETH);
@@ -95,11 +103,19 @@ contract STETHHoldingStrategy is Strategy {
         } else {
             actualAmount = instantWithdraw(_amount);
         }
+
+        latestUpdateTime = block.timestamp;
     }
 
     function instantWithdraw(
         uint256 _amount
-    ) public override onlyController returns (uint256 actualAmount) {
+    )
+        public
+        override
+        onlyController
+        notAtSameBlock
+        returns (uint256 actualAmount)
+    {
         _amount = _amount < IERC20(STETH).balanceOf(address(this))
             ? _amount
             : IERC20(STETH).balanceOf(address(this));
@@ -110,8 +126,11 @@ contract STETHHoldingStrategy is Strategy {
                 _amount,
                 true
             );
+            actualAmount = actualAmount > _amount ? _amount : actualAmount;
         }
         TransferHelper.safeTransferETH(controller, address(this).balance);
+
+        latestUpdateTime = block.timestamp;
     }
 
     function clear() public override onlyController returns (uint256 amount) {
@@ -126,7 +145,7 @@ contract STETHHoldingStrategy is Strategy {
     }
 
     function getAllValue() public override returns (uint256 value) {
-        value = getInvestedValue() + getPendingValue() + getClaimableValue();
+        value = getInvestedValue() + getPendingValue();
     }
 
     function getInvestedValue() public override returns (uint256 value) {
@@ -138,7 +157,9 @@ contract STETHHoldingStrategy is Strategy {
     }
 
     function getClaimableValue() public returns (uint256 value) {
-        (, value, ) = checkPendingAssets();
+        (, uint256 totalClaimable, uint256 totalPending) = checkPendingAssets();
+
+        value = totalClaimable + totalPending;
     }
 
     function checkPendingStatus()
