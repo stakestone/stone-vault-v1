@@ -387,7 +387,10 @@ contract StoneVault is ReentrancyGuard, Ownable {
             withdrawingSharesInRound;
         withdrawableAmountInPast =
             withdrawableAmountInPast +
-            VaultMath.sharesToAsset(withdrawingSharesInRound, newSharePrice);
+            VaultMath.sharesToAsset(
+                withdrawingSharesInRound,
+                roundPricePerShare[latestRoundID]
+            );
         withdrawingSharesInRound = 0;
         rebaseTime = block.timestamp;
 
