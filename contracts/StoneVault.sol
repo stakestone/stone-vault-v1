@@ -433,12 +433,6 @@ contract StoneVault is ReentrancyGuard, Ownable {
         proposal = _proposal;
     }
 
-    function migrateVault(address _vault) external onlyProposal {
-        Minter(minter).setNewVault(_vault);
-        AssetsVault(assetsVault).setNewVault(_vault);
-        StrategyController(strategyController).setNewVault(_vault);
-    }
-
     function currentSharePrice() public returns (uint256 price) {
         Stone stoneToken = Stone(stone);
         uint256 totalStone = stoneToken.totalSupply();
