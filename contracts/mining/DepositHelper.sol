@@ -31,7 +31,7 @@ contract DepositHelper is ReentrancyGuard {
         nonReentrant
         returns (uint256 stoneMinted)
     {
-        require(msg.value > 0, "ZERO AMount");
+        require(msg.value > 0, "ZERO Amount");
 
         IStoneVault stoneVault = IStoneVault(vault);
         stoneMinted = stoneVault.deposit{value: msg.value}();
