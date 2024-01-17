@@ -20,6 +20,10 @@ contract DepositHelper is ReentrancyGuard {
     );
 
     constructor(address _stone, address payable _vault, address _wallet) {
+        require(_stone != address(0), "zero address");
+        require(_vault != address(0), "zero address");
+        require(_wallet != address(0), "zero address");
+
         stone = _stone;
         vault = _vault;
         wallet = _wallet;
