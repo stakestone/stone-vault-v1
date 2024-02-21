@@ -153,13 +153,13 @@ contract STETHHoldingStrategy is Strategy {
     }
 
     function getPendingValue() public override returns (uint256 value) {
-        (, , value) = checkPendingAssets();
-    }
-
-    function getClaimableValue() public returns (uint256 value) {
         (, uint256 totalClaimable, uint256 totalPending) = checkPendingAssets();
 
         value = totalClaimable + totalPending;
+    }
+
+    function getClaimableValue() public returns (uint256 value) {
+        (, value, ) = checkPendingAssets();
     }
 
     function checkPendingStatus()

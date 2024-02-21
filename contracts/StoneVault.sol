@@ -387,7 +387,10 @@ contract StoneVault is ReentrancyGuard, Ownable {
             withdrawingSharesInRound;
         withdrawableAmountInPast =
             withdrawableAmountInPast +
-            VaultMath.sharesToAsset(withdrawingSharesInRound, newSharePrice);
+            VaultMath.sharesToAsset(
+                withdrawingSharesInRound,
+                roundPricePerShare[latestRoundID]
+            );
         withdrawingSharesInRound = 0;
         rebaseTime = block.timestamp;
 
@@ -428,12 +431,6 @@ contract StoneVault is ReentrancyGuard, Ownable {
 
     function updateProposal(address _proposal) external onlyProposal {
         proposal = _proposal;
-    }
-
-    function migrateVault(address _vault) external onlyProposal {
-        Minter(minter).setNewVault(_vault);
-        AssetsVault(assetsVault).setNewVault(_vault);
-        StrategyController(strategyController).setNewVault(_vault);
     }
 
     function currentSharePrice() public returns (uint256 price) {
