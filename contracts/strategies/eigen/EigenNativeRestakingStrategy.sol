@@ -8,6 +8,7 @@ import {Account} from "./Account.sol";
 
 import {IEigenPodManager} from "../../interfaces/IEigenPodManager.sol";
 import {IEigenPod} from "../../interfaces/IEigenPod.sol";
+import {IDelayedWithdrawalRouter} from "../../interfaces/IDelayedWithdrawalRouter.sol";
 import {IBatchDeposit} from "../../interfaces/IBatchDeposit.sol";
 
 contract EigenNativeRestakingStrategy is Strategy {
@@ -22,6 +23,7 @@ contract EigenNativeRestakingStrategy is Strategy {
     address[] public eigenPods;
 
     address public eigenPodManager;
+    address public delayedWithdrawalRouter;
     address public batchDeposit;
 
     event SetNewEigenPodManager(address olAddr, address newAddr);
@@ -31,10 +33,12 @@ contract EigenNativeRestakingStrategy is Strategy {
         address payable _controller,
         address _eigenPodManager,
         address _batchDeposit,
+        address _delayedWithdrawalRouter,
         string memory _name
     ) Strategy(_controller, _name) {
         eigenPodManager = _eigenPodManager;
         batchDeposit = _batchDeposit;
+        delayedWithdrawalRouter = _delayedWithdrawalRouter;
     }
 
     function deposit() public payable override onlyController notAtSameBlock {
@@ -177,10 +181,10 @@ contract EigenNativeRestakingStrategy is Strategy {
 
         Account account = Account(payable(podOwner));
         account.invoke(
-            _eigenPod,
+            delayedWithdrawalRouter,
             0,
             abi.encodeWithSelector(
-                IEigenPod.claimDelayedWithdrawals.selector,
+                IDelayedWithdrawalRouter.claimDelayedWithdrawals.selector,
                 type(uint256).max
             )
         );
