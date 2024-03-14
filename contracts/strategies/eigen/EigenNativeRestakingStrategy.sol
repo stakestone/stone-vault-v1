@@ -278,6 +278,8 @@ contract EigenNativeRestakingStrategy is Strategy {
     function setNewEigenPodManager(
         address _eigenPodManager
     ) external onlyGovernance {
+        require(_eigenPodManager != address(0), "Invalid address");
+
         emit SetNewEigenPodManager(eigenPodManager, _eigenPodManager);
 
         eigenPodManager = _eigenPodManager;

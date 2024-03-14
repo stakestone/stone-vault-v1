@@ -15,8 +15,9 @@ contract Account is Ownable2Step {
     address public eigenPod;
 
     constructor(address _admin) {
-        controller = msg.sender;
+        require(_admin != address(0), "invalid admin");
 
+        controller = msg.sender;
         transferOwnership(_admin);
     }
 
