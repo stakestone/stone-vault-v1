@@ -9,7 +9,6 @@ import {Account} from "./Account.sol";
 import {IEigenPodManager} from "../../interfaces/IEigenPodManager.sol";
 import {IEigenPod} from "../../interfaces/IEigenPod.sol";
 import {IDelayedWithdrawalRouter} from "../../interfaces/IDelayedWithdrawalRouter.sol";
-import {IBatchDeposit} from "../../interfaces/IBatchDeposit.sol";
 
 contract EigenNativeRestakingStrategy is Strategy {
     uint256 public immutable ETHER_PER_NODE = 32 ether;

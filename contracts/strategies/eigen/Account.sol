@@ -12,7 +12,6 @@ contract Account is Ownable2Step {
     event Invoked(address indexed targetAddress, uint256 value, bytes data);
 
     address public immutable controller;
-    address public eigenPod;
 
     constructor(address _admin) {
         require(_admin != address(0), "invalid admin");
