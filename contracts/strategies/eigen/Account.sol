@@ -9,7 +9,7 @@ contract Account {
      */
     event Invoked(address indexed targetAddress, uint256 value, bytes data);
 
-    address public owner;
+    address public immutable owner;
     address public admin;
     address public eigenPod;
 

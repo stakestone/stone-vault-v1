@@ -23,8 +23,8 @@ contract EigenNativeRestakingStrategy is Strategy {
     address[] public eigenPods;
 
     address public eigenPodManager;
-    address public delayedWithdrawalRouter;
-    address public batchDeposit;
+    address public immutable delayedWithdrawalRouter;
+    address public immutable batchDeposit;
 
     event SetNewEigenPodManager(address olAddr, address newAddr);
     event EigenPodCreated(address owner, address eigenPod);
