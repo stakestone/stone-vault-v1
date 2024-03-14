@@ -168,10 +168,7 @@ contract EigenNativeRestakingStrategy is Strategy {
         withdrawingNodeAmount += _nodeAmount;
     }
 
-    function unstakeFromEigenPod(
-        uint256 _nodeAmount,
-        address _eigenPod
-    ) external onlyGovernance {
+    function unstakeFromEigenPod(address _eigenPod) external onlyGovernance {
         address podOwner = eigenPodOwners[_eigenPod];
         require(podOwner != address(0), "EigenPod not exist");
 
