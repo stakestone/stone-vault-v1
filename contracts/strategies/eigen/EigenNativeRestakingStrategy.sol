@@ -114,7 +114,7 @@ contract EigenNativeRestakingStrategy is Strategy {
 
         bool success;
         (success, ) = address(podOwner).call{value: 0}(
-            abi.encodeWithSelector(podOwner.acceptOwnership.selector)
+            abi.encodeCall(podOwner.acceptOwnership, ())
         );
         if (!success) {
             // solhint-disable-next-line no-inline-assembly
@@ -127,7 +127,7 @@ contract EigenNativeRestakingStrategy is Strategy {
         bytes memory result = podOwner.invoke(
             eigenPodManager,
             0,
-            abi.encodeWithSelector(IEigenPodManager.createPod.selector)
+            abi.encodeCall(IEigenPodManager.createPod, ())
         );
 
         owner = address(podOwner);
@@ -179,7 +179,7 @@ contract EigenNativeRestakingStrategy is Strategy {
         account.invoke(
             _eigenPod,
             0,
-            abi.encodeWithSelector(IEigenPod.withdrawBeforeRestaking.selector)
+            abi.encodeCall(IEigenPod.withdrawBeforeRestaking, ())
         );
     }
 
@@ -194,9 +194,9 @@ contract EigenNativeRestakingStrategy is Strategy {
         account.invoke(
             delayedWithdrawalRouter,
             0,
-            abi.encodeWithSelector(
-                IDelayedWithdrawalRouter.claimDelayedWithdrawals.selector,
-                type(uint256).max
+            abi.encodeCall(
+                IDelayedWithdrawalRouter.claimDelayedWithdrawals,
+                (type(uint256).max)
             )
         );
         account.invoke(address(this), podOwner.balance, "");
@@ -220,14 +220,16 @@ contract EigenNativeRestakingStrategy is Strategy {
         account.invoke(
             _eigenPod,
             0,
-            abi.encodeWithSelector(
-                IEigenPod.verifyAndProcessWithdrawals.selector,
-                _oracleTimestamp,
-                _stateRootProof,
-                _withdrawalProofs,
-                _validatorFieldsProofs,
-                _validatorFields,
-                _withdrawalFields
+            abi.encodeCall(
+                IEigenPod.verifyAndProcessWithdrawals,
+                (
+                    _oracleTimestamp,
+                    _stateRootProof,
+                    _withdrawalProofs,
+                    _validatorFieldsProofs,
+                    _validatorFields,
+                    _withdrawalFields
+                )
             )
         );
     }
@@ -247,13 +249,15 @@ contract EigenNativeRestakingStrategy is Strategy {
         account.invoke(
             _eigenPod,
             0,
-            abi.encodeWithSelector(
-                IEigenPod.verifyWithdrawalCredentials.selector,
-                _oracleTimestamp,
-                _stateRootProof,
-                _validatorIndices,
-                _validatorFieldsProofs,
-                _validatorFields
+            abi.encodeCall(
+                IEigenPod.verifyWithdrawalCredentials,
+                (
+                    _oracleTimestamp,
+                    _stateRootProof,
+                    _validatorIndices,
+                    _validatorFieldsProofs,
+                    _validatorFields
+                )
             )
         );
     }
