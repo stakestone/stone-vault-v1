@@ -113,6 +113,18 @@ contract EigenNativeRestakingStrategy is Strategy {
     function createEigenPod() external returns (address owner, address pod) {
         Account podOwner = new Account(governance);
 
+        bool success;
+        (success, ) = address(podOwner).call{value: 0}(
+            abi.encodeWithSelector(podOwner.acceptOwnership.selector)
+        );
+        if (!success) {
+            // solhint-disable-next-line no-inline-assembly
+            assembly {
+                returndatacopy(0, 0, returndatasize())
+                revert(0, returndatasize())
+            }
+        }
+
         bytes memory result = podOwner.invoke(
             eigenPodManager,
             0,
