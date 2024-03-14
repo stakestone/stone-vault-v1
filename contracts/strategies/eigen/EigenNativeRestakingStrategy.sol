@@ -61,13 +61,7 @@ contract EigenNativeRestakingStrategy is Strategy {
 
     function instantWithdraw(
         uint256 _amount
-    )
-        public
-        override
-        onlyController
-        notAtSameBlock
-        returns (uint256 actualAmount)
-    {
+    ) public override onlyController returns (uint256 actualAmount) {
         actualAmount = _withdraw(_amount);
     }
 
