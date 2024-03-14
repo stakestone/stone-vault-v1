@@ -267,8 +267,9 @@ contract EigenNativeRestakingStrategy is Strategy {
         uint256 _limit
     ) external view returns (address[] memory pods) {
         uint256 length = eigenPods.length;
-        pods = new address[](length);
+        require(_start + _limit < length, "out of bounds");
 
+        pods = new address[](length);
         for (uint256 i; i < _limit; i++) {
             pods[i] = eigenPods[_start + i];
         }
