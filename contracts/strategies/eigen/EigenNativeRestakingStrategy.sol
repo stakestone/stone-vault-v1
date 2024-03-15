@@ -253,6 +253,16 @@ contract EigenNativeRestakingStrategy is Strategy {
         );
     }
 
+    function forceUpdateNodeAmount(
+        uint256 _pendingNodeAmount,
+        uint256 _activeNodeAmount,
+        uint256 _withdrawingNodeAmount
+    ) external onlyGovernance {
+        pendingNodeAmount = _pendingNodeAmount;
+        activeNodeAmount = _activeNodeAmount;
+        withdrawingNodeAmount = _withdrawingNodeAmount;
+    }
+
     function getEigenPods(
         uint256 _start,
         uint256 _limit
