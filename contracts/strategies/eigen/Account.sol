@@ -3,29 +3,26 @@ pragma solidity 0.8.21;
 
 import {EigenNativeRestakingStrategy} from "./EigenNativeRestakingStrategy.sol";
 
-contract Account {
+import {Ownable2Step} from "@openzeppelin/contracts/access/Ownable2Step.sol";
+
+contract Account is Ownable2Step {
     /**
      * @dev A transaction is invoked on the Account.
      */
     event Invoked(address indexed targetAddress, uint256 value, bytes data);
 
-    address public owner;
-    address public admin;
-    address public eigenPod;
+    address public immutable controller;
 
     constructor(address _admin) {
-        owner = msg.sender;
-        admin = _admin;
+        require(_admin != address(0), "invalid admin");
+
+        controller = msg.sender;
+        transferOwnership(_admin);
     }
 
     modifier onlyAuth() {
-        require(msg.sender == owner || msg.sender == admin, "unauth");
+        require(msg.sender == controller || msg.sender == owner(), "unauth");
         _;
-    }
-
-    function transferAdmin(address _admin) public {
-        require(msg.sender == admin, "not admin");
-        admin = _admin;
     }
 
     /**
@@ -39,11 +36,13 @@ contract Account {
         bytes memory data
     ) public onlyAuth returns (bytes memory result) {
         EigenNativeRestakingStrategy strategy = EigenNativeRestakingStrategy(
-            payable(owner)
+            payable(controller)
         );
 
         require(
-            value == 0 || target == owner || target == strategy.batchDeposit(),
+            value == 0 ||
+                target == controller ||
+                target == strategy.batchDeposit(),
             "not permit"
         );
 

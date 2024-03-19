@@ -8,7 +8,7 @@ import {Account} from "./Account.sol";
 
 import {IEigenPodManager} from "../../interfaces/IEigenPodManager.sol";
 import {IEigenPod} from "../../interfaces/IEigenPod.sol";
-import {IBatchDeposit} from "../../interfaces/IBatchDeposit.sol";
+import {IDelayedWithdrawalRouter} from "../../interfaces/IDelayedWithdrawalRouter.sol";
 
 contract EigenNativeRestakingStrategy is Strategy {
     uint256 public immutable ETHER_PER_NODE = 32 ether;
@@ -22,7 +22,8 @@ contract EigenNativeRestakingStrategy is Strategy {
     address[] public eigenPods;
 
     address public eigenPodManager;
-    address public batchDeposit;
+    address public immutable delayedWithdrawalRouter;
+    address public immutable batchDeposit;
 
     event SetNewEigenPodManager(address olAddr, address newAddr);
     event EigenPodCreated(address owner, address eigenPod);
@@ -31,10 +32,12 @@ contract EigenNativeRestakingStrategy is Strategy {
         address payable _controller,
         address _eigenPodManager,
         address _batchDeposit,
+        address _delayedWithdrawalRouter,
         string memory _name
     ) Strategy(_controller, _name) {
         eigenPodManager = _eigenPodManager;
         batchDeposit = _batchDeposit;
+        delayedWithdrawalRouter = _delayedWithdrawalRouter;
     }
 
     function deposit() public payable override onlyController notAtSameBlock {
@@ -58,13 +61,7 @@ contract EigenNativeRestakingStrategy is Strategy {
 
     function instantWithdraw(
         uint256 _amount
-    )
-        public
-        override
-        onlyController
-        notAtSameBlock
-        returns (uint256 actualAmount)
-    {
+    ) public override onlyController returns (uint256 actualAmount) {
         actualAmount = _withdraw(_amount);
     }
 
@@ -109,10 +106,22 @@ contract EigenNativeRestakingStrategy is Strategy {
     function createEigenPod() external returns (address owner, address pod) {
         Account podOwner = new Account(governance);
 
+        bool success;
+        (success, ) = address(podOwner).call{value: 0}(
+            abi.encodeCall(podOwner.acceptOwnership, ())
+        );
+        if (!success) {
+            // solhint-disable-next-line no-inline-assembly
+            assembly {
+                returndatacopy(0, 0, returndatasize())
+                revert(0, returndatasize())
+            }
+        }
+
         bytes memory result = podOwner.invoke(
             eigenPodManager,
             0,
-            abi.encodeWithSelector(IEigenPodManager.createPod.selector)
+            abi.encodeCall(IEigenPodManager.createPod, ())
         );
 
         owner = address(podOwner);
@@ -153,10 +162,7 @@ contract EigenNativeRestakingStrategy is Strategy {
         withdrawingNodeAmount += _nodeAmount;
     }
 
-    function unstakeFromEigenPod(
-        uint256 _nodeAmount,
-        address _eigenPod
-    ) external onlyGovernance {
+    function unstakeFromEigenPod(address _eigenPod) external onlyGovernance {
         address podOwner = eigenPodOwners[_eigenPod];
         require(podOwner != address(0), "EigenPod not exist");
 
@@ -164,7 +170,7 @@ contract EigenNativeRestakingStrategy is Strategy {
         account.invoke(
             _eigenPod,
             0,
-            abi.encodeWithSelector(IEigenPod.withdrawBeforeRestaking.selector)
+            abi.encodeCall(IEigenPod.withdrawBeforeRestaking, ())
         );
     }
 
@@ -177,11 +183,11 @@ contract EigenNativeRestakingStrategy is Strategy {
 
         Account account = Account(payable(podOwner));
         account.invoke(
-            _eigenPod,
+            delayedWithdrawalRouter,
             0,
-            abi.encodeWithSelector(
-                IEigenPod.claimDelayedWithdrawals.selector,
-                type(uint256).max
+            abi.encodeCall(
+                IDelayedWithdrawalRouter.claimDelayedWithdrawals,
+                (type(uint256).max)
             )
         );
         account.invoke(address(this), podOwner.balance, "");
@@ -205,14 +211,16 @@ contract EigenNativeRestakingStrategy is Strategy {
         account.invoke(
             _eigenPod,
             0,
-            abi.encodeWithSelector(
-                IEigenPod.verifyAndProcessWithdrawals.selector,
-                _oracleTimestamp,
-                _stateRootProof,
-                _withdrawalProofs,
-                _validatorFieldsProofs,
-                _validatorFields,
-                _withdrawalFields
+            abi.encodeCall(
+                IEigenPod.verifyAndProcessWithdrawals,
+                (
+                    _oracleTimestamp,
+                    _stateRootProof,
+                    _withdrawalProofs,
+                    _validatorFieldsProofs,
+                    _validatorFields,
+                    _withdrawalFields
+                )
             )
         );
     }
@@ -232,15 +240,27 @@ contract EigenNativeRestakingStrategy is Strategy {
         account.invoke(
             _eigenPod,
             0,
-            abi.encodeWithSelector(
-                IEigenPod.verifyWithdrawalCredentials.selector,
-                _oracleTimestamp,
-                _stateRootProof,
-                _validatorIndices,
-                _validatorFieldsProofs,
-                _validatorFields
+            abi.encodeCall(
+                IEigenPod.verifyWithdrawalCredentials,
+                (
+                    _oracleTimestamp,
+                    _stateRootProof,
+                    _validatorIndices,
+                    _validatorFieldsProofs,
+                    _validatorFields
+                )
             )
         );
+    }
+
+    function forceUpdateNodeAmount(
+        uint256 _pendingNodeAmount,
+        uint256 _activeNodeAmount,
+        uint256 _withdrawingNodeAmount
+    ) external onlyGovernance {
+        pendingNodeAmount = _pendingNodeAmount;
+        activeNodeAmount = _activeNodeAmount;
+        withdrawingNodeAmount = _withdrawingNodeAmount;
     }
 
     function getEigenPods(
@@ -248,8 +268,9 @@ contract EigenNativeRestakingStrategy is Strategy {
         uint256 _limit
     ) external view returns (address[] memory pods) {
         uint256 length = eigenPods.length;
-        pods = new address[](length);
+        require(_start + _limit < length, "out of bounds");
 
+        pods = new address[](length);
         for (uint256 i; i < _limit; i++) {
             pods[i] = eigenPods[_start + i];
         }
@@ -262,6 +283,8 @@ contract EigenNativeRestakingStrategy is Strategy {
     function setNewEigenPodManager(
         address _eigenPodManager
     ) external onlyGovernance {
+        require(_eigenPodManager != address(0), "Invalid address");
+
         emit SetNewEigenPodManager(eigenPodManager, _eigenPodManager);
 
         eigenPodManager = _eigenPodManager;

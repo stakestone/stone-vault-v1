@@ -26,10 +26,6 @@ interface IEigenPod {
 
     function withdrawBeforeRestaking() external;
 
-    function claimDelayedWithdrawals(
-        uint256 maxNumberOfDelayedWithdrawalsToClaim
-    ) external;
-
     function verifyAndProcessWithdrawals(
         uint64 oracleTimestamp,
         StateRootProof calldata stateRootProof,
