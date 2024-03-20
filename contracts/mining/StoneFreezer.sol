@@ -100,7 +100,7 @@ contract StoneFreezer is ERC20, ReentrancyGuard, Ownable2Step {
 
     function _depositStone(address _user, uint256 _amount) internal {
         require(cap >= _amount + totalStoneDeposited, "cap");
-        require(_amount >= minStoneAllowed + stoneDeposited[_user]);
+        require(_amount + stoneDeposited[_user] >= minStoneAllowed);
 
         stoneDeposited[_user] += _amount;
         totalStoneDeposited += _amount;
