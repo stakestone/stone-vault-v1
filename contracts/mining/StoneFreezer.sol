@@ -88,6 +88,13 @@ contract StoneFreezer is ERC20, ReentrancyGuard, Ownable2Step {
     }
 
     function depositStone(uint256 _amount) external DepositNotPaused {
+        TransferHelper.safeTransferFrom(
+            stoneAddr,
+            msg.sender,
+            address(this),
+            _amount
+        );
+
         _depositStone(msg.sender, _amount);
     }
 
@@ -95,6 +102,13 @@ contract StoneFreezer is ERC20, ReentrancyGuard, Ownable2Step {
         address _user,
         uint256 _amount
     ) external DepositNotPaused {
+        TransferHelper.safeTransferFrom(
+            stoneAddr,
+            msg.sender,
+            address(this),
+            _amount
+        );
+
         _depositStone(_user, _amount);
     }
 
