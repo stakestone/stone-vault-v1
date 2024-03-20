@@ -41,7 +41,7 @@ contract StoneFreezer is ERC20, ReentrancyGuard, Ownable2Step {
         uint256 _cap
     ) ERC20("STONE Carnival LP", "cSTONE") {
         require(
-            stoneAddr != address(0) && stoneVaultAddr != address(0),
+            _stoneAddr != address(0) && _stoneVaultAddr != address(0),
             "invalid addr"
         );
 
