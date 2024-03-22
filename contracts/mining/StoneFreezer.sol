@@ -171,6 +171,7 @@ contract StoneFreezer is ERC20, ReentrancyGuard, Ownable2Step {
             "STONE not enough"
         );
 
+        TransferHelper.safeApprove(stoneAddr, stoneVaultAddr, _amount);
         IStoneVault(stoneVaultAddr).requestWithdraw(_amount);
 
         emit RequestMade(_amount);
@@ -182,7 +183,7 @@ contract StoneFreezer is ERC20, ReentrancyGuard, Ownable2Step {
             0
         );
 
-        emit ETHWithdrawn(_amount);
+        emit ETHWithdrawn(amount);
     }
 
     function cancelWithdraw(uint256 _amount) external onlyOwner DepositPaused {
@@ -200,4 +201,6 @@ contract StoneFreezer is ERC20, ReentrancyGuard, Ownable2Step {
 
         emit DepositMade(_amount, stoneAmount);
     }
+
+    receive() external payable {}
 }
