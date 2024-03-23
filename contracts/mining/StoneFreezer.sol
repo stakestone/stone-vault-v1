@@ -143,7 +143,7 @@ contract StoneFreezer is ERC20, ReentrancyGuard, Ownable2Step {
         );
     }
 
-    function terminate() external {
+    function terminate() external NotTerminated {
         require(block.timestamp >= startTime + lockPeriod, "cannot terminate");
 
         finalStoneAmount = IERC20(stoneAddr).balanceOf(address(this));
