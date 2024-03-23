@@ -38,7 +38,8 @@ contract StoneFreezer is ERC20, ReentrancyGuard, Ownable2Step {
     constructor(
         address _stoneAddr,
         address _stoneVaultAddr,
-        uint256 _cap
+        uint256 _cap,
+        uint256 _minStoneAllowed
     ) ERC20("STONE Carnival LP", "cSTONE") {
         require(
             _stoneAddr != address(0) && _stoneVaultAddr != address(0),
@@ -49,6 +50,7 @@ contract StoneFreezer is ERC20, ReentrancyGuard, Ownable2Step {
         stoneVaultAddr = _stoneVaultAddr;
         cap = _cap;
         startTime = block.timestamp;
+        minStoneAllowed = _minStoneAllowed;
     }
 
     modifier DepositNotPaused() {
