@@ -175,7 +175,9 @@ contract StoneFreezer is ERC20, ReentrancyGuard, Ownable2Step {
         emit DepositPause(totalStoneDeposited);
     }
 
-    function makeRequest(uint256 _amount) external onlyOwner DepositPaused {
+    function makeRequest(
+        uint256 _amount
+    ) external onlyOwner DepositPaused NotTerminated {
         require(
             _amount <= IERC20(stoneAddr).balanceOf(address(this)),
             "STONE not enough"
@@ -187,7 +189,9 @@ contract StoneFreezer is ERC20, ReentrancyGuard, Ownable2Step {
         emit RequestMade(_amount);
     }
 
-    function withdrawETH(uint256 _amount) external onlyOwner DepositPaused {
+    function withdrawETH(
+        uint256 _amount
+    ) external onlyOwner DepositPaused NotTerminated {
         uint256 amount = IStoneVault(stoneVaultAddr).instantWithdraw(
             _amount,
             0
@@ -196,13 +200,17 @@ contract StoneFreezer is ERC20, ReentrancyGuard, Ownable2Step {
         emit ETHWithdrawn(amount);
     }
 
-    function cancelWithdraw(uint256 _amount) external onlyOwner DepositPaused {
+    function cancelWithdraw(
+        uint256 _amount
+    ) external onlyOwner DepositPaused NotTerminated {
         IStoneVault(stoneVaultAddr).cancelWithdraw(_amount);
 
         emit WithdrawalCancelled(_amount);
     }
 
-    function makeDeposit(uint256 _amount) external onlyOwner DepositPaused {
+    function makeDeposit(
+        uint256 _amount
+    ) external onlyOwner DepositPaused NotTerminated {
         require(_amount <= address(this).balance, "ether not enough");
 
         uint256 stoneAmount = IStoneVault(stoneVaultAddr).deposit{
