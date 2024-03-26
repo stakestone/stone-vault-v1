@@ -154,6 +154,7 @@ contract StoneFreezer is ERC20, ReentrancyGuard, Ownable2Step {
 
         finalStoneAmount = IERC20(stoneAddr).balanceOf(address(this));
 
+        depositPaused = true;
         terminated = true;
 
         emit Terminate(block.timestamp);
@@ -162,6 +163,7 @@ contract StoneFreezer is ERC20, ReentrancyGuard, Ownable2Step {
     function forceTerminate() external onlyOwner DepositPaused {
         finalStoneAmount = IERC20(stoneAddr).balanceOf(address(this));
 
+        depositPaused = true;
         terminated = true;
 
         emit Terminate(block.timestamp);
