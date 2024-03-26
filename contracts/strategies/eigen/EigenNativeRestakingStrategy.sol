@@ -88,13 +88,14 @@ contract EigenNativeRestakingStrategy is Strategy {
     }
 
     function getAllValue() public override returns (uint256 value) {
-        value = getInvestedValue() + address(this).balance;
+        value = getInvestedValue();
     }
 
     function getInvestedValue() public override returns (uint256 value) {
         value =
             (pendingNodeAmount + activeNodeAmount + withdrawingNodeAmount) *
-            ETHER_PER_NODE;
+            ETHER_PER_NODE +
+            address(this).balance;
     }
 
     function getEigenPodsValue() public returns (uint256 value) {
