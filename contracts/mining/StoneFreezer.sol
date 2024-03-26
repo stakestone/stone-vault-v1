@@ -27,7 +27,12 @@ contract StoneFreezer is ERC20, ReentrancyGuard, Ownable2Step {
     mapping(address => uint256) public stoneDeposited;
 
     event StoneDeposited(address _user, uint256 _amount);
-    event StoneWithdrawn(address _user, uint256 _amount, uint256 _withAmount);
+    event StoneWithdrawn(
+        address _user,
+        uint256 _amount,
+        uint256 _burnAmount,
+        uint256 _withAmount
+    );
     event RequestMade(uint256 _amount);
     event DepositMade(uint256 _ethAmount, uint256 _stoneAmount);
     event ETHWithdrawn(uint256 _amount);
@@ -139,6 +144,7 @@ contract StoneFreezer is ERC20, ReentrancyGuard, Ownable2Step {
         emit StoneWithdrawn(
             msg.sender,
             stoneDeposited[msg.sender],
+            stoneShare,
             stoneAmountWith
         );
     }
