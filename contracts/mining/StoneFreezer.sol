@@ -5,11 +5,10 @@ import {IStoneVault} from "../interfaces/IStoneVault.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {ERC20} from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 
-import {ReentrancyGuard} from "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import {TransferHelper} from "@uniswap/v3-periphery/contracts/libraries/TransferHelper.sol";
 import {Ownable2Step} from "@openzeppelin/contracts/access/Ownable2Step.sol";
 
-contract StoneFreezer is ERC20, ReentrancyGuard, Ownable2Step {
+contract StoneFreezer is ERC20, Ownable2Step {
     address public immutable stoneAddr;
     address public immutable stoneVaultAddr;
 
