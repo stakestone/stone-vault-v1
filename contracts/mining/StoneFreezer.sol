@@ -137,6 +137,8 @@ contract StoneFreezer is ERC20, ReentrancyGuard, Ownable2Step {
         uint256 stoneAmountWith = (stoneShare * finalStoneAmount) /
             totalStoneDeposited;
 
+        require(stoneAmountWith != 0, "zero amount");
+
         _burn(msg.sender, stoneShare);
 
         TransferHelper.safeTransfer(stoneAddr, msg.sender, stoneAmountWith);
