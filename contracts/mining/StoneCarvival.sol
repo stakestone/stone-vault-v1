@@ -8,7 +8,7 @@ import {ERC20} from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import {TransferHelper} from "@uniswap/v3-periphery/contracts/libraries/TransferHelper.sol";
 import {Ownable2Step} from "@openzeppelin/contracts/access/Ownable2Step.sol";
 
-contract StoneFreezer is ERC20, Ownable2Step {
+contract StoneCarvival is ERC20, Ownable2Step {
     address public immutable stoneAddr;
     address public immutable stoneVaultAddr;
 
