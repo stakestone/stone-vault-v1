@@ -22,7 +22,7 @@ contract StoneCarnivalETH is Ownable2Step, ReentrancyGuard {
     mapping(uint256 => uint256) public etherDepositedByRound;
     mapping(uint256 => uint256) public cStoneReceivedByRound;
 
-    event EtherDeposited(address _user, uint256 _amount);
+    event EtherDeposited(address _user, uint256 _amount, uint256 round);
     event CStoneClaimed(address _user, uint256 _amount);
     event DepositMade(
         uint256 _ethAmount,
@@ -53,7 +53,7 @@ contract StoneCarnivalETH is Ownable2Step, ReentrancyGuard {
 
         etherDeposited[_user][round] += _amount;
 
-        emit EtherDeposited(_user, _amount);
+        emit EtherDeposited(_user, _amount, round);
     }
 
     function claimCStoneByRound(
