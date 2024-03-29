@@ -77,22 +77,6 @@ contract StoneCarvival is ERC20, Ownable2Step {
         _;
     }
 
-    function depositETH() external payable DepositNotPaused {
-        IStoneVault stoneVault = IStoneVault(stoneVaultAddr);
-
-        uint256 stoneMinted = stoneVault.deposit{value: msg.value}();
-
-        _depositStone(msg.sender, stoneMinted);
-    }
-
-    function depositETHFor(address _user) external payable DepositNotPaused {
-        IStoneVault stoneVault = IStoneVault(stoneVaultAddr);
-
-        uint256 stoneMinted = stoneVault.deposit{value: msg.value}();
-
-        _depositStone(_user, stoneMinted);
-    }
-
     function depositStone(uint256 _amount) external DepositNotPaused {
         TransferHelper.safeTransferFrom(
             stoneAddr,
