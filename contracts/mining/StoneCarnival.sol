@@ -109,7 +109,10 @@ contract StoneCarnival is ERC20, Ownable2Step {
         uint256 _amount
     ) internal returns (uint256 cStoneAmount) {
         require(cap >= _amount + totalStoneDeposited, "cap");
-        require(_amount + stoneDeposited[_user] >= minStoneAllowed);
+        require(
+            _amount + stoneDeposited[_user] >= minStoneAllowed,
+            "not allowed"
+        );
 
         stoneDeposited[_user] += _amount;
         totalStoneDeposited += _amount;
