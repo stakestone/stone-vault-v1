@@ -8,7 +8,7 @@ import {ERC20} from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import {TransferHelper} from "@uniswap/v3-periphery/contracts/libraries/TransferHelper.sol";
 import {Ownable2Step} from "@openzeppelin/contracts/access/Ownable2Step.sol";
 
-contract StoneCarvival is ERC20, Ownable2Step {
+contract StoneCarnival is ERC20, Ownable2Step {
     address public immutable stoneAddr;
     address public immutable stoneVaultAddr;
 
@@ -77,7 +77,9 @@ contract StoneCarvival is ERC20, Ownable2Step {
         _;
     }
 
-    function depositStone(uint256 _amount) external DepositNotPaused {
+    function depositStone(
+        uint256 _amount
+    ) external DepositNotPaused returns (uint256 cStoneAmount) {
         TransferHelper.safeTransferFrom(
             stoneAddr,
             msg.sender,
@@ -85,13 +87,13 @@ contract StoneCarvival is ERC20, Ownable2Step {
             _amount
         );
 
-        _depositStone(msg.sender, _amount);
+        cStoneAmount = _depositStone(msg.sender, _amount);
     }
 
     function depositStoneFor(
         address _user,
         uint256 _amount
-    ) external DepositNotPaused {
+    ) external DepositNotPaused returns (uint256 cStoneAmount) {
         TransferHelper.safeTransferFrom(
             stoneAddr,
             msg.sender,
@@ -99,10 +101,13 @@ contract StoneCarvival is ERC20, Ownable2Step {
             _amount
         );
 
-        _depositStone(_user, _amount);
+        cStoneAmount = _depositStone(_user, _amount);
     }
 
-    function _depositStone(address _user, uint256 _amount) internal {
+    function _depositStone(
+        address _user,
+        uint256 _amount
+    ) internal returns (uint256 cStoneAmount) {
         require(cap >= _amount + totalStoneDeposited, "cap");
         require(_amount + stoneDeposited[_user] >= minStoneAllowed);
 
@@ -110,6 +115,8 @@ contract StoneCarvival is ERC20, Ownable2Step {
         totalStoneDeposited += _amount;
 
         _mint(_user, _amount);
+
+        cStoneAmount = _amount;
 
         emit StoneDeposited(_user, _amount);
     }
