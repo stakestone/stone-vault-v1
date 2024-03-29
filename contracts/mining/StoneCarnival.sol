@@ -13,10 +13,10 @@ contract StoneCarnival is ERC20, Ownable2Step {
     address public immutable stoneVaultAddr;
 
     uint256 public immutable lockPeriod = 90 days;
-    uint256 public immutable cap;
     uint256 public immutable startTime;
     uint256 public immutable minStoneAllowed;
 
+    uint256 public cap;
     uint256 public totalStoneDeposited;
     uint256 public finalStoneAmount;
 
@@ -38,6 +38,7 @@ contract StoneCarnival is ERC20, Ownable2Step {
     event DepositPause(uint256 totalStone);
     event WithdrawalCancelled(uint256 _amount);
     event Terminate(uint256 timestamp);
+    event SetCap(uint256 oldCap, uint256 newCap);
 
     constructor(
         address _stoneAddr,
@@ -153,6 +154,11 @@ contract StoneCarnival is ERC20, Ownable2Step {
         terminated = true;
 
         emit Terminate(block.timestamp);
+    }
+
+    function setCap(uint256 _cap) external onlyOwner DepositNotPaused {
+        emit SetCap(cap, _cap);
+        cap = _cap;
     }
 
     function forceTerminate() external onlyOwner DepositPaused {
