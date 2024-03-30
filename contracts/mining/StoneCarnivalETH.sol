@@ -17,6 +17,8 @@ contract StoneCarnivalETH is Ownable2Step, ReentrancyGuard {
 
     uint256 public round;
 
+    bool public depositPaused;
+
     mapping(address => mapping(uint256 => uint256)) public etherDeposited;
     mapping(address => mapping(uint256 => bool)) public cStoneClaimedByRound;
     mapping(uint256 => uint256) public etherDepositedByRound;
@@ -30,6 +32,12 @@ contract StoneCarnivalETH is Ownable2Step, ReentrancyGuard {
         uint256 _cStoneAmount,
         uint256 _round
     );
+    event DepositPause(uint256 _round);
+
+    modifier DepositNotPaused() {
+        require(!depositPaused, "deposit paused");
+        _;
+    }
 
     constructor(
         address _stoneAddr,
@@ -48,7 +56,10 @@ contract StoneCarnivalETH is Ownable2Step, ReentrancyGuard {
         _depositETH(msg.sender, msg.value);
     }
 
-    function _depositETH(address _user, uint256 _amount) internal nonReentrant {
+    function _depositETH(
+        address _user,
+        uint256 _amount
+    ) internal DepositNotPaused nonReentrant {
         require(_amount >= minEtherAllowed, "not allowed");
 
         etherDeposited[_user][round] += _amount;
@@ -104,5 +115,11 @@ contract StoneCarnivalETH is Ownable2Step, ReentrancyGuard {
     function makeDepositAndRoll() public onlyOwner {
         makeDeposit();
         IStoneVault(payable(stoneVaultAddr)).rollToNextRound();
+    }
+
+    function pauseDeposit() external onlyOwner DepositNotPaused {
+        depositPaused = true;
+
+        emit DepositPause(round);
     }
 }
