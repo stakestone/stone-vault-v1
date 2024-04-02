@@ -12,9 +12,12 @@ contract DepositHelper is ReentrancyGuard {
 
     address public immutable wallet;
 
+    mapping(address => uint256) public stakingBalance0f;
+
     event DepositTo(
         address indexed srcAddr,
         address indexed dstAddr,
+        address indexed wallet,
         uint256 etherAmount,
         uint256 stoneAmount
     );
@@ -29,12 +32,9 @@ contract DepositHelper is ReentrancyGuard {
         wallet = _wallet;
     }
 
-    function deposit()
-        public
-        payable
-        nonReentrant
-        returns (uint256 stoneMinted)
-    {
+    function deposit(
+        address _dstAddress
+    ) public payable nonReentrant returns (uint256 stoneMinted) {
         require(msg.value > 0, "ZERO Amount");
 
         IStoneVault stoneVault = IStoneVault(vault);
@@ -42,10 +42,8 @@ contract DepositHelper is ReentrancyGuard {
 
         TransferHelper.safeTransfer(stone, wallet, stoneMinted);
 
-        emit DepositTo(msg.sender, wallet, msg.value, stoneMinted);
-    }
+        stakingBalance0f[msg.sender] += msg.value;
 
-    receive() external payable {
-        this.deposit{value: msg.value}();
+        emit DepositTo(msg.sender, _dstAddress, wallet, msg.value, stoneMinted);
     }
 }
