@@ -156,6 +156,8 @@ contract BTCL2StakeStoneCarnival is Ownable2Step {
     }
 
     function setAddrs(address _vaultAddr, address _lpAddr) external onlyOwner {
+        require(!isExec, "not exec");
+
         vaultAddr = _vaultAddr;
         lpAddr = _lpAddr;
 
