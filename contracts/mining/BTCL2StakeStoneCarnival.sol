@@ -112,9 +112,9 @@ contract BTCL2StakeStoneCarnival is Ownable2Step {
 
         require(lpAmountWith != 0, "zero amount");
 
-        TransferHelper.safeTransfer(lpAddr, msg.sender, lpAmountWith);
-
         isWithdrawn[msg.sender] = true;
+
+        TransferHelper.safeTransfer(lpAddr, msg.sender, lpAmountWith);
 
         emit LPWithdrawn(msg.sender, btcDeposited[msg.sender], lpAmountWith);
     }
@@ -126,9 +126,9 @@ contract BTCL2StakeStoneCarnival is Ownable2Step {
         uint256 deposited = btcDeposited[msg.sender];
         require(deposited != 0, "not deposit");
 
-        TransferHelper.safeTransfer(btcAddr, msg.sender, deposited);
-
         isWithdrawn[msg.sender] = true;
+
+        TransferHelper.safeTransfer(btcAddr, msg.sender, deposited);
 
         emit BTCWithdrawn(deposited);
     }
@@ -156,6 +156,8 @@ contract BTCL2StakeStoneCarnival is Ownable2Step {
     }
 
     function setAddrs(address _vaultAddr, address _lpAddr) external onlyOwner {
+        require(!isExec, "not exec");
+
         vaultAddr = _vaultAddr;
         lpAddr = _lpAddr;
 
