@@ -114,6 +114,8 @@ contract BTCL2StakeStoneCarnival is Ownable2Step {
 
         TransferHelper.safeTransfer(lpAddr, msg.sender, lpAmountWith);
 
+        isWithdrawn[msg.sender] = true;
+
         emit LPWithdrawn(msg.sender, btcDeposited[msg.sender], lpAmountWith);
     }
 
@@ -125,6 +127,8 @@ contract BTCL2StakeStoneCarnival is Ownable2Step {
         require(deposited != 0, "not deposit");
 
         TransferHelper.safeTransfer(btcAddr, msg.sender, deposited);
+
+        isWithdrawn[msg.sender] = true;
 
         emit BTCWithdrawn(deposited);
     }
@@ -175,5 +179,10 @@ contract BTCL2StakeStoneCarnival is Ownable2Step {
         TransferHelper.safeApprove(btcAddr, vaultAddr, amount);
 
         mintAmount = IVault(vaultAddr).deposit(amount);
+        finalLpAmount = mintAmount;
+
+        isExec = true;
+
+        emit DepositMade(amount, mintAmount);
     }
 }
