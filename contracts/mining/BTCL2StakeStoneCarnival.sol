@@ -171,6 +171,7 @@ contract BTCL2StakeStoneCarnival is Ownable2Step {
         NotTerminated
         returns (uint256 mintAmount)
     {
+        require(!isExec, "already exec");
         require(
             vaultAddr != address(0) && lpAddr != address(0),
             "vault not set"
