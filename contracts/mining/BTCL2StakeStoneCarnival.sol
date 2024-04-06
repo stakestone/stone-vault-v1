@@ -156,7 +156,7 @@ contract BTCL2StakeStoneCarnival is Ownable2Step {
     }
 
     function setAddrs(address _vaultAddr, address _lpAddr) external onlyOwner {
-        require(!isExec, "not exec");
+        require(!isExec, "already exec");
 
         vaultAddr = _vaultAddr;
         lpAddr = _lpAddr;
@@ -171,6 +171,7 @@ contract BTCL2StakeStoneCarnival is Ownable2Step {
         NotTerminated
         returns (uint256 mintAmount)
     {
+        require(!isExec, "already exec");
         require(
             vaultAddr != address(0) && lpAddr != address(0),
             "vault not set"
