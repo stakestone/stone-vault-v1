@@ -9,7 +9,7 @@ abstract contract Strategy {
     address public governance;
 
     uint256 public latestUpdateTime;
-    uint256 public bufferTime = 600;
+    uint256 public bufferTime = 12;
 
     string public name;
 
@@ -20,7 +20,7 @@ abstract contract Strategy {
 
     modifier notAtSameBlock() {
         require(
-            latestUpdateTime + bufferTime < block.timestamp,
+            latestUpdateTime + bufferTime <= block.timestamp,
             "at the same block"
         );
         _;
