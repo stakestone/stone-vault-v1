@@ -1,22 +1,17 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.21;
 
+import {Ownable2Step} from "@openzeppelin/contracts/access/Ownable2Step.sol";
+
 import {StrategyController} from "../strategies/StrategyController.sol";
 
-abstract contract Strategy {
+abstract contract EigenStrategy is Ownable2Step {
     address payable public immutable controller;
-
-    address public governance;
 
     uint256 public latestUpdateTime;
     uint256 public bufferTime = 12;
 
     string public name;
-
-    modifier onlyGovernance() {
-        require(governance == msg.sender, "not governace");
-        _;
-    }
 
     modifier notAtSameBlock() {
         require(
@@ -31,7 +26,6 @@ abstract contract Strategy {
     constructor(address payable _controller, string memory _name) {
         require(_controller != address(0), "ZERO ADDRESS");
 
-        governance = msg.sender;
         controller = _controller;
         name = _name;
     }
@@ -81,12 +75,7 @@ abstract contract Strategy {
         returns (uint256 pending, uint256 executable)
     {}
 
-    function setGovernance(address governance_) external onlyGovernance {
-        emit TransferGovernance(governance, governance_);
-        governance = governance_;
-    }
-
-    function setBufferTime(uint256 _time) external onlyGovernance {
+    function setBufferTime(uint256 _time) external onlyOwner {
         bufferTime = _time;
     }
 }
