@@ -7,12 +7,12 @@ module.exports = async function (callback) {
     try {
         //fee part
         const from_adress = "0x2D243d1F365c23eD87DEC86e8291BaE754c149C6";
-        const to_address = "0x72632D09C2d7Cd5009F3a8541F47803Ec4bAF535";
+        const to_address = "0x2D243d1F365c23eD87DEC86e8291BaE754c149C6";
         const eth_linkId = 101;
         const stone_metis = await Stone.at("0x80137510979822322193FC997d400D5A6C747bf7");
         const amount = BigNumber(3e13).toString(10);
         let feePart = await stone_metis.estimateSendFee(
-            eth_linkId,
+            34443,
             to_address,
             amount,
             false,
@@ -23,7 +23,7 @@ module.exports = async function (callback) {
 
         let result = await stone_metis.sendFrom(
             from_adress,
-            eth_linkId,
+            34443,
             to_address,
             amount,
             from_adress,

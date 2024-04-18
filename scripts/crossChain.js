@@ -45,24 +45,24 @@ module.exports = async function (callback) {
         const stone = await Stone.at("0x80137510979822322193FC997d400D5A6C747bf7");
         // const stone = await Stone.at("0x7122985656e38BDC0302Db86685bb972b145bD3C");
 
-        const amount = BigNumber(2e15).toString(10);
-        let feePart = await stone.estimateSendFee(
-            // 257,
-            102,
-            // 101,
-            to_address,
-            amount,
-            false,
-            ethers.utils.solidityPack(["bytes"], ["0x"])
-        );
-        console.log("result is : ", BigNumber(feePart.nativeFee).toString(10));
-        console.log("result is : ", BigNumber(feePart.zroFee).toString(10));
+        const amount = BigNumber(1e13).toString(10);
+        // let feePart = await stone.estimateSendFee(
+        //     // 257,
+        //     34443,
+        //     // 101,
+        //     to_address,
+        //     amount,
+        //     false,
+        //     ethers.utils.solidityPack(["bytes"], ["0x"])
+        // );
+        // console.log("result is : ", BigNumber(feePart.nativeFee).toString(10));
+        // console.log("result is : ", BigNumber(feePart.zroFee).toString(10));
 
         let result = await stone.sendFrom(
             from_adress,
             // 257,
             // 101,
-            102,
+            3776,
             to_address,
             amount,
             from_adress,
@@ -71,7 +71,7 @@ module.exports = async function (callback) {
                 ["bytes"],
                 ["0x"]),
             {
-                value: BigNumber(feePart.nativeFee).toString(10), //BigNumber(3e15).toString(),    //layzero gas fee
+                value: BigNumber(3e15).toString(),//BigNumber(feePart.nativeFee).toString(10), //    //layzero gas fee
                 from: from_adress
             }
         );

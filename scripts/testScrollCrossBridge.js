@@ -3,13 +3,14 @@ const BigNumber = require('bignumber.js');
 const DepositBridge = artifacts.require("DepositBridge");
 
 const user = "0x2D243d1F365c23eD87DEC86e8291BaE754c149C6";
-const destuser = "0x2D243d1F365c23eD87DEC86e8291BaE754c149C6";
+const destuser = "0x72632D09C2d7Cd5009F3a8541F47803Ec4bAF535";
 
 module.exports = async function (callback) {
     let dstAddress = destuser;
     try {
         let amount = BigNumber(1e15);
-        const depositBridge = await DepositBridge.at("0x1b70Ff1e5152FDb8425A2B84b098DF2F9C1DF54E");
+        //astar zkevm 
+        const depositBridge = await DepositBridge.at("0xFb4cb3F473203faC25d292701e3274c298909A03");
         console.log("depositBridge is : ", depositBridge.address);
         let feePart = await depositBridge.estimateSendFee(
             amount,
@@ -19,7 +20,7 @@ module.exports = async function (callback) {
         let gasPaidForCrossChain = BigNumber(feePart.nativeFee);
 
         await depositBridge.bridgeTo(amount, dstAddress, gasPaidForCrossChain, {
-            value: amount.plus(BigNumber(feePart.nativeFee)).toString(10), //BigNumber(3e15).toString(),    //layzero gas fee
+            value: amount.plus(gasPaidForCrossChain).toString(10), //BigNumber(3e15).toString(),    //layzero gas fee
             from: user
         });
         console.log("depositBridge success amount is :", amount.toString(10));
