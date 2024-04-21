@@ -29,6 +29,7 @@ contract("test_NullStrategy", async ([deployer, feeRecipient, taker1, taker2, ta
         return '0x' + rs.substr(rs.length - 40, 40);
     }
     let minter, assetsVaultAddr, mockNullStrategyAAddr, mockNullStrategyBAddr, stone, proposalAddr;
+    let currentTime = Math.floor(Date.now() / 1000);
 
     beforeEach(async () => {
 
@@ -4100,6 +4101,7 @@ contract("test_NullStrategy", async ([deployer, feeRecipient, taker1, taker2, ta
             minter.address,
             proposalAddr,
             assetsVaultAddr,
+            currentTime,
             [mockNullStrategyAAddr, mockNullStrategyBAddr],
             [5e5, 5e5]
         );
