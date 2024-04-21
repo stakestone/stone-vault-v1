@@ -4,6 +4,9 @@ pragma solidity >=0.4.22 <0.9.0;
 import "../interfaces/IDelegationManager.sol";
 
 contract MockDelegationManager is IDelegationManager {
+        constructor() {
+
+    }
     function delegateTo(
         address operator,
         SignatureWithExpiry memory approverSignatureAndExpiry,
