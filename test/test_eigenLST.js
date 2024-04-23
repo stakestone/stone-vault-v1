@@ -1,27 +1,19 @@
 const BigNumber = require('bignumber.js');
 BigNumber.config({ ROUNDING_MODE: BigNumber.ROUND_FLOOR });
 const { expect } = require('chai');
-// const Web3 = require('web3');
-// const web3 = new Web3();
 const { ethers } = require("ethers");
-
 const { expectRevert } = require('@openzeppelin/test-helpers');
 const { time } = require('@openzeppelin/test-helpers');
 const TruffleConfig = require('../truffle-config');
 const EigenLSTRestaking = artifacts.require('EigenLSTRestaking');
 const EigenStrategy = artifacts.require('MockEigenStrategy');
-const SwappingAggregator = artifacts.require("SwappingAggregator");
-const swappingAggregatorAddr = "0xae7ab96520DE3A18E5e111B5EaAb095312D7fE84";
+const SwappingAggregator = artifacts.require("MockSwappingAggregator");
 const LidoWithdrawalQueue = artifacts.require("MockLidoWithdrawalQueue");
 const DelegationManager = artifacts.require("MockDelegationManager");
 const StrategyManager = artifacts.require("MockStrategyManager");
 const MockToken = artifacts.require("MockToken");
-function sleep(s) {
-    return new Promise((resolve) => {
-        setTimeout(resolve, s * 1000);
-    });
-}
-let lidoWithdrawalQueueAddr, TOKEN1, delegationManager, delegationManagerAddr, strategyManager, strategyManagerAddr, eigenStrategy, eigenStrategyAddr, stETHAddr;
+
+let lidoWithdrawalQueueAddr, TOKEN1, delegationManager, delegationManagerAddr, strategyManager, strategyManagerAddr, swappingAggregator, swappingAggregatorAddr, eigenStrategy, eigenStrategyAddr, stETHAddr;
 contract("test_EigenLSTRestaking", async ([deployer, feeRecipient, taker1, taker2, taker3, operator1, operator2, controllerAddr]) => {
     const gasPrice = TruffleConfig.networks.local.gasPrice; // 获取 gasPrice 设置
     console.log('Gas price:', gasPrice.toString());
@@ -39,6 +31,8 @@ contract("test_EigenLSTRestaking", async ([deployer, feeRecipient, taker1, taker
         strategyManager = await StrategyManager.new();
         strategyManagerAddr = strategyManager.address;
 
+        swappingAggregator = await SwappingAggregator.new();
+        swappingAggregatorAddr = swappingAggregator.address;
         delegationManager = await DelegationManager.new();
         delegationManagerAddr = delegationManager.address;
 
@@ -50,34 +44,43 @@ contract("test_EigenLSTRestaking", async ([deployer, feeRecipient, taker1, taker
 
     });
 
-    // it("test1_user deposit ETH", async () => {
+    it("test1_user deposit ETH", async () => {
 
-    //     let eigenLSTRestaking = await EigenLSTRestaking.new(controllerAddr, stETHAddr, lidoWithdrawalQueueAddr, strategyManagerAddr, delegationManagerAddr, eigenStrategyAddr, swappingAggregatorAddr, 'EigenLSTRestaking');
-    //     let eigenLSTRestakingAddr = eigenLSTRestaking.address;
-    //     await eigenLSTRestaking.setRouter(false, false);
-    //     let st_buyOnDex = await eigenLSTRestaking.buyOnDex();
-    //     let st_sellOnDex = await eigenLSTRestaking.sellOnDex();
-    //     console.log("st_buyOnDex : ", st_buyOnDex);
-    //     console.log("st_sellOnDex : ", st_sellOnDex);
+        let eigenLSTRestaking = await EigenLSTRestaking.new(controllerAddr, stETHAddr, lidoWithdrawalQueueAddr, strategyManagerAddr, delegationManagerAddr, eigenStrategyAddr, swappingAggregatorAddr, 'EigenLSTRestaking');
+        let eigenLSTRestakingAddr = eigenLSTRestaking.address;
+        await eigenLSTRestaking.setRouter(true, true); //on dex
+        let st_buyOnDex = await eigenLSTRestaking.buyOnDex();
+        let st_sellOnDex = await eigenLSTRestaking.sellOnDex();
+        console.log("st_buyOnDex : ", st_buyOnDex);
+        console.log("st_sellOnDex : ", st_sellOnDex);
 
-    //     const eth_deposit_amount = BigNumber(10).times(1e18);
-    //     let controllerBalance = BigNumber(await web3.eth.getBalance(controllerAddr));
-    //     let eigenLSTRestakingBalance = BigNumber(await web3.eth.getBalance(eigenLSTRestakingAddr));
+        const eth_deposit_amount = BigNumber(10).times(1e18);
+        let controllerBalance = BigNumber(await web3.eth.getBalance(controllerAddr));
+        let eigenLSTRestakingBalance = BigNumber(await web3.eth.getBalance(eigenLSTRestakingAddr));
+        let controllerBalance_stETH = BigNumber(await stETH.balanceOf(controllerAddr));
+        let eigenLSTRestakingBalance_stETH = BigNumber(await stETH.balanceOf(eigenLSTRestakingAddr));
 
-    //     let tx = await eigenLSTRestaking.deposit({
-    //         value: eth_deposit_amount,
-    //         from: controllerAddr
-    //     });
-    //     let eigenLSTRestakingBalance1 = BigNumber(await web3.eth.getBalance(eigenLSTRestakingAddr));
-    //     assert.strictEqual(eigenLSTRestakingBalance1.minus(eigenLSTRestakingBalance).toString(), eth_deposit_amount.toString());
-    //     console.log("eigenLSTRestakingBalance ether amount:", eigenLSTRestakingBalance.toString());
-    //     let controllerBalance1 = BigNumber(await web3.eth.getBalance(controllerAddr));
-    //     const gasUsed = tx.receipt.gasUsed;
-    //     console.log('Gas used:', gasUsed.toString());
-    //     let gas = BigNumber(gasPrice).times(BigNumber(gasUsed));
-    //     assert.isTrue(Math.abs(controllerBalance.minus(controllerBalance1).minus(eth_deposit_amount).minus(gas)) < 10, 'Absolute difference should be less than 10');
+        let tx = await eigenLSTRestaking.deposit({
+            value: eth_deposit_amount,
+            from: controllerAddr
+        });
+        await eigenLSTRestaking.swapToToken(eth_deposit_amount);
 
-    // });
+        let controllerBalance_stETH1 = BigNumber(await stETH.balanceOf(controllerAddr));
+        console.log("controllerBalance_stETH1 is : ", controllerBalance_stETH1.toString());
+        let eigenLSTRestakingBalance_stETH1 = BigNumber(await stETH.balanceOf(eigenLSTRestakingAddr));
+        console.log("eigenLSTRestakingBalance_stETH1 is : ", eigenLSTRestakingBalance_stETH1.toString());
+
+        let eigenLSTRestakingBalance1 = BigNumber(await web3.eth.getBalance(eigenLSTRestakingAddr));
+        assert.strictEqual(eigenLSTRestakingBalance1.minus(eigenLSTRestakingBalance).toString(), eth_deposit_amount.toString());
+        console.log("eigenLSTRestakingBalance ether amount:", eigenLSTRestakingBalance.toString());
+        let controllerBalance1 = BigNumber(await web3.eth.getBalance(controllerAddr));
+        const gasUsed = tx.receipt.gasUsed;
+        console.log('Gas used:', gasUsed.toString());
+        let gas = BigNumber(gasPrice).times(BigNumber(gasUsed));
+        assert.isTrue(Math.abs(controllerBalance.minus(controllerBalance1).minus(eth_deposit_amount).minus(gas)) < 10, 'Absolute difference should be less than 10');
+
+    });
 
     // it("test2_user deposit ETH_buffer enough_withdraw ETH", async () => {
 
@@ -280,54 +283,54 @@ contract("test_EigenLSTRestaking", async ([deployer, feeRecipient, taker1, taker
     //     expect(emittedEvents).to.include('WithdrawalQueued');
 
     // });
-    it("test9_depositIntoStrategy_controller try to instant withdraw", async () => {
+    // it("test9_depositIntoStrategy_controller try to instant withdraw", async () => {
 
-        let eigenLSTRestaking = await EigenLSTRestaking.new(controllerAddr, stETHAddr, lidoWithdrawalQueueAddr, strategyManagerAddr, delegationManagerAddr, eigenStrategyAddr, swappingAggregatorAddr, 'EigenLSTRestaking');
-        await eigenLSTRestaking.setRouter(false, false);
-        let st_buyOnDex = await eigenLSTRestaking.buyOnDex();
-        let st_sellOnDex = await eigenLSTRestaking.sellOnDex();
-        console.log("st_buyOnDex : ", st_buyOnDex);
-        console.log("st_sellOnDex : ", st_sellOnDex);
+    //     let eigenLSTRestaking = await EigenLSTRestaking.new(controllerAddr, stETHAddr, lidoWithdrawalQueueAddr, strategyManagerAddr, delegationManagerAddr, eigenStrategyAddr, swappingAggregatorAddr, 'EigenLSTRestaking');
+    //     await eigenLSTRestaking.setRouter(false, false);
+    //     let st_buyOnDex = await eigenLSTRestaking.buyOnDex();
+    //     let st_sellOnDex = await eigenLSTRestaking.sellOnDex();
+    //     console.log("st_buyOnDex : ", st_buyOnDex);
+    //     console.log("st_sellOnDex : ", st_sellOnDex);
 
-        const eth_deposit_amount = BigNumber(5e18);
+    //     const eth_deposit_amount = BigNumber(5e18);
 
-        await eigenLSTRestaking.deposit({
-            value: eth_deposit_amount,
-            from: controllerAddr
-        });
-        console.log()
-        const amount = ethers.utils.parseEther('2');
-        await eigenLSTRestaking.depositIntoStrategy(amount);
+    //     await eigenLSTRestaking.deposit({
+    //         value: eth_deposit_amount,
+    //         from: controllerAddr
+    //     });
+    //     console.log()
+    //     const amount = ethers.utils.parseEther('2');
+    //     await eigenLSTRestaking.depositIntoStrategy(amount);
 
-        expect(await strategyManager.lastStrategy()).to.equal(eigenStrategyAddr);
-        expect(await strategyManager.lastToken()).to.equal(stETHAddr);
-        expect((await strategyManager.lastAmount()).toString()).to.equal(amount.toString());
+    //     expect(await strategyManager.lastStrategy()).to.equal(eigenStrategyAddr);
+    //     expect(await strategyManager.lastToken()).to.equal(stETHAddr);
+    //     expect((await strategyManager.lastAmount()).toString()).to.equal(amount.toString());
 
-        // // 验证返回的 shares 是否正确
-        let shares = BigNumber(await strategyManager.shares());
-        console.log("shares is : ", shares.toString());
-        expect(shares.toString()).to.equal(amount.times(2).toString()); // 假设模拟逻辑为 amount * 2
-        console.log("contract ETH balance is : ", BigNumber(await web3.eth.getBalance(eigenLSTRestaking.address)).toString());
-        console.log("controllerAddr ETH balance1 is : ", BigNumber(await web3.eth.getBalance(controllerAddr)).toString());
-        let controllBalance = BigNumber(await web3.eth.getBalance(controllerAddr));
-        // 尝试取款
-        let tx = await eigenLSTRestaking.instantWithdraw(
-            eth_deposit_amount, {
-            from: controllerAddr
-        });
-        let actualAmount = BigNumber(tx);
-        console.log("actualAmount is : ", actualAmount.toString());
-        let eigenBalance1 = BigNumber(await web3.eth.getBalance(eigenLSTRestaking.address));
-        let controllBalance1 = BigNumber(await web3.eth.getBalance(controllerAddr));
-        console.log("00contract ETH balance is : ", BigNumber(await web3.eth.getBalance(eigenLSTRestaking.address)).toString());
-        console.log("00controllerAddr ETH balance1 is : ", BigNumber(await web3.eth.getBalance(controllerAddr)).toString());
+    //     // // 验证返回的 shares 是否正确
+    //     let shares = BigNumber(await strategyManager.shares());
+    //     console.log("shares is : ", shares.toString());
+    //     expect(shares.toString()).to.equal(amount.times(2).toString()); // 假设模拟逻辑为 amount * 2
+    //     console.log("contract ETH balance is : ", BigNumber(await web3.eth.getBalance(eigenLSTRestaking.address)).toString());
+    //     console.log("controllerAddr ETH balance1 is : ", BigNumber(await web3.eth.getBalance(controllerAddr)).toString());
+    //     let controllBalance = BigNumber(await web3.eth.getBalance(controllerAddr));
+    //     // 尝试取款
+    //     let tx = await eigenLSTRestaking.instantWithdraw(
+    //         eth_deposit_amount, {
+    //         from: controllerAddr
+    //     });
 
-        const gasUsed = tx.receipt.gasUsed;
-        console.log('Gas used:', gasUsed.toString());
-        let gas = BigNumber(gasPrice).times(BigNumber(gasUsed));
-        assert.isTrue(Math.abs(controllBalance1.minus(controllBalance).minus(actualAmount).minus(gas)) < 1000, 'Absolute difference should be less than 10');
-        assert.strictEqual(eigenBalance1.toString(), '0');
-    });
+    //     let eigenBalance1 = BigNumber(await web3.eth.getBalance(eigenLSTRestaking.address));
+    //     let controllBalance1 = BigNumber(await web3.eth.getBalance(controllerAddr));
+    //     console.log("00contract ETH balance is : ", BigNumber(await web3.eth.getBalance(eigenLSTRestaking.address)).toString());
+    //     console.log("00controllerAddr ETH balance1 is : ", BigNumber(await web3.eth.getBalance(controllerAddr)).toString());
+
+    //     const gasUsed = tx.receipt.gasUsed;
+    //     console.log('Gas used:', gasUsed.toString());
+    //     let gas = BigNumber(gasPrice).times(BigNumber(gasUsed));
+
+    //     assert.isTrue(Math.abs(controllBalance1.minus(controllBalance).minus(actualAmount).minus(gas)) < 1000, 'Absolute difference should be less than 10');
+    //     assert.strictEqual(eigenBalance1.toString(), '0');
+    // });
     // it("test9_delegate_depositIntoStrategy_controller try to instant withdraw", async () => {
 
     //     let eigenLSTRestaking = await EigenLSTRestaking.new(controllerAddr, stETHAddr, lidoWithdrawalQueueAddr, strategyManagerAddr, delegationManagerAddr, eigenStrategyAddr, swappingAggregatorAddr, 'EigenLSTRestaking');

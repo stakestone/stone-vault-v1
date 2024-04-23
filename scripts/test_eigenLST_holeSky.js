@@ -10,8 +10,7 @@ const EigenLSTRestaking = artifacts.require('strategies/eigen/EigenLSTRestaking'
 const layerZeroEndpoint = "0x6edce65403992e310a62460808c4b910d972f10f";
 const lidoWithdrawalQueueAddr = "0xc7cc160b58F8Bb0baC94b80847E2CF2800565C50";
 const stETHAddr = "0x3F1c547b21f65e10480dE3ad8E19fAAC46C95034";
-const swappingAggregatorAddr = "0x15469528C11E8Ace863F3F9e5a8329216e33dD7d";
-const SwappingAggregator = artifacts.require("SwappingAggregator");
+const SwappingAggregator = artifacts.require("MockSwappingAggregator");
 const controllerAddr = "0xAFbf909a63CD97B131d99F2d1898717A0ac236ce"; //eigenTest1
 const delegationManagerAddr = "0xA44151489861Fe9e3055d95adC98FbD462B948e7";
 const eigenStrategyAddr = "0x7D704507b76571a51d9caE8AdDAbBFd0ba0e63d3"; //for stETH
@@ -23,10 +22,13 @@ module.exports = async function (callback) {
         stETH = await MockToken.at(stETHAddr);
 
         // it("test1_user deposit ETH", async () => {
+        const wethAddr = "0x94373a4919B3240D86eA41593D5eBa789FEF3848";
+        const swappingAggregator = SwappingAggregator.new(wethAddr);
+        const swappingAggregatorAddr = swappingAggregator.address;
 
-        let eigenLSTRestaking = await EigenLSTRestaking.new(controllerAddr, stETHAddr, lidoWithdrawalQueueAddr, strategyManagerAddr, delegationManagerAddr, eigenStrategyAddr, swappingAggregatorAddr, 'EigenLSTRestaking');
-        let eigenLSTRestakingAddr = eigenLSTRestaking.address;
-        await eigenLSTRestaking.setRouter(false, false); //uni
+        const eigenLSTRestaking = await EigenLSTRestaking.new(controllerAddr, stETHAddr, lidoWithdrawalQueueAddr, strategyManagerAddr, delegationManagerAddr, eigenStrategyAddr, swappingAggregatorAddr, 'EigenLSTRestaking');
+        const eigenLSTRestakingAddr = eigenLSTRestaking.address;
+        await eigenLSTRestaking.setRouter(true, true); //
 
         const stETH_deposit_amount = BigNumber(1).times(1e17);
 
@@ -44,6 +46,8 @@ module.exports = async function (callback) {
             value: eth_deposit_amount,
             from: controllerAddr
         });
+
+        await eigenLSTRestaking.swapToToken(eth_deposit_amount);
 
         let eigenLSTRestakingBalance1 = BigNumber(await web3.eth.getBalance(eigenLSTRestakingAddr));
         // assert.strictEqual(eigenLSTRestakingBalance1.minus(eigenLSTRestakingBalance).toString(), eth_deposit_amount.toString());
