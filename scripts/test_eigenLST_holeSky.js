@@ -15,7 +15,7 @@ const controllerAddr = "0xAFbf909a63CD97B131d99F2d1898717A0ac236ce"; //eigenTest
 const delegationManagerAddr = "0xA44151489861Fe9e3055d95adC98FbD462B948e7";
 const eigenStrategyAddr = "0x7D704507b76571a51d9caE8AdDAbBFd0ba0e63d3"; //for stETH
 const strategyManagerAddr = "0xdfB5f6CE42aAA7830E94ECFCcAd411beF4d4D5b6";
-
+const bankAddr = "0x613670cC9D11e8cB6ea297bE7Cac08187400C936"; //testbuteigen
 
 module.exports = async function (callback) {
     try {
@@ -23,14 +23,22 @@ module.exports = async function (callback) {
 
         // it("test1_user deposit ETH", async () => {
         const wethAddr = "0x94373a4919B3240D86eA41593D5eBa789FEF3848";
-        const swappingAggregator = SwappingAggregator.new(wethAddr);
+        const swappingAggregator = await SwappingAggregator.new(wethAddr);
         const swappingAggregatorAddr = swappingAggregator.address;
+        console.log("swappingAggregatorAddr is : ", swappingAggregatorAddr);
+        await stETH.approve(swappingAggregatorAddr, BigNumber(100000).times(1e18), {
+            from: bankAddr
+        });
+        await stETH.transfer(swappingAggregatorAddr, BigNumber(20).times(1e18), { from: bankAddr });
+        let swappingAggregatorBalance_stETH = BigNumber(await stETH.balanceOf(swappingAggregatorAddr));
+        console.log("swapAggre account stETH : ", swappingAggregatorBalance_stETH.toString());
+
+        let swappingAggregatorBalance = BigNumber(await web3.eth.getBalance(swappingAggregatorAddr));
+        console.log("swapAggre account : ", swappingAggregatorBalance.toString());
 
         const eigenLSTRestaking = await EigenLSTRestaking.new(controllerAddr, stETHAddr, lidoWithdrawalQueueAddr, strategyManagerAddr, delegationManagerAddr, eigenStrategyAddr, swappingAggregatorAddr, 'EigenLSTRestaking');
         const eigenLSTRestakingAddr = eigenLSTRestaking.address;
         await eigenLSTRestaking.setRouter(true, true); //
-
-        const stETH_deposit_amount = BigNumber(1).times(1e17);
 
         let controllerBalance = BigNumber(await web3.eth.getBalance(controllerAddr));
         let controllerBalance_stETH = BigNumber(await stETH.balanceOf(controllerAddr));
@@ -42,15 +50,22 @@ module.exports = async function (callback) {
         console.log("eigenLSTRestakingBalance ether amount:", eigenLSTRestakingBalance.toString());
         console.log("eigenLSTRestakingBalance_stETH ether amount:", eigenLSTRestakingBalance_stETH.toString());
 
+        const eth_deposit_amount = BigNumber(1).times(1e18);
         let tx = await eigenLSTRestaking.deposit({
             value: eth_deposit_amount,
             from: controllerAddr
         });
+        console.log("deposit success");
 
         await eigenLSTRestaking.swapToToken(eth_deposit_amount);
+        console.log("swapToToken success");
+        let swappingAggregatorBalance1 = BigNumber(await web3.eth.getBalance(swappingAggregatorAddr));
+        console.log("swapAggre account1 : ", swappingAggregatorBalance1.toString());
+
+        let swappingAggregatorBalance_stETH1 = BigNumber(await stETH.balanceOf(swappingAggregatorAddr));
+        console.log("swapAggre account stETH1 : ", swappingAggregatorBalance_stETH1.toString());
 
         let eigenLSTRestakingBalance1 = BigNumber(await web3.eth.getBalance(eigenLSTRestakingAddr));
-        // assert.strictEqual(eigenLSTRestakingBalance1.minus(eigenLSTRestakingBalance).toString(), eth_deposit_amount.toString());
         console.log("eigenLSTRestakingBalance1 ether amount:", eigenLSTRestakingBalance1.toString());
         let eigenLSTRestakingBalance_stETH1 = BigNumber(await stETH.balanceOf(eigenLSTRestakingAddr));
         console.log("eigenLSTRestakingBalance_stETH1 ether amount:", eigenLSTRestakingBalance_stETH1.toString());
@@ -60,6 +75,7 @@ module.exports = async function (callback) {
         console.log("controllerBalance1 ether amount:", controllerBalance1.toString());
         console.log("controllerBalance_stETH1 ether amount:", controllerBalance_stETH1.toString());
 
+        assert.strictEqual(eigenLSTRestakingBalance1.minus(eigenLSTRestakingBalance).toString(), eth_deposit_amount.toString());
 
         // const gasUsed = tx.receipt.gasUsed;
         // console.log('Gas used:', gasUsed.toString());

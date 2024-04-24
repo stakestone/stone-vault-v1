@@ -24,15 +24,19 @@ contract("test_EigenLSTRestaking", async ([deployer, feeRecipient, taker1, taker
         TOKEN1 = {
             "name": "stETHToken",
             "symbol": "stETH",
-            "supply": "1000000000000000000000",
+            "supply": "10000000000000000000000000",
         }
         stETH = await MockToken.new(TOKEN1.name, TOKEN1.symbol);
         stETHAddr = stETH.address;
         strategyManager = await StrategyManager.new();
         strategyManagerAddr = strategyManager.address;
 
-        swappingAggregator = await SwappingAggregator.new();
+        const wethAddr = "0x94373a4919B3240D86eA41593D5eBa789FEF3848";
+        swappingAggregator = await SwappingAggregator.new(wethAddr);
         swappingAggregatorAddr = swappingAggregator.address;
+        console.log("swappingAggregatorAddr is : ", swappingAggregatorAddr);
+        await stETH.mint(swappingAggregatorAddr, BigNumber(100000).times(1e18).toString(10));
+
         delegationManager = await DelegationManager.new();
         delegationManagerAddr = delegationManager.address;
 
