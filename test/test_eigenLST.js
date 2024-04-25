@@ -12,6 +12,7 @@ const LidoWithdrawalQueue = artifacts.require("MockLidoWithdrawalQueue");
 const DelegationManager = artifacts.require("MockDelegationManager");
 const StrategyManager = artifacts.require("MockStrategyManager");
 const MockToken = artifacts.require("MockToken");
+const assert = require('assert');
 
 let lidoWithdrawalQueueAddr, TOKEN1, delegationManager, delegationManagerAddr, strategyManager, strategyManagerAddr, swappingAggregator, swappingAggregatorAddr, eigenStrategy, eigenStrategyAddr, stETHAddr;
 contract("test_EigenLSTRestaking", async ([deployer, feeRecipient, taker1, taker2, taker3, operator1, operator2, controllerAddr]) => {
