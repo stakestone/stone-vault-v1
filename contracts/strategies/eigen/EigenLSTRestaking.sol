@@ -3,6 +3,7 @@ pragma solidity 0.8.21;
 
 import {TransferHelper} from "@uniswap/v3-periphery/contracts/libraries/TransferHelper.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import {EnumerableSet} from "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
 
 import {EigenStrategy} from "../EigenStrategy.sol";
 import {SwappingAggregator} from "../SwappingAggregator.sol";
@@ -14,6 +15,8 @@ import {ILido} from "../../interfaces/ILido.sol";
 import {ILidoWithdrawalQueue} from "../../interfaces/ILidoWithdrawalQueue.sol";
 
 contract EigenLSTRestaking is EigenStrategy {
+    using EnumerableSet for EnumerableSet.Bytes32Set;
+
     address public immutable tokenAddr;
     address public immutable strategyManager;
     address public immutable delegationManager;
@@ -26,19 +29,26 @@ contract EigenLSTRestaking is EigenStrategy {
 
     address public eigenOperator;
 
-    bytes32[] public withdrawals;
-
     uint256 public MAX_WITHDRAW_QUEUE_LENGTH = 20;
     uint256 public MINIMUM_WITHDRAW_QUEUE_AMOUNT = 1e19;
 
     bool public buyOnDex;
     bool public sellOnDex;
 
+    bytes32[] public withdrawals;
+
+    mapping(bytes32 => uint256) public withdrawingShares;
+
+    EnumerableSet.Bytes32Set private withdrawalRootsSet;
+
     event Swap(address from, address to, uint256 sent, uint256 received);
     event DepositIntoStrategy(address strategy, address token, uint256 amount);
     event DelegateTo(address operator);
     event WithdrawalQueued(bytes32 withdrawalRoot);
-    event WithdrawalCompleted(IDelegationManager.Withdrawal withdrawal);
+    event WithdrawalCompleted(
+        IDelegationManager.Withdrawal withdrawal,
+        bytes32 root
+    );
     event SetEigenOperator(address oldOperator, address newOperator);
     event SetWithdrawQueueParams(uint256 length, uint256 amount);
     event SetRouter(bool buyOnDex, bool sellOnDex);
@@ -133,13 +143,15 @@ contract EigenLSTRestaking is EigenStrategy {
         uint256 eigenValue = IEigenStrategy(eigenStrategy).userUnderlyingView(
             address(this)
         );
+        uint256 unstakingValue = getUnstakingValue();
 
         value =
             etherValue +
             tokenValue +
             claimableValue +
             pendingValue +
-            eigenValue;
+            eigenValue +
+            unstakingValue;
     }
 
     function depositIntoStrategy(
@@ -175,30 +187,38 @@ contract EigenLSTRestaking is EigenStrategy {
         onlyOwner
         returns (bytes32[] memory withdrawalRoots)
     {
+        require(
+            IEigenStrategy(eigenStrategy).shares(address(this)) == 0,
+            "active shares"
+        );
+
         withdrawalRoots = IDelegationManager(delegationManager).undelegate(
             address(this)
         );
-
-        uint256 i;
-        for (i; i < withdrawalRoots.length; i++) {
-            emit WithdrawalQueued(withdrawalRoots[i]);
-        }
     }
 
     function queueWithdrawals(
         IDelegationManager.QueuedWithdrawalParams[]
             calldata _queuedWithdrawalParams
     ) external onlyOwner returns (bytes32[] memory withdrawalRoots) {
+        require(
+            _queuedWithdrawalParams.length == 1 &&
+                _queuedWithdrawalParams[0].shares.length == 1 &&
+                _queuedWithdrawalParams[0].strategies.length == 1,
+            "invalid length"
+        );
         withdrawalRoots = IDelegationManager(delegationManager)
             .queueWithdrawals(_queuedWithdrawalParams);
 
         uint256 length = withdrawalRoots.length;
-        uint256 i;
-        for (i; i < length; i++) {
-            withdrawals.push(withdrawalRoots[i]);
 
-            emit WithdrawalQueued(withdrawalRoots[i]);
-        }
+        require(length == 1, "invalid root length");
+
+        bytes32 root = withdrawalRoots[0];
+        withdrawalRootsSet.add(root);
+        withdrawingShares[root] = _queuedWithdrawalParams[0].shares[0];
+
+        emit WithdrawalQueued(root);
     }
 
     function completeQueuedWithdrawal(
@@ -214,7 +234,11 @@ contract EigenLSTRestaking is EigenStrategy {
             _receiveAsTokens
         );
 
-        emit WithdrawalCompleted(_withdrawal);
+        bytes32 root = calculateWithdrawalRoot(_withdrawal);
+        withdrawingShares[root] = 0;
+        withdrawalRootsSet.remove(root);
+
+        emit WithdrawalCompleted(_withdrawal, root);
     }
 
     function swapToToken(
@@ -383,6 +407,33 @@ contract EigenLSTRestaking is EigenStrategy {
         assembly {
             mstore(ids, j)
         }
+    }
+
+    function getUnstakingValue() public view returns (uint256 value) {
+        uint256 length = withdrawalRootsSet.length();
+
+        uint256 i;
+        for (i; i < length; i++) {
+            value += IEigenStrategy(eigenStrategy).sharesToUnderlyingView(
+                withdrawingShares[withdrawalRootsSet.at(i)]
+            );
+        }
+    }
+
+    function getWithdrawalRoots() public view returns (bytes32[] memory roots) {
+        uint256 length = withdrawalRootsSet.length();
+
+        roots = new bytes32[](length);
+
+        for (uint256 i; i < length; i++) {
+            roots[i] = withdrawalRootsSet.at(i);
+        }
+    }
+
+    function calculateWithdrawalRoot(
+        IDelegationManager.Withdrawal memory withdrawal
+    ) public pure returns (bytes32) {
+        return keccak256(abi.encode(withdrawal));
     }
 
     function invoke(
