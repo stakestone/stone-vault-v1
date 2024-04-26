@@ -25,6 +25,8 @@ interface IDelegationManager {
         uint256[] shares;
     }
 
+    event WithdrawalQueued(bytes32 withdrawalRoot, Withdrawal withdrawal);
+
     function delegateTo(
         address operator,
         SignatureWithExpiry memory approverSignatureAndExpiry,
