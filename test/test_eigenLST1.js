@@ -1,8 +1,13 @@
+const { ZERO_ADDRESS, MAX_UINT256 } = require("@openzeppelin/test-helpers/src/constants");
 const BigNumber = require('bignumber.js');
 BigNumber.config({ ROUNDING_MODE: BigNumber.ROUND_FLOOR });
 const chai = require('chai');
+const Abi = web3.eth.abi;
+const IStrategyManager = artifacts.require("IStrategyManager");
+const IDelegationManager = artifacts.require("IDelegationManager");
+const IEigenStrategy = artifacts.require("IEigenStrategy");
+const IERC20 = artifacts.require("IERC20");
 const { ethers } = require("ethers");
-const MockToken = artifacts.require("MockToken");
 const { expectRevert } = require('@openzeppelin/test-helpers');
 const { time } = require('@openzeppelin/test-helpers');
 const TruffleConfig = require('../truffle-config');
@@ -15,22 +20,83 @@ const controllerAddr = "0xAFbf909a63CD97B131d99F2d1898717A0ac236ce"; //eigenTest
 const delegationManagerAddr = "0xA44151489861Fe9e3055d95adC98FbD462B948e7";
 const eigenStrategyAddr = "0x7D704507b76571a51d9caE8AdDAbBFd0ba0e63d3"; //for stETH
 const strategyManagerAddr = "0xdfB5f6CE42aAA7830E94ECFCcAd411beF4d4D5b6";
+const deployer = "0xff34F282b82489BfDa789816d7622d3Ae8199Af6";
 const bankAddr = "0x613670cC9D11e8cB6ea297bE7Cac08187400C936"; // testbuteigen
 const assert = require('assert');
 const wethAddr = "0x94373a4919B3240D86eA41593D5eBa789FEF3848";
 const operator1 = "0x8065ff35ef6dfc63ebe1005f017ec2139fe4c581"; //real
 const operator2 = "0x4E8c2DfC2A8DcF3f7D2EDaEFcA5C907C7136F4BC";
 //"0x693385E040a9b038f6e87bc49a34D5645EAf66e5" "0xff8f90A22b5D6d209D3a97100AB0F8f0a8520c6C" 自己的
+const abi = {
+    "anonymous": false,
+    "inputs": [
+        {
+            "indexed": false,
+            "internalType": "bytes32",
+            "name": "withdrawalRoot",
+            "type": "bytes32"
+        },
+        {
+            "components": [
+                {
+                    "internalType": "address",
+                    "name": "staker",
+                    "type": "address"
+                },
+                {
+                    "internalType": "address",
+                    "name": "delegatedTo",
+                    "type": "address"
+                },
+                {
+                    "internalType": "address",
+                    "name": "withdrawer",
+                    "type": "address"
+                },
+                {
+                    "internalType": "uint256",
+                    "name": "nonce",
+                    "type": "uint256"
+                },
+                {
+                    "internalType": "uint32",
+                    "name": "startBlock",
+                    "type": "uint32"
+                },
+                {
+                    "internalType": "address[]",
+                    "name": "strategies",
+                    "type": "address[]"
+                },
+                {
+                    "internalType": "uint256[]",
+                    "name": "shares",
+                    "type": "uint256[]"
+                }
+            ],
+            "indexed": false,
+            "internalType": "struct IDelegationManager.Withdrawal",
+            "name": "withdrawal",
+            "type": "tuple"
+        }
+    ],
+    "name": "WithdrawalQueued",
+    "type": "event"
+}
+let stETH, swappingAggregator, swappingAggregatorAddr, strategyManager, delegationManager, eigenStrategy;
 
-contract("test_EigenLSTRestaking1", async ([deployer]) => {
-    const gasPrice = TruffleConfig.networks.local.gasPrice; // 获取 gasPrice 设置
-    console.log('Gas price:', gasPrice.toString());
-    let stETH, swappingAggregator, swappingAggregatorAddr;
+contract("test_eigenLST1", async ([]) => {
+    // const gasPrice = TruffleConfig.networks.local.gasPrice; // 获取 gasPrice 设置
+    // console.log('Gas price:', gasPrice);
     beforeEach(async () => {
-        stETH = await MockToken.at(stETHAddr);
         swappingAggregator = await SwappingAggregator.new(wethAddr);
         swappingAggregatorAddr = swappingAggregator.address;
         console.log("swappingAggregatorAddr is : ", swappingAggregatorAddr);
+        strategyManager = await IStrategyManager.at(strategyManagerAddr);
+        delegationManager = await IDelegationManager.at(delegationManagerAddr);
+        eigenStrategy = await IEigenStrategy.at(eigenStrategyAddr);
+        stETH = await IERC20.at(stETHAddr);
+        await stETH.approve(strategyManager.address, MAX_UINT256);
 
     });
 
@@ -250,7 +316,57 @@ contract("test_EigenLSTRestaking1", async ([deployer]) => {
     //     assert.strictEqual(eth_deposit_amount.toString(), value.minus(value1).toString());
 
     // });
-    it("test11_depositIntoStrategy_delegate_undelegate and check withdraw queue_add more to depositIntoStrategy_delegate to new operator_check redelegatable token_redelegate ", async () => {
+    // it("test11_depositIntoStrategy_delegate_undelegate and check value ", async () => {
+
+    //     await stETH.approve(swappingAggregatorAddr, BigNumber(100000).times(1e18), {
+    //         from: bankAddr
+    //     });
+    //     await stETH.transfer(swappingAggregatorAddr, BigNumber(21).times(1e18), { from: bankAddr });
+    //     let swappingAggregatorBalance_stETH = BigNumber(await stETH.balanceOf(swappingAggregatorAddr));
+    //     console.log("swapAggre account stETH balance : ", swappingAggregatorBalance_stETH.toString());
+
+    //     let swappingAggregatorBalance = BigNumber(await web3.eth.getBalance(swappingAggregatorAddr));
+    //     console.log("swapAggre account balance: ", swappingAggregatorBalance.toString());
+
+    //     const eigenLSTRestaking = await EigenLSTRestaking.new(controllerAddr, stETHAddr, lidoWithdrawalQueueAddr, strategyManagerAddr, delegationManagerAddr, eigenStrategyAddr, swappingAggregatorAddr, 'EigenLSTRestaking');
+    //     const eigenLSTRestakingAddr = eigenLSTRestaking.address;
+    //     console.log("eigenLSTRestakingAddr is : ", eigenLSTRestakingAddr);
+    //     await eigenLSTRestaking.setRouter(true, true); //
+
+    //     const eth_deposit_amount = BigNumber(20).times(1e18);
+    //     await eigenLSTRestaking.deposit({
+    //         value: eth_deposit_amount,
+    //         from: controllerAddr
+    //     });
+    //     console.log("deposit success");
+
+    //     await eigenLSTRestaking.swapToToken(eth_deposit_amount);
+    //     console.log("swapToToken success");
+
+    //     // depositIntoStrategy
+    //     await eigenLSTRestaking.depositIntoStrategy(eth_deposit_amount.div(2));
+
+    //     //delegate
+    //     await eigenLSTRestaking.setEigenOperator(operator1);
+    //     const approverSignatureAndExpiry = {
+    //         signature: operator1, // 一个有效的签名
+    //         expiry: 1234567890 // 过期时间戳
+    //     };
+    //     const approverSalt = web3.utils.keccak256("salt value"); // 使用 web3 来生成一个盐值        
+    //     // 调用合约方法delegate
+    //     await eigenLSTRestaking.delegateTo(approverSignatureAndExpiry, approverSalt);
+    //     console.log("delegate success");
+    //     // 调用undelegate合约方法
+    //     await eigenLSTRestaking.undelegate();
+    //     console.log("undelegate success");
+    //     let value = BigNumber(await eigenLSTRestaking.getInvestedValue.call({
+    //         from: controllerAddr
+    //     }));
+    //     console.log("value is : ", value.toString());
+    //     assert.strictEqual(value.toString(), eth_deposit_amount.toString());
+    // });
+
+    it("test12_depositIntoStrategy_unstaking and check value ", async () => {
 
         await stETH.approve(swappingAggregatorAddr, BigNumber(100000).times(1e18), {
             from: bankAddr
@@ -280,25 +396,33 @@ contract("test_EigenLSTRestaking1", async ([deployer]) => {
         // depositIntoStrategy
         await eigenLSTRestaking.depositIntoStrategy(eth_deposit_amount.div(2));
 
-        //delegate
-        await eigenLSTRestaking.setEigenOperator(operator1);
-        const approverSignatureAndExpiry = {
-            signature: operator1, // 一个有效的签名
-            expiry: 1234567890 // 过期时间戳
-        };
-        const approverSalt = web3.utils.keccak256("salt value"); // 使用 web3 来生成一个盐值        
-        // 调用合约方法delegate
-        await eigenLSTRestaking.delegateTo(approverSignatureAndExpiry, approverSalt);
-        console.log("delegate success");
-        // 调用undelegate合约方法
-        // await eigenLSTRestaking.undelegate();
-        // console.log("undelegate success");
-        let value = BigNumber(await eigenLSTRestaking.getAllValue.call({
+        let value = BigNumber(await eigenLSTRestaking.getInvestedValue.call({
             from: controllerAddr
         }));
         console.log("value is : ", value.toString());
         assert.strictEqual(value.toString(), eth_deposit_amount.toString());
+
+        // queueWithdrawals
+        const queueWithdrawalsTx = await eigenLSTRestaking.queueWithdrawals(
+            [
+                {
+                    strategies: [eigenStrategyAddr],
+                    shares: [BigNumber(shares).toString(10)],
+                    withdrawer: eigenLSTRestakingAddr
+                }
+            ], { from: deployer }
+        );
+        let res = BigNumber(await eigenLSTRestaking.getUnstakingValue());
+        console.log("res is : ", res.toString(10));
+        value = BigNumber(await eigenLSTRestaking.getInvestedValue.call({
+            from: controllerAddr
+        }));
+        console.log("value is : ", value.toString());
+        assert.strictEqual(value.toString(), eth_deposit_amount.toString());
+
+
     });
+
     // it("test6_get all value: PendingAssets", async () => {};
 
     // it("test7_delegateTo_before depositIntoStrategy", async () => {
@@ -752,26 +876,27 @@ contract("test_EigenLSTRestaking1", async ([deployer]) => {
 
     // it("test13_depositIntoStrategy_delegate_instant withdraw_", async () => { });
     //it("test14_deposit_token swap(lido_add referral)", async () => { });
-    function sleep(s) {
-        return new Promise((resolve) => {
-            setTimeout(resolve, s * 1000);
-        });
-    }
-
-    // 定义函数来获取当前区块高度
-    async function getCurrentBlockNumber() {
-        try {
-            // 使用异步函数获取当前区块高度
-            const blockNumber = await web3.eth.getBlockNumber();
-            console.log('Current block number:', blockNumber);
-            return blockNumber;
-        } catch (error) {
-            console.error('Error:', error);
-            throw error;
-        }
-    }
-
 });
+function sleep(s) {
+    return new Promise((resolve) => {
+        setTimeout(resolve, s * 1000);
+    });
+}
+
+// 定义函数来获取当前区块高度
+async function getCurrentBlockNumber() {
+    try {
+        // 使用异步函数获取当前区块高度
+        const blockNumber = await web3.eth.getBlockNumber();
+        console.log('Current block number:', blockNumber);
+        return blockNumber;
+    } catch (error) {
+        console.error('Error:', error);
+        throw error;
+    }
+}
+
+
 //造统计数据1： 主合约中未swap的ETH余额，stETH余额，Lido 中 Pending 的 stETH，Lido 中 Claimable 的 ETH，Eigenlayer中如果之前有delegate, 合约主动发起的unstake(unstaking) + 之前已经unstaked + delegated 
 //造统计数据2： 主合约中未swap的ETH余额，stETH余额，Lido 中 Pending 的 stETH，Lido 中 Claimable 的 ETH，Eigenlayer中如果之前没有delegate, 合约主动发起的unstake(unstaking) + 之前已经unstaked +剩余质押的stEH
 //用例1：delegate后主合约owner直接unstake后取款，再次depositIntoStrategy 
