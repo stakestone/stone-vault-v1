@@ -29,9 +29,6 @@ contract EigenLSTRestaking is EigenStrategy {
 
     address public eigenOperator;
 
-    uint256 public MAX_WITHDRAW_QUEUE_LENGTH = 20;
-    uint256 public MINIMUM_WITHDRAW_QUEUE_AMOUNT = 1e19;
-
     bool public buyOnDex;
     bool public sellOnDex;
 
@@ -309,16 +306,6 @@ contract EigenLSTRestaking is EigenStrategy {
         }
 
         emit Swap(tokenAddr, address(0), _amount, etherAmount);
-    }
-
-    function setWithdrawQueueParams(
-        uint256 _length,
-        uint256 _amount
-    ) external onlyOwner {
-        MAX_WITHDRAW_QUEUE_LENGTH = _length;
-        MINIMUM_WITHDRAW_QUEUE_AMOUNT = _amount;
-
-        emit SetWithdrawQueueParams(_length, _amount);
     }
 
     function setRouter(bool _buyOnDex, bool _sellOnDex) external onlyOwner {
