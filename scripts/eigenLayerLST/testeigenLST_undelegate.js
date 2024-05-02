@@ -7,11 +7,6 @@ const IStrategyManager = artifacts.require("IStrategyManager");
 const IDelegationManager = artifacts.require("IDelegationManager");
 const IEigenStrategy = artifacts.require("IEigenStrategy");
 const IERC20 = artifacts.require("IERC20");
-const { ethers } = require("ethers");
-const truffleAssert = require('truffle-assertions');
-const { time } = require('@openzeppelin/test-helpers');
-const TruffleConfig = require('../truffle-config');
-const EigenStrategy = artifacts.require('EigenStrategy');
 const EigenLSTRestaking = artifacts.require('strategies/eigen/EigenLSTRestaking');
 const layerZeroEndpoint = "0x6edce65403992e310a62460808c4b910d972f10f";
 const lidoWithdrawalQueueAddr = "0xc7cc160b58F8Bb0baC94b80847E2CF2800565C50";
@@ -23,7 +18,7 @@ const eigenStrategyAddr = "0x7D704507b76571a51d9caE8AdDAbBFd0ba0e63d3"; //for st
 const strategyManagerAddr = "0xdfB5f6CE42aAA7830E94ECFCcAd411beF4d4D5b6";
 const deployer = "0xff34F282b82489BfDa789816d7622d3Ae8199Af6";
 const bankAddr = "0x613670cC9D11e8cB6ea297bE7Cac08187400C936"; // testbuteigen
-const assert = require('assert');
+const { expectRevert } = require('@openzeppelin/test-helpers');
 const wethAddr = "0x94373a4919B3240D86eA41593D5eBa789FEF3848";
 const operator1 = "0x8065ff35ef6dfc63ebe1005f017ec2139fe4c581"; //real
 const operator2 = "0x4E8c2DfC2A8DcF3f7D2EDaEFcA5C907C7136F4BC";
@@ -92,87 +87,73 @@ module.exports = async function (callback) {
         const delegationManager = await IDelegationManager.at(delegationManagerAddr);
         await stETH.approve(strategyManager.address, MAX_UINT256);
 
-        let swappingAggregator = await SwappingAggregator.new(wethAddr, { from: deployer });
+        let swappingAggregator = await SwappingAggregator.new({ from: deployer });
         swappingAggregatorAddr = swappingAggregator.address;
         console.log("swappingAggregatorAddr is : ", swappingAggregatorAddr);
 
         await stETH.approve(swappingAggregatorAddr, BigNumber(100000).times(1e18), {
             from: bankAddr
         });
-        await stETH.transfer(swappingAggregatorAddr, BigNumber(21).times(1e18), { from: bankAddr });
+        await stETH.transfer(swappingAggregatorAddr, BigNumber(20).times(1e18), { from: bankAddr });
         let swappingAggregatorBalance_stETH = BigNumber(await stETH.balanceOf(swappingAggregatorAddr));
         console.log("swapAggre account stETH balance : ", swappingAggregatorBalance_stETH.toString());
 
         let swappingAggregatorBalance = BigNumber(await web3.eth.getBalance(swappingAggregatorAddr));
         console.log("swapAggre account balance: ", swappingAggregatorBalance.toString());
 
-        const eigenLSTRestaking = await EigenLSTRestaking.new(controllerAddr, stETHAddr, lidoWithdrawalQueueAddr, strategyManagerAddr, delegationManagerAddr, eigenStrategyAddr, swappingAggregatorAddr, 'EigenLSTRestaking', { from: deployer });
+        const eigenLSTRestaking = await EigenLSTRestaking.new(controllerAddr, stETHAddr, lidoWithdrawalQueueAddr, strategyManagerAddr, delegationManagerAddr, eigenStrategyAddr, swappingAggregatorAddr, 'EigenLSTRestaking');
         const eigenLSTRestakingAddr = eigenLSTRestaking.address;
-        console.log("eigenLSTRestakingAddr is : ", eigenLSTRestakingAddr);
-        await eigenLSTRestaking.setRouter(true, true, { from: deployer });
+        await eigenLSTRestaking.setRouter(true, true); //
 
-        const eth_deposit_amount = BigNumber(20).times(1e18);
-        await eigenLSTRestaking.deposit({
+        const eth_deposit_amount = BigNumber(1).times(1e18);
+        let tx = await eigenLSTRestaking.deposit({
             value: eth_deposit_amount,
             from: controllerAddr
         });
         console.log("deposit success");
 
-        await eigenLSTRestaking.swapToToken(eth_deposit_amount, { from: deployer });
+        await eigenLSTRestaking.swapToToken(eth_deposit_amount);
         console.log("swapToToken success");
+        let eigenLSTRestakingBalance = BigNumber(await web3.eth.getBalance(eigenLSTRestakingAddr));
+        console.log("eigenLSTRestakingBalance ether amount:", eigenLSTRestakingBalance.toString());
+        let eigenLSTRestakingBalance_stETH = BigNumber(await stETH.balanceOf(eigenLSTRestakingAddr));
+        console.log("eigenLSTRestakingBalance_stETH ether amount:", eigenLSTRestakingBalance_stETH.toString());
+        //delegate
+        await eigenLSTRestaking.setEigenOperator(operator1);
 
-        // depositIntoStrategy
-        await eigenLSTRestaking.depositIntoStrategy(eth_deposit_amount, { from: deployer });
+        const approverSignatureAndExpiry = {
+            signature: operator1, // 一个有效的签名
+            expiry: 1234567890 // 过期时间戳
+        };
 
-        let value = BigNumber(await eigenLSTRestaking.getInvestedValue.call({
-            from: controllerAddr
-        }));
-        console.log("value is : ", value.toString());
-        chai.assert.isTrue(Math.abs(eth_deposit_amount.minus(value)) < 100, 'Absolute difference should be less than 100');
-        let shares = await eigenStrategy.shares(eigenLSTRestakingAddr);
-        console.log("shares: ", BigNumber(shares).div(1e18).toString(10));
+        const approverSalt = web3.utils.keccak256("salt value"); // 使用 web3 来生成一个盐值        
 
-        // queueWithdrawals
-        const queueWithdrawalsTx = await eigenLSTRestaking.queueWithdrawals(
-            [
-                {
-                    strategies: [eigenStrategyAddr],
-                    shares: [BigNumber(shares).toString(10)],
-                    withdrawer: eigenLSTRestakingAddr
-                }
-            ], { from: deployer }
-        );
-        let res = BigNumber(await eigenLSTRestaking.getUnstakingValue({ from: deployer }));
-        console.log("res is : ", res.toString(10));
-        value = BigNumber(await eigenLSTRestaking.getInvestedValue.call({
-            from: controllerAddr
-        }));
-        console.log("value is : ", value.toString());
-        chai.assert.isTrue(Math.abs(eth_deposit_amount.minus(value)) < 100, 'Absolute difference should be less than 100');
+        // 调用合约方法delegate
+        await eigenLSTRestaking.delegateTo(approverSignatureAndExpiry, approverSalt);
+        console.log("delegate success");
+        // 调用undelegate合约方法
+        const result = await eigenLSTRestaking.undelegate();
+        console.log("result is : ", result);
+        // console.log("result.receipt is : ", result.receipt);
+        // console.log("result.receipt.rawLogs is : ", result.receipt.rawLogs);
 
+        // 验证返回值是否正确
+        const emittedEvents = result.receipt.rawLogs.map(log => log.topics[0]);
+        //undelegate topic : '0xfee30966a256b71e14bc0ebfc94315e28ef4a97a7131a9e2b7a310a73af44676' 
+        chai.expect(emittedEvents).to.include('0xfee30966a256b71e14bc0ebfc94315e28ef4a97a7131a9e2b7a310a73af44676');
+
+        const emittedEvents1 = result.receipt.rawLogs.map(log => log.topics[1]);
+        //undelegate sender : staker
+        chai.expect(emittedEvents1).to.match(new RegExp(eigenLSTRestakingAddr.slice(2), 'i'));
+        //operator
+        const emittedEvents2 = result.receipt.rawLogs.map(log => log.topics[2]);
+        chai.expect(emittedEvents2).to.match(new RegExp(operator1.slice(2), 'i'));
+        // 不能重复执行
+        await expectRevert.unspecified(eigenLSTRestaking.undelegate());
         callback();
     } catch (e) {
         callback(e);
     }
 }
-function sleep(s) {
-    return new Promise((resolve) => {
-        setTimeout(resolve, s * 1000);
-    });
-}
-
-
-//造统计数据1： 主合约中未swap的ETH余额，stETH余额，Lido 中 Pending 的 stETH，Lido 中 Claimable 的 ETH，Eigenlayer中如果之前有delegate, 合约主动发起的unstake(unstaking) + 之前已经unstaked + delegated 
-//造统计数据2： 主合约中未swap的ETH余额，stETH余额，Lido 中 Pending 的 stETH，Lido 中 Claimable 的 ETH，Eigenlayer中如果之前没有delegate, 合约主动发起的unstake(unstaking) + 之前已经unstaked +剩余质押的stEH
-//用例1：delegate后主合约owner直接unstake后取款，再次depositIntoStrategy 
-//用例2：通过undelegate来unstake后主合约owner取款，再次depositIntoStrategy 
-//用例3：没有做过delegate，主合约owner主动发起unstake并取款
-// 试试unstake之前undelegate的额度
-// let queuedWithdrawalParams = [{
-//     strategies: [eigenStrategyAddr],
-//     shares: [100],
-//     withdrawer: eigenLSTRestakingAddr
-// }];
-// await eigenLSTRestaking.queueWithdrawals(queuedWithdrawalParams);
 
 

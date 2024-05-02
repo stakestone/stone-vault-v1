@@ -10,7 +10,7 @@ const IERC20 = artifacts.require("IERC20");
 const { ethers } = require("ethers");
 const truffleAssert = require('truffle-assertions');
 const { time } = require('@openzeppelin/test-helpers');
-const TruffleConfig = require('../truffle-config');
+const TruffleConfig = require('../../truffle-config');
 const EigenStrategy = artifacts.require('EigenStrategy');
 const EigenLSTRestaking = artifacts.require('strategies/eigen/EigenLSTRestaking');
 const layerZeroEndpoint = "0x6edce65403992e310a62460808c4b910d972f10f";
@@ -104,12 +104,23 @@ module.exports = async function (callback) {
 
         await stETH.transfer(swappingAggregatorAddr, BigNumber(21).times(1e18), { from: bankAddr });
         console.log("stETh transfer success");
-        console.log("bankAddr eth: ", BigNumber(await web3.eth.getBalance(bankAddr).toString(10)));
-        await web3.eth.sendTransaction({
-            from: bankAddr,
-            to: swappingAggregatorAddr,
-            value: BigNumber(100).times(1e18)
-        })
+        console.log("bankAddr eth: ", BigNumber(await web3.eth.getBalance(bankAddr)).toString(10));
+        try {
+            const receipt = await web3.eth.sendTransaction({
+                from: bankAddr,
+                to: swappingAggregatorAddr,
+                value: BigNumber(20).times(1e18),
+                gas: 300000 // Adjust this value
+            });
+            console.log("Transaction successful:", receipt.transactionHash);
+        } catch (error) {
+            if (error.receipt) {
+                // Analyze the transaction receipt for clues
+                console.error("Transaction failed:", error.receipt);
+            } else {
+                console.error("Transaction failed:", error.message);
+            }
+        }
         console.log("ETh transfer success");
 
         let swappingAggregatorBalance_stETH = BigNumber(await stETH.balanceOf(swappingAggregatorAddr));
@@ -208,7 +219,7 @@ module.exports = async function (callback) {
 
         let userUnderlying = await eigenStrategy.userUnderlyingView(eigenLSTRestakingAddr);
         console.log("userUnderlying: ", BigNumber(userUnderlying).div(1e18).toString(10));
-
+        assert.strictEqual("1", BigNumber(userUnderlying).div(1e18).toString());
         let res = BigNumber(await eigenLSTRestaking.getUnstakingValue({ from: deployer }));
         console.log("res is : ", res.toString(10));
         chai.assert.isTrue(Math.abs(eth_deposit_amount.div(4).plus(eth_deposit_amount.div(2)).minus(res)) < 100, 'Absolute difference should be less than 100');
@@ -220,51 +231,22 @@ module.exports = async function (callback) {
         chai.assert.isTrue(Math.abs(eth_deposit_amount.minus(value)) < 100, 'Absolute difference should be less than 100');
         let amt = BigNumber(await stETH.balanceOf(eigenLSTRestakingAddr));
         console.log("amt is : ", amt.toString());
-        let ethAmt = BigNumber(await eigenLSTRestaking.swapToEther(amt.toString(10), { from: deployer }));
-        console.log("amt is : ", amt.toString());
-        console.log("ethAmt is : ", ethAmt.toString());
+        await eigenLSTRestaking.swapToEther(amt, { from: deployer });
 
         let bef = BigNumber(await web3.eth.getBalance(controllerAddr));
-        let result = BigNumber(await eigenLSTRestaking.clear({ from: controllerAddr }));
+        let result = BigNumber(await eigenLSTRestaking.clear.call({ from: controllerAddr }));
         console.log("result is : ", result.toString());
+        await eigenLSTRestaking.clear({ from: controllerAddr });
         let aft = BigNumber(await web3.eth.getBalance(controllerAddr));
         let diff = aft.minus(bef);
         console.log("diff is : ", diff.toString());
+        chai.assert.isTrue(diff.minus(amt) < 1e14, "acceptable")
         callback();
     } catch (e) {
         callback(e);
     }
 }
-function sleep(s) {
-    return new Promise((resolve) => {
-        setTimeout(resolve, s * 1000);
-    });
-}
 
-// 定义函数来获取当前区块高度
-async function getCurrentBlockNumber() {
-    try {
-        // 使用异步函数获取当前区块高度
-        const blockNumber = await web3.eth.getBlockNumber();
-        console.log('Current block number:', blockNumber);
-        return blockNumber;
-    } catch (error) {
-        console.error('Error:', error);
-        throw error;
-    }
-}
 
-//造统计数据1： 主合约中未swap的ETH余额，stETH余额，Lido 中 Pending 的 stETH，Lido 中 Claimable 的 ETH，Eigenlayer中如果之前有delegate, 合约主动发起的unstake(unstaking) + 之前已经unstaked + delegated 
-//造统计数据2： 主合约中未swap的ETH余额，stETH余额，Lido 中 Pending 的 stETH，Lido 中 Claimable 的 ETH，Eigenlayer中如果之前没有delegate, 合约主动发起的unstake(unstaking) + 之前已经unstaked +剩余质押的stEH
-//用例1：delegate后主合约owner直接unstake后取款，再次depositIntoStrategy 
-//用例2：通过undelegate来unstake后主合约owner取款，再次depositIntoStrategy 
-//用例3：没有做过delegate，主合约owner主动发起unstake并取款
-// 试试unstake之前undelegate的额度
-// let queuedWithdrawalParams = [{
-//     strategies: [eigenStrategyAddr],
-//     shares: [100],
-//     withdrawer: eigenLSTRestakingAddr
-// }];
-// await eigenLSTRestaking.queueWithdrawals(queuedWithdrawalParams);
 
 

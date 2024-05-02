@@ -18,4 +18,6 @@ contract MockSwappingAggregator {
         }
         return _amount;
     }
+        receive() external payable {}
+
 }

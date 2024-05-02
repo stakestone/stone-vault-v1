@@ -10,7 +10,7 @@ const IERC20 = artifacts.require("IERC20");
 const { ethers } = require("ethers");
 const truffleAssert = require('truffle-assertions');
 const { time } = require('@openzeppelin/test-helpers');
-const TruffleConfig = require('../truffle-config');
+const TruffleConfig = require('../../truffle-config');
 const EigenStrategy = artifacts.require('EigenStrategy');
 const EigenLSTRestaking = artifacts.require('strategies/eigen/EigenLSTRestaking');
 const layerZeroEndpoint = "0x6edce65403992e310a62460808c4b910d972f10f";
@@ -92,102 +92,92 @@ module.exports = async function (callback) {
         const delegationManager = await IDelegationManager.at(delegationManagerAddr);
         await stETH.approve(strategyManager.address, MAX_UINT256);
 
-        let swappingAggregator = await SwappingAggregator.new(wethAddr, { from: deployer });
+        let swappingAggregator = await SwappingAggregator.new({ from: deployer });
         swappingAggregatorAddr = swappingAggregator.address;
         console.log("swappingAggregatorAddr is : ", swappingAggregatorAddr);
 
         await stETH.approve(swappingAggregatorAddr, BigNumber(100000).times(1e18), {
             from: bankAddr
         });
-        await stETH.transfer(swappingAggregatorAddr, BigNumber(21).times(1e18), { from: bankAddr });
+        await stETH.transfer(swappingAggregatorAddr, BigNumber(20).times(1e18), { from: bankAddr });
         let swappingAggregatorBalance_stETH = BigNumber(await stETH.balanceOf(swappingAggregatorAddr));
         console.log("swapAggre account stETH balance : ", swappingAggregatorBalance_stETH.toString());
 
         let swappingAggregatorBalance = BigNumber(await web3.eth.getBalance(swappingAggregatorAddr));
         console.log("swapAggre account balance: ", swappingAggregatorBalance.toString());
 
-        const eigenLSTRestaking = await EigenLSTRestaking.new(controllerAddr, stETHAddr, lidoWithdrawalQueueAddr, strategyManagerAddr, delegationManagerAddr, eigenStrategyAddr, swappingAggregatorAddr, 'EigenLSTRestaking', { from: deployer });
+        const eigenLSTRestaking = await EigenLSTRestaking.new(controllerAddr, stETHAddr, lidoWithdrawalQueueAddr, strategyManagerAddr, delegationManagerAddr, eigenStrategyAddr, swappingAggregatorAddr, 'EigenLSTRestaking');
         const eigenLSTRestakingAddr = eigenLSTRestaking.address;
         console.log("eigenLSTRestakingAddr is : ", eigenLSTRestakingAddr);
-        await eigenLSTRestaking.setRouter(true, true, { from: deployer });
+        await eigenLSTRestaking.setRouter(true, true); //
 
-        const eth_deposit_amount = BigNumber(20).times(1e18);
+        const eth_deposit_amount = BigNumber(1).times(1e18);
         await eigenLSTRestaking.deposit({
             value: eth_deposit_amount,
             from: controllerAddr
         });
         console.log("deposit success");
 
-        await eigenLSTRestaking.swapToToken(eth_deposit_amount, { from: deployer });
+        await eigenLSTRestaking.swapToToken(eth_deposit_amount);
         console.log("swapToToken success");
+        let eigenLSTRestakingBalance = BigNumber(await web3.eth.getBalance(eigenLSTRestakingAddr));
+        console.log("eigenLSTRestakingBalance ether amount:", eigenLSTRestakingBalance.toString());
+        let eigenLSTRestakingBalance_stETH = BigNumber(await stETH.balanceOf(eigenLSTRestakingAddr));
+        console.log("eigenLSTRestakingBalance_stETH ether amount:", eigenLSTRestakingBalance_stETH.toString());
 
-        // depositIntoStrategy
-        await eigenLSTRestaking.depositIntoStrategy(eth_deposit_amount, { from: deployer });
+        let strategy_balance = BigNumber(await web3.eth.getBalance(eigenStrategyAddr));
+        console.log("strategy_balance is : ", strategy_balance.toString());
+        let strategy_balance_ETH = BigNumber(await stETH.balanceOf(eigenStrategyAddr));
+        console.log("strategy_balance_ETH is : ", strategy_balance_ETH.toString());
 
-        let value = BigNumber(await eigenLSTRestaking.getInvestedValue.call({
-            from: controllerAddr
-        }));
-        console.log("value is : ", value.toString());
-        chai.assert.isTrue(Math.abs(eth_deposit_amount.minus(value)) < 100, 'Absolute difference should be less than 100');
-        let shares = await eigenStrategy.shares(eigenLSTRestakingAddr);
-        console.log("shares: ", BigNumber(shares).div(1e18).toString(10));
+        let result = await eigenLSTRestaking.depositIntoStrategy(eth_deposit_amount);
+        // console.log("result is : ", result);
+        console.log("result.receipt.logs is : ", result.receipt.logs);
+        console.log("result.receipt.rawLogs is : ", result.receipt.rawLogs);
 
-        // queueWithdrawals
-        const queueWithdrawalsTx = await eigenLSTRestaking.queueWithdrawals(
-            [
-                {
-                    strategies: [eigenStrategyAddr],
-                    shares: [BigNumber(shares).toString(10)],
-                    withdrawer: eigenLSTRestakingAddr
-                }
-            ], { from: deployer }
-        );
-        for (i = 0; i < 10; i++) {
-            await time.advanceBlock();
-        }
-        let res = BigNumber(await eigenLSTRestaking.getUnstakingValue({ from: deployer }));
-        console.log("res is : ", res.toString(10));
-        value = BigNumber(await eigenLSTRestaking.getInvestedValue.call({
-            from: controllerAddr
-        }));
-        console.log("value is : ", value.toString());
-        chai.assert.isTrue(Math.abs(eth_deposit_amount.minus(value)) < 100, 'Absolute difference should be less than 100');
+        const emittedEvents = result.logs.map(log => log.event);
+        chai.expect(emittedEvents).to.include('DepositIntoStrategy');
+        // 存的记录
+        assert.strictEqual(result.logs[0].args[0], eigenStrategyAddr);
+        assert.strictEqual(result.logs[0].args[1], stETHAddr);
+        assert.strictEqual(BigNumber(result.logs[0].args[2]).toString(), eth_deposit_amount.toString());
 
+        //返回的 Transfer shares topic: 0x9d9c909296d9c674451c0c24f02cb64981eb3b727f99865939192f880a755dcb
+        const emittedEvents1 = result.receipt.rawLogs.map(log => log.topics[0]);
+        console.log("emittedEvents1 is : ", emittedEvents1);
+        chai.expect(emittedEvents1[3]).to.match(new RegExp('0x9d9c909296d9c674451c0c24f02cb64981eb3b727f99865939192f880a755dcb', 'i'));
+        //share给owner
+        const emittedEvents3 = result.receipt.rawLogs.map(log => log.topics[1]);
+        console.log("emittedEvents3 is : ", emittedEvents3);
+        chai.expect(emittedEvents3[3]).to.match(new RegExp(eigenLSTRestakingAddr.slice(2), 'i'));
+
+        // // 验证返回的 shares 是否正确
+        const emittedEvents2 = result.receipt.rawLogs.map(log => log.data);
+        console.log("share is : ", emittedEvents2[3].toString(10));
+        let diff = BigNumber(eth_deposit_amount).minus(parseInt(emittedEvents2[3].slice(-16), 16));
+        console.log("The diff between deposit and share is : ", diff.toString());
+        chai.assert.isTrue(diff < 1e16, 'Absolute diff is acceptable');
+
+        //stETH给eigenStrategy
+        let eigenLSTRestakingBalance1 = BigNumber(await web3.eth.getBalance(eigenLSTRestakingAddr));
+        console.log("eigenLSTRestakingBalance ether amount1:", eigenLSTRestakingBalance1.toString());
+        let eigenLSTRestakingBalance_stETH1 = BigNumber(await stETH.balanceOf(eigenLSTRestakingAddr));
+        console.log("eigenLSTRestakingBalance_stETH1 ether amount:", eigenLSTRestakingBalance_stETH1.toString());
+
+        let strategy_balance1 = BigNumber(await web3.eth.getBalance(eigenStrategyAddr));
+        console.log("strategy_balance1 is : ", strategy_balance1.toString());
+        let strategy_balance_ETH1 = BigNumber(await stETH.balanceOf(eigenStrategyAddr));
+        console.log("strategy_balance_ETH1 is : ", strategy_balance_ETH1.toString());
+
+        assert.strictEqual(eigenLSTRestakingBalance.toString(), eigenLSTRestakingBalance1.toString());
+        assert.strictEqual(strategy_balance1.toString(), strategy_balance.toString());
+        diff = strategy_balance_ETH1.minus(strategy_balance_ETH).minus(eigenLSTRestakingBalance_stETH.minus(eigenLSTRestakingBalance_stETH1));
+        console.log("The diff between deposit and share is : ", diff.toString());
+        chai.assert.isTrue(diff < 100, 'Absolute diff is acceptable');
         callback();
     } catch (e) {
         callback(e);
     }
 }
-function sleep(s) {
-    return new Promise((resolve) => {
-        setTimeout(resolve, s * 1000);
-    });
-}
-
-// 定义函数来获取当前区块高度
-async function getCurrentBlockNumber() {
-    try {
-        // 使用异步函数获取当前区块高度
-        const blockNumber = await web3.eth.getBlockNumber();
-        console.log('Current block number:', blockNumber);
-        return blockNumber;
-    } catch (error) {
-        console.error('Error:', error);
-        throw error;
-    }
-}
-
-//造统计数据1： 主合约中未swap的ETH余额，stETH余额，Lido 中 Pending 的 stETH，Lido 中 Claimable 的 ETH，Eigenlayer中如果之前有delegate, 合约主动发起的unstake(unstaking) + 之前已经unstaked + delegated 
-//造统计数据2： 主合约中未swap的ETH余额，stETH余额，Lido 中 Pending 的 stETH，Lido 中 Claimable 的 ETH，Eigenlayer中如果之前没有delegate, 合约主动发起的unstake(unstaking) + 之前已经unstaked +剩余质押的stEH
-//用例1：delegate后主合约owner直接unstake后取款，再次depositIntoStrategy 
-//用例2：通过undelegate来unstake后主合约owner取款，再次depositIntoStrategy 
-//用例3：没有做过delegate，主合约owner主动发起unstake并取款
-// 试试unstake之前undelegate的额度
-// let queuedWithdrawalParams = [{
-//     strategies: [eigenStrategyAddr],
-//     shares: [100],
-//     withdrawer: eigenLSTRestakingAddr
-// }];
-// await eigenLSTRestaking.queueWithdrawals(queuedWithdrawalParams);
 
 

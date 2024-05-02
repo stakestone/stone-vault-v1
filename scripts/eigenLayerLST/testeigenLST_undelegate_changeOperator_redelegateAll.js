@@ -10,7 +10,7 @@ const IERC20 = artifacts.require("IERC20");
 const { ethers } = require("ethers");
 const truffleAssert = require('truffle-assertions');
 const { time } = require('@openzeppelin/test-helpers');
-const TruffleConfig = require('../truffle-config');
+const TruffleConfig = require('../../truffle-config');
 const EigenStrategy = artifacts.require('EigenStrategy');
 const EigenLSTRestaking = artifacts.require('strategies/eigen/EigenLSTRestaking');
 const layerZeroEndpoint = "0x6edce65403992e310a62460808c4b910d972f10f";
@@ -92,7 +92,7 @@ module.exports = async function (callback) {
         const delegationManager = await IDelegationManager.at(delegationManagerAddr);
         await stETH.approve(strategyManager.address, MAX_UINT256);
 
-        let swappingAggregator = await SwappingAggregator.new(wethAddr, { from: deployer });
+        let swappingAggregator = await SwappingAggregator.new({ from: deployer });
         swappingAggregatorAddr = swappingAggregator.address;
         console.log("swappingAggregatorAddr is : ", swappingAggregatorAddr);
 
@@ -114,60 +114,60 @@ module.exports = async function (callback) {
         console.log("eigenLSTRestakingAddr is : ", eigenLSTRestakingAddr);
         await eigenLSTRestaking.setRouter(true, true, { from: deployer }); //
 
-        // const eth_deposit_amount = BigNumber(20).times(1e18);
-        // await eigenLSTRestaking.deposit({
-        //     value: eth_deposit_amount,
-        //     from: controllerAddr
-        // });
-        // console.log("deposit success");
+        const eth_deposit_amount = BigNumber(20).times(1e18);
+        await eigenLSTRestaking.deposit({
+            value: eth_deposit_amount,
+            from: controllerAddr
+        });
+        console.log("deposit success");
 
-        // await eigenLSTRestaking.swapToToken(eth_deposit_amount, { from: deployer });
-        // console.log("swapToToken success");
+        await eigenLSTRestaking.swapToToken(eth_deposit_amount, { from: deployer });
+        console.log("swapToToken success");
 
-        // // depositIntoStrategy
-        // await eigenLSTRestaking.depositIntoStrategy(eth_deposit_amount.div(2), { from: deployer });
+        // depositIntoStrategy
+        await eigenLSTRestaking.depositIntoStrategy(eth_deposit_amount.div(2), { from: deployer });
 
-        // let userUnderlying = await eigenStrategy.userUnderlyingView(eigenLSTRestakingAddr);
-        // console.log("userUnderlying: ", BigNumber(userUnderlying).div(1e18).toString(10));
+        let userUnderlying = await eigenStrategy.userUnderlyingView(eigenLSTRestakingAddr);
+        console.log("userUnderlying: ", BigNumber(userUnderlying).div(1e18).toString(10));
 
-        // let shares = BigNumber(await eigenStrategy.shares(eigenLSTRestakingAddr));
-        // console.log("shares: ", shares.div(1e18).toString(10));
-        // chai.assert.isTrue(Math.abs(eth_deposit_amount.div(2).minus(userUnderlying)) < 100, 'Absolute difference should be less than 100');
-        // chai.assert.isTrue(Math.abs(eth_deposit_amount.div(2).minus(shares)) < 8e15, 'Absolute difference should be less than 100');
+        let shares = BigNumber(await eigenStrategy.shares(eigenLSTRestakingAddr));
+        console.log("shares: ", shares.div(1e18).toString(10));
+        chai.assert.isTrue(Math.abs(eth_deposit_amount.div(2).minus(userUnderlying)) < 100, 'Absolute difference should be less than 100');
+        chai.assert.isTrue(Math.abs(eth_deposit_amount.div(2).minus(shares)) < 8e15, 'Absolute difference should be less than 100');
 
-        // //delegate
-        // await eigenLSTRestaking.setEigenOperator(operator1, { from: deployer });
-        // const approverSignatureAndExpiry = {
-        //     signature: operator1, // 一个有效的签名
-        //     expiry: 1234567890 // 过期时间戳
-        // };
-        // const approverSalt = web3.utils.keccak256("salt value"); // 使用 web3 来生成一个盐值        
-        // // 调用合约方法delegate
-        // await eigenLSTRestaking.delegateTo(approverSignatureAndExpiry, approverSalt, { from: deployer });
-        // console.log("delegate success");
+        //delegate
+        await eigenLSTRestaking.setEigenOperator(operator1, { from: deployer });
+        const approverSignatureAndExpiry = {
+            signature: operator1, // 一个有效的签名
+            expiry: 1234567890 // 过期时间戳
+        };
+        const approverSalt = web3.utils.keccak256("salt value"); // 使用 web3 来生成一个盐值        
+        // 调用合约方法delegate
+        await eigenLSTRestaking.delegateTo(approverSignatureAndExpiry, approverSalt, { from: deployer });
+        console.log("delegate success");
 
-        // let userUnderlying1 = await eigenStrategy.userUnderlyingView(eigenLSTRestakingAddr);
-        // console.log("userUnderlying1: ", BigNumber(userUnderlying1).div(1e18).toString(10));
+        let userUnderlying1 = await eigenStrategy.userUnderlyingView(eigenLSTRestakingAddr);
+        console.log("userUnderlying1: ", BigNumber(userUnderlying1).div(1e18).toString(10));
 
-        // let shares1 = await eigenStrategy.shares(eigenLSTRestakingAddr);
-        // console.log("shares1: ", BigNumber(shares1).div(1e18).toString(10));
+        let shares1 = await eigenStrategy.shares(eigenLSTRestakingAddr);
+        console.log("shares1: ", BigNumber(shares1).div(1e18).toString(10));
 
-        // // // 调用undelegate合约方法 【测试点：为避免eigenlayer修改接口，统一走unstake, undelegate空转】
-        // // await truffleAssert.fails(
-        // //     eigenLSTRestaking.undelegate({ from: deployer }),
-        // //     truffleAssert.ErrorType.REVERT,
-        // //     "active shares"
-        // // );
-        // // queueWithdrawals
-        // const queueWithdrawalsTx = await eigenLSTRestaking.queueWithdrawals(
-        //     [
-        //         {
-        //             strategies: [eigenStrategyAddr],
-        //             shares: [BigNumber(shares).toString(10)],
-        //             withdrawer: eigenLSTRestakingAddr
-        //         }
-        //     ], { from: deployer }
+        // // 调用undelegate合约方法 【测试点：为避免eigenlayer修改接口，统一走unstake, undelegate空转】
+        // await truffleAssert.fails(
+        //     eigenLSTRestaking.undelegate({ from: deployer }),
+        //     truffleAssert.ErrorType.REVERT,
+        //     "active shares"
         // );
+        // queueWithdrawals
+        const queueWithdrawalsTx = await eigenLSTRestaking.queueWithdrawals(
+            [
+                {
+                    strategies: [eigenStrategyAddr],
+                    shares: [BigNumber(shares).toString(10)],
+                    withdrawer: eigenLSTRestakingAddr
+                }
+            ], { from: deployer }
+        );
         let res = BigNumber(await eigenLSTRestaking.getUnstakingValue());
         console.log("res is : ", res.toString(10));
         let res1 = await eigenLSTRestaking.getWithdrawalRoots();
@@ -216,7 +216,6 @@ module.exports = async function (callback) {
         console.log("root is : ", root);
         assert.strictEqual(res1[0], root);
 
-        console.log("minWithdrawalDelayBlocks is : ", BigNumber(await delegationManager.minWithdrawalDelayBlocks()).toString(10));
         for (i = 0; i < 10; i++) {
             await time.advanceBlock();
         }
@@ -284,36 +283,7 @@ module.exports = async function (callback) {
         callback(e);
     }
 }
-function sleep(s) {
-    return new Promise((resolve) => {
-        setTimeout(resolve, s * 1000);
-    });
-}
 
-// 定义函数来获取当前区块高度
-async function getCurrentBlockNumber() {
-    try {
-        // 使用异步函数获取当前区块高度
-        const blockNumber = await web3.eth.getBlockNumber();
-        console.log('Current block number:', blockNumber);
-        return blockNumber;
-    } catch (error) {
-        console.error('Error:', error);
-        throw error;
-    }
-}
 
-//造统计数据1： 主合约中未swap的ETH余额，stETH余额，Lido 中 Pending 的 stETH，Lido 中 Claimable 的 ETH，Eigenlayer中如果之前有delegate, 合约主动发起的unstake(unstaking) + 之前已经unstaked + delegated 
-//造统计数据2： 主合约中未swap的ETH余额，stETH余额，Lido 中 Pending 的 stETH，Lido 中 Claimable 的 ETH，Eigenlayer中如果之前没有delegate, 合约主动发起的unstake(unstaking) + 之前已经unstaked +剩余质押的stEH
-//用例1：delegate后主合约owner直接unstake后取款，再次depositIntoStrategy 
-//用例2：通过undelegate来unstake后主合约owner取款，再次depositIntoStrategy 
-//用例3：没有做过delegate，主合约owner主动发起unstake并取款
-// 试试unstake之前undelegate的额度
-// let queuedWithdrawalParams = [{
-//     strategies: [eigenStrategyAddr],
-//     shares: [100],
-//     withdrawer: eigenLSTRestakingAddr
-// }];
-// await eigenLSTRestaking.queueWithdrawals(queuedWithdrawalParams);
 
 

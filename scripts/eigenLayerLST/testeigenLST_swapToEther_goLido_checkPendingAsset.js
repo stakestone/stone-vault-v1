@@ -10,7 +10,7 @@ const IERC20 = artifacts.require("IERC20");
 const { ethers } = require("ethers");
 const truffleAssert = require('truffle-assertions');
 const { time } = require('@openzeppelin/test-helpers');
-const TruffleConfig = require('../truffle-config');
+const TruffleConfig = require('../../truffle-config');
 const EigenStrategy = artifacts.require('EigenStrategy');
 const EigenLSTRestaking = artifacts.require('strategies/eigen/EigenLSTRestaking');
 const layerZeroEndpoint = "0x6edce65403992e310a62460808c4b910d972f10f";
@@ -92,7 +92,7 @@ module.exports = async function (callback) {
         const delegationManager = await IDelegationManager.at(delegationManagerAddr);
         await stETH.approve(strategyManager.address, MAX_UINT256);
 
-        let swappingAggregator = await SwappingAggregator.new(wethAddr, { from: deployer });
+        let swappingAggregator = await SwappingAggregator.new({ from: deployer });
         swappingAggregatorAddr = swappingAggregator.address;
         console.log("swappingAggregatorAddr is : ", swappingAggregatorAddr);
 
@@ -109,107 +109,52 @@ module.exports = async function (callback) {
         const eigenLSTRestaking = await EigenLSTRestaking.new(controllerAddr, stETHAddr, lidoWithdrawalQueueAddr, strategyManagerAddr, delegationManagerAddr, eigenStrategyAddr, swappingAggregatorAddr, 'EigenLSTRestaking', { from: deployer });
         const eigenLSTRestakingAddr = eigenLSTRestaking.address;
         console.log("eigenLSTRestakingAddr is : ", eigenLSTRestakingAddr);
-        await eigenLSTRestaking.setRouter(true, true, { from: deployer });
+        await eigenLSTRestaking.setRouter(false, false, { from: deployer });
 
-        const eth_deposit_amount = BigNumber(20).times(1e18);
+        await eigenLSTRestaking.setWithdrawQueueParams(3, BigNumber(6e18), { from: deployer });
+        const eth_deposit_amount = BigNumber(1).times(1e18);
         await eigenLSTRestaking.deposit({
             value: eth_deposit_amount,
             from: controllerAddr
         });
         console.log("deposit success");
-
+        before_swapToToken_stEth = BigNumber(await stETH.balanceOf(eigenLSTRestakingAddr));
+        console.log("before swapToToken stETH balance : ", before_swapToToken_stEth.toString());
         await eigenLSTRestaking.swapToToken(eth_deposit_amount, { from: deployer });
         console.log("swapToToken success");
+        swapToToken_stEth = BigNumber(await stETH.balanceOf(eigenLSTRestakingAddr));
+        console.log("after swapToToken stETH balance : ", swapToToken_stEth.toString());
+        eigenETH_bef = await web3.eth.getBalance(eigenLSTRestakingAddr);
+        console.log("eigenETH_bef balance : ", eigenETH_bef.toString());
 
-        // depositIntoStrategy
-        await eigenLSTRestaking.depositIntoStrategy(eth_deposit_amount, { from: deployer });
+        await eigenLSTRestaking.swapToEther(swapToToken_stEth, { from: deployer });
 
-        let value = BigNumber(await eigenLSTRestaking.getInvestedValue.call({
-            from: controllerAddr
-        }));
-        console.log("value is : ", value.toString());
-        chai.assert.isTrue(Math.abs(eth_deposit_amount.minus(value)) < 100, 'Absolute difference should be less than 100');
-        let shares = BigNumber(await eigenStrategy.shares(eigenLSTRestakingAddr));
-        console.log("shares: ", shares.div(1e18).toString(10));
+        eigenETH_aft = await web3.eth.getBalance(eigenLSTRestakingAddr);
+        console.log("eigenETH_aft balance : ", eigenETH_aft.toString());
 
-        // queueWithdrawals
-        const queueWithdrawalsTx = await eigenLSTRestaking.queueWithdrawals(
-            [
-                {
-                    strategies: [eigenStrategyAddr],
-                    shares: [BigNumber(shares.div(3).toFixed(0)).toString(10)],
-                    withdrawer: eigenLSTRestakingAddr
-                }
-            ], { from: deployer }
-        );
-        console.log("root0 is : ", queueWithdrawalsTx.receipt.logs[0].args.withdrawalRoot);
-        root0 = queueWithdrawalsTx.receipt.logs[0].args.withdrawalRoot;
-        for (i = 0; i < 10; i++) {
-            await time.advanceBlock();
-        }
-        // queueWithdrawals again
-        const queueWithdrawalsTx1 = await eigenLSTRestaking.queueWithdrawals(
-            [
-                {
-                    strategies: [eigenStrategyAddr],
-                    shares: [BigNumber(shares.div(2).toFixed(0)).toString(10)],
-                    withdrawer: eigenLSTRestakingAddr
-                }
-            ], { from: deployer }
-        );
-        console.log("root1 is : ", queueWithdrawalsTx1.receipt.logs[0].args.withdrawalRoot);
-        root1 = queueWithdrawalsTx1.receipt.logs[0].args.withdrawalRoot;
+        let tx = await eigenLSTRestaking.checkPendingAssets.call();
 
-        let res = BigNumber(await eigenLSTRestaking.getUnstakingValue({ from: deployer }));
-        console.log("res is : ", res.toString(10));
-        chai.assert.isTrue(Math.abs(eth_deposit_amount.div(3).plus(eth_deposit_amount.div(2)).minus(res)) < 100, 'Absolute difference should be less than 100');
+        console.log("totalClaimable is : ", BigNumber(tx.totalClaimable).toString(10));
+        console.log("totalPending is : ", BigNumber(tx.totalPending).toString(10));
+        assert.strictEqual(swapToToken_stEth.toString(), BigNumber(tx.totalPending).toString(10));
+        assert.strictEqual('0', BigNumber(tx.totalClaimable).toString(10));
+        // assert.strictEqual(0, len(tx.ids));
+        let value = BigNumber(await eigenLSTRestaking.getInvestedValue.call({ from: deployer }));
+        console.log("total value is : ", value.toString());
 
-        let roots = await eigenLSTRestaking.getWithdrawalRoots();
-        console.log("roots are : ", roots);
-        assert.strictEqual(root0, roots[0]);
-        assert.strictEqual(root1, roots[1]);
+        deployerETH_bef = await web3.eth.getBalance(deployer);
+        console.log("deployerETH_bef balance : ", deployerETH_bef.toString());
 
-        value = BigNumber(await eigenLSTRestaking.getAllValue.call({
-            from: controllerAddr
-        }));
-        console.log("value is : ", value.toString());
-        chai.assert.isTrue(Math.abs(eth_deposit_amount.minus(value)) < 100, 'Absolute difference should be less than 100');
+        await eigenLSTRestaking.claimAllPendingAssets({ from: deployer });
+
+        deployerETH_aft = await web3.eth.getBalance(deployer);
+        console.log("deployerETH_aft balance : ", deployerETH_aft.toString());
 
         callback();
     } catch (e) {
         callback(e);
     }
 }
-function sleep(s) {
-    return new Promise((resolve) => {
-        setTimeout(resolve, s * 1000);
-    });
-}
 
-// 定义函数来获取当前区块高度
-async function getCurrentBlockNumber() {
-    try {
-        // 使用异步函数获取当前区块高度
-        const blockNumber = await web3.eth.getBlockNumber();
-        console.log('Current block number:', blockNumber);
-        return blockNumber;
-    } catch (error) {
-        console.error('Error:', error);
-        throw error;
-    }
-}
-
-//造统计数据1： 主合约中未swap的ETH余额，stETH余额，Lido 中 Pending 的 stETH，Lido 中 Claimable 的 ETH，Eigenlayer中如果之前有delegate, 合约主动发起的unstake(unstaking) + 之前已经unstaked + delegated 
-//造统计数据2： 主合约中未swap的ETH余额，stETH余额，Lido 中 Pending 的 stETH，Lido 中 Claimable 的 ETH，Eigenlayer中如果之前没有delegate, 合约主动发起的unstake(unstaking) + 之前已经unstaked +剩余质押的stEH
-//用例1：delegate后主合约owner直接unstake后取款，再次depositIntoStrategy 
-//用例2：通过undelegate来unstake后主合约owner取款，再次depositIntoStrategy 
-//用例3：没有做过delegate，主合约owner主动发起unstake并取款
-// 试试unstake之前undelegate的额度
-// let queuedWithdrawalParams = [{
-//     strategies: [eigenStrategyAddr],
-//     shares: [100],
-//     withdrawer: eigenLSTRestakingAddr
-// }];
-// await eigenLSTRestaking.queueWithdrawals(queuedWithdrawalParams);
 
 
