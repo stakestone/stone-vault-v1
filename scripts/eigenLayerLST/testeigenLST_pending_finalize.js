@@ -74,7 +74,7 @@ module.exports = async function (callback) {
         eigenETH_bef = await web3.eth.getBalance(eigenLSTRestakingAddr);
         console.log("eigenETH_bef balance : ", eigenETH_bef.toString());
 
-        await eigenLSTRestaking.swapToEther(swapToToken_stEth, { from: deployer });
+        let tx0 = await eigenLSTRestaking.swapToEther(swapToToken_stEth, { from: deployer });
 
         eigenETH_aft = await web3.eth.getBalance(eigenLSTRestakingAddr);
         console.log("eigenETH_aft balance : ", eigenETH_aft.toString());
@@ -93,8 +93,9 @@ module.exports = async function (callback) {
         console.log("deployerETH_bef balance : ", deployerETH_bef.toString());
 
         await eigenLSTRestaking.claimAllPendingAssets({ from: deployer });
-
         const withdrawalQueueERC721 = new web3.eth.Contract(abi, withdrawalQueueERC721Addr);
+        await withdrawalQueueERC721.methods.prefinalize();
+
         await withdrawalQueueERC721.methods.finalize(0, 0.5)
 
         tx = await eigenLSTRestaking.checkPendingAssets.call();
