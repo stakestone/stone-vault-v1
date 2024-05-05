@@ -111,7 +111,6 @@ module.exports = async function (callback) {
         console.log("eigenLSTRestakingAddr is : ", eigenLSTRestakingAddr);
         await eigenLSTRestaking.setRouter(false, false, { from: deployer });
 
-        await eigenLSTRestaking.setWithdrawQueueParams(3, BigNumber(6e18), { from: deployer });
         const eth_deposit_amount = BigNumber(1).times(1e18);
         await eigenLSTRestaking.deposit({
             value: eth_deposit_amount,
