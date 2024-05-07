@@ -273,6 +273,8 @@ contract EigenLSTRestaking is EigenStrategy {
             );
             uint256 maxAmountPerRequest = withdrawalQueue
                 .MAX_STETH_WITHDRAWAL_AMOUNT();
+            uint256 minAmountPerRequest = withdrawalQueue
+                .MIN_STETH_WITHDRAWAL_AMOUNT();
 
             uint256[] memory amounts;
             if (_amount <= maxAmountPerRequest) {
@@ -281,12 +283,18 @@ contract EigenLSTRestaking is EigenStrategy {
             } else {
                 uint256 length = _amount / maxAmountPerRequest + 1;
                 uint256 remainder = _amount % maxAmountPerRequest;
-                amounts = new uint256[](length);
+
+                if (remainder >= minAmountPerRequest) {
+                    amounts = new uint256[](length);
+                    amounts[length - 1] = remainder;
+                } else {
+                    amounts = new uint256[](length - 1);
+                }
+
                 uint256 i;
                 for (i; i < length - 1; i++) {
                     amounts[i] = maxAmountPerRequest;
                 }
-                amounts[length - 1] = remainder;
             }
 
             uint256[] memory ids = withdrawalQueue.requestWithdrawals(

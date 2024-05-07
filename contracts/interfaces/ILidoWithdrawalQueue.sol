@@ -19,6 +19,8 @@ interface ILidoWithdrawalQueue {
 
     function MAX_STETH_WITHDRAWAL_AMOUNT() external view returns (uint256);
 
+    function MIN_STETH_WITHDRAWAL_AMOUNT() external view returns (uint256);
+
     function getWithdrawalRequests(
         address _owner
     ) external view returns (uint256[] memory requestsIds);
