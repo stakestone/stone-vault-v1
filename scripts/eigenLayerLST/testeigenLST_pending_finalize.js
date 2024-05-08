@@ -88,6 +88,10 @@ module.exports = async function (callback) {
         console.log("last_finalized is : ", BigNumber(last_finalized).toString(10));
         console.log("last_requestid is : ", BigNumber(last_requestid).toString(10));
 
+        let quest = await withdrawalQueueERC721.prefinalize.call([BigNumber(2889)], BigNumber(1e18));
+        console.log("ethToLock is : ", BigNumber(quest.ethToLock).toString(10));
+        console.log("sharesToBurn is : ", BigNumber(quest.sharesToBurn).toString(10));
+
         eth_after_swapToToken = BigNumber(await web3.eth.getBalance(eigenLSTRestakingAddr));
         console.log("after swapToEther 2 eth account balance: ", eth_after_swapToToken.toString());
         let tx = await eigenLSTRestaking.checkPendingAssets.call();
