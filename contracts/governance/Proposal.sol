@@ -3,12 +3,13 @@ pragma solidity 0.8.21;
 
 import {SafeMath} from "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import {EnumerableSet} from "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
+import {AccessControlEnumerable} from "@openzeppelin/contracts/access/AccessControlEnumerable.sol";
 import {TransferHelper} from "@uniswap/v3-periphery/contracts/libraries/TransferHelper.sol";
 
 import {Minter} from "../token/Minter.sol";
 import {StoneVault} from "../StoneVault.sol";
 
-contract Proposal {
+contract Proposal is AccessControlEnumerable {
     using EnumerableSet for EnumerableSet.AddressSet;
     using SafeMath for uint256;
 
@@ -16,7 +17,10 @@ contract Proposal {
 
     address public immutable stoneVault;
 
-    address public proposer;
+    bytes32 public constant PROPOSE_ROLE = keccak256("PROPOSE_ROLE");
+    bytes32 public constant REVOKE_ROLE = keccak256("REVOKE_ROLE");
+    bytes32 public constant EXECUTE_ROLE = keccak256("EXECUTE_ROLE");
+    bytes32 public constant SET_PARAM_ROLE = keccak256("SET_PARAM_ROLE");
 
     uint256 public votePeriod = 7 * 24 * 60 * 60;
 
@@ -33,28 +37,26 @@ contract Proposal {
         uint256 support;
         uint256 oppose;
         uint256 executedTime;
+        bool isRevoked;
         bytes data;
     }
 
     event VoteFor(address proposal, uint256 poll, bool flag);
     event RetrieveToken(address proposal, uint256 poll);
-    event SetProposer(address oldProposer, address newProposer);
     event SetVotePeriod(uint256 period);
+    event ProposalRevoked(address proposal);
+    event ProposalExecuted(address proposal);
     event Invoked(address indexed targetAddress, bytes data);
 
-    modifier onlyProposer() {
-        require(proposer == msg.sender, "not proposer");
-        _;
-    }
-
     constructor(address payable _stoneVault) {
-        proposer = msg.sender;
         stoneVault = _stoneVault;
         address minter = StoneVault(_stoneVault).minter();
         stoneToken = Minter(minter).stone();
+
+        _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
     }
 
-    function propose(bytes calldata _data) external onlyProposer {
+    function propose(bytes calldata _data) external onlyRole(PROPOSE_ROLE) {
         uint256 deadline = block.timestamp + votePeriod;
 
         bytes32 data = keccak256(abi.encodePacked(_data, deadline));
@@ -69,8 +71,17 @@ contract Proposal {
             0,
             0,
             0,
+            false,
             _data
         );
+    }
+
+    function revokePeoposal(address _proposal) external onlyRole(REVOKE_ROLE) {
+        ProposalDetail storage detail = proposalDetails[_proposal];
+
+        detail.isRevoked = true;
+
+        emit ProposalRevoked(_proposal);
     }
 
     function voteFor(address _proposal, uint256 _poll, bool _flag) external {
@@ -125,7 +136,7 @@ contract Proposal {
         TransferHelper.safeTransfer(stoneToken, msg.sender, withAmount);
     }
 
-    function execProposal(address _proposal) external {
+    function execProposal(address _proposal) external onlyRole(EXECUTE_ROLE) {
         require(canExec(_proposal), "cannot exec");
 
         ProposalDetail storage detail = proposalDetails[_proposal];
@@ -133,15 +144,11 @@ contract Proposal {
         detail.executedTime = block.timestamp;
 
         invoke(detail.data);
+
+        emit ProposalExecuted(_proposal);
     }
 
-    function setProposer(address _proposer) external onlyProposer {
-        emit SetProposer(proposer, _proposer);
-
-        proposer = _proposer;
-    }
-
-    function setVotePeriod(uint256 _period) external onlyProposer {
+    function setVotePeriod(uint256 _period) external onlyRole(SET_PARAM_ROLE) {
         require(_period >= minVotePeriod, "too short for a proposal");
         votePeriod = _period;
 
@@ -163,19 +170,21 @@ contract Proposal {
     }
 
     function canVote(address _proposal) public view returns (bool result) {
-        if (!proposals.contains(_proposal)) {
+        ProposalDetail memory detail = proposalDetails[_proposal];
+
+        if (!proposals.contains(_proposal) || detail.isRevoked) {
             return false;
         }
-        ProposalDetail memory detail = proposalDetails[_proposal];
         return block.timestamp < detail.deadline ? true : false;
     }
 
     function canExec(address _proposal) public view returns (bool result) {
-        if (!proposals.contains(_proposal)) {
+        ProposalDetail memory detail = proposalDetails[_proposal];
+
+        if (!proposals.contains(_proposal) || detail.isRevoked) {
             return false;
         }
 
-        ProposalDetail memory detail = proposalDetails[_proposal];
         if (block.timestamp < detail.deadline) {
             return false;
         }
