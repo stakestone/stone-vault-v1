@@ -137,9 +137,7 @@ contract EigenLSTRestaking is EigenStrategy {
         uint256 etherValue = address(this).balance;
         uint256 tokenValue = IERC20(tokenAddr).balanceOf(address(this));
         (, uint256 claimableValue, uint256 pendingValue) = checkPendingAssets();
-        uint256 eigenValue = IEigenStrategy(eigenStrategy).userUnderlyingView(
-            address(this)
-        );
+        uint256 eigenValue = getRestakingValue();
         uint256 unstakingValue = getUnstakingValue();
 
         value =
@@ -402,6 +400,10 @@ contract EigenLSTRestaking is EigenStrategy {
         assembly {
             mstore(ids, j)
         }
+    }
+
+    function getRestakingValue() public view returns (uint256 value) {
+        value = IEigenStrategy(eigenStrategy).userUnderlyingView(address(this));
     }
 
     function getUnstakingValue() public view returns (uint256 value) {
