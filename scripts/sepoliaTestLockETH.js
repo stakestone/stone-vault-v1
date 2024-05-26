@@ -2,10 +2,10 @@
 // truffle exec scripts/sepoliaTestLockStone.js --network sepolia
 // eslint-disable-next-line no-undef
 const BigNumber = require('bignumber.js');
-const taker1 = "0x72632D09C2d7Cd5009F3a8541F47803Ec4bAF535";
+const taker1 = "0xff34F282b82489BfDa789816d7622d3Ae8199Af6";
 const taker2 = "0xAC5CC232D28257b30d79d3b26760499BD33bC978";
 const taker3 = "0x0DaD1AFEa01F04FdDC58d93c8Fce4Ee9540A30b0";
-const deployer = "0x72632D09C2d7Cd5009F3a8541F47803Ec4bAF535";
+const deployer = "0xff34F282b82489BfDa789816d7622d3Ae8199Af6";
 const { time } = require("@openzeppelin/test-helpers");
 const Stone = artifacts.require("Stone");
 const MULTIPLIER = 1e18;

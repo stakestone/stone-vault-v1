@@ -67,7 +67,7 @@ module.exports = async function (callback) {
         // await proposal.setVotePeriod(minVotePeriod, { from: deployer });
 
         // let stETHHoldingStrategyAddr = "0xE942cDd0AF66aB9AB06515701fa3707Ec7deB93e";
-        // let sTETHHoldingStrategy = await STETHHoldingStrategy.at(strategyControllerAddr);
+        // let sTETHHoldingStrategy = await STETHHoldingStrategy.at(stETHHoldingStrategyAddr);
 
         // let sFraxETHHoldingStrategy = await SFraxETHHoldingStrategy.new(strategyControllerAddr, swappingAggregatorAddr, "SFraxETHHoldingStrategy");
         // let sFraxETHHoldingStrategyAddr = sFraxETHHoldingStrategy.address

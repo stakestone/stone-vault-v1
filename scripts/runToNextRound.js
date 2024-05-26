@@ -3,14 +3,19 @@
 // eslint-disable-next-line no-undef
 const BigNumber = require('bignumber.js');
 const StoneVault = artifacts.require("StoneVault");
+const MiningPool = artifacts.require("MiningPool");
 
 module.exports = async function (callback) {
     try {
         const vault = "0xA62F9C5af106FeEE069F38dE51098D9d81B90572";
         const stoneVault = await StoneVault.at(vault);
-        const result = await stoneVault.rollToNextRound();
-        console.log("settlement finished!");
-        console.log("rollToNext transaction : ", result);
+        const miningPoolAddr = "0x8f5420e76eEC29027800D4e3e8E879617bdE709b";
+        const miningPool = await MiningPool.at(miningPoolAddr);
+        const governance = await miningPool.governance();
+        console.log("governance is : ", governance);
+        // const result = await stoneVault.rollToNextRound();
+        // console.log("settlement finished!");
+        // console.log("rollToNext transaction : ", result);
         // let price0 = BigNumber(await stoneVault.roundPricePerShare(0));
         // console.log("0 round price is : ", price0.toString(10));
         // let settlementTime0 = BigNumber(await stoneVault.settlementTime(0));

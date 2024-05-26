@@ -7,12 +7,13 @@ module.exports = async function (callback) {
     try {
         // //eth to scroll 
         // //fee part
-        const to_address = "0xa9B3cBcF3668e819bd35ba308dECb640DF143394";
-        const from_adress = "0xa9B3cBcF3668e819bd35ba308dECb640DF143394";
-        const scroll_linkId = 214;
-        const stone_manta = await Stone.at("0xEc901DA9c68E90798BbBb74c11406A32A70652C3");
-
-        const amount = BigNumber(1e13).toString(10);
+        const from_adress = "0x2D243d1F365c23eD87DEC86e8291BaE754c149C6";
+        const to_address = "0xC63aAf9ca7e6BD36C85D505bb8B83c55269eb8eD";
+        const bnb_linkId = 102;
+        const stone_scroll = await Stone.at("0x80137510979822322193FC997d400D5A6C747bf7");
+        //0.05198
+        //0.00013
+        const amount = BigNumber(2e13).toString(10);
         const packedData = ethers.utils ? ethers.utils.solidityPack(["bytes"], ["0x"]) : "0x";
 
         // // let feePart = await stone_scroll.estimateSendFee(
@@ -27,9 +28,9 @@ module.exports = async function (callback) {
         // console.log("result is : ", BigNumber(feePart.nativeFee).toString(10));
         // console.log("result is : ", BigNumber(feePart.zroFee).toString(10));
 
-        let result = await stone_manta.sendFrom(
+        let result = await stone_scroll.sendFrom(
             from_adress,
-            scroll_linkId,
+            bnb_linkId,
             to_address,
             amount,
             from_adress,

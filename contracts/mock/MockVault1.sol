@@ -6,22 +6,16 @@ import {ERC20} from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import {Minter} from "../token/Minter.sol";
 
 contract MockVault1 {
-       address public immutable minter;
+    address public immutable minter;
 
-   constructor(
-        address _minter    ) {
-        require(
-            _minter != address(0) 
-        );
-
+    constructor(address _minter) {
+        require(_minter != address(0));
         minter = _minter;
-
     }
     function deposit() external payable returns (uint256 mintAmount) {
         // Get the deposited amount from the transaction
         uint256 amount = msg.value;
-        mintAmount = amount/2;
+        mintAmount = amount / 2;
         Minter(minter).mint(msg.sender, mintAmount);
     }
-
 }

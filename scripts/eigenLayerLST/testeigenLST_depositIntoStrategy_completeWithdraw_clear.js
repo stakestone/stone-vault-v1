@@ -201,6 +201,7 @@ module.exports = async function (callback) {
             ], { from: deployer }
         );
         console.log("root1 is : ", queueWithdrawalsTx1.receipt.logs[0].args.withdrawalRoot);
+        // unstaking will become unstaked after ten blocks
         for (i = 0; i < 10; i++) {
             await time.advanceBlock();
         }
@@ -219,10 +220,17 @@ module.exports = async function (callback) {
 
         let userUnderlying = await eigenStrategy.userUnderlyingView(eigenLSTRestakingAddr);
         console.log("userUnderlying: ", BigNumber(userUnderlying).div(1e18).toString(10));
-        assert.strictEqual("1", BigNumber(userUnderlying).div(1e18).toString());
+        assert.strictEqual("1", BigNumber(userUnderlying).div(1e18).toFixed(0).toString());
         let res = BigNumber(await eigenLSTRestaking.getUnstakingValue({ from: deployer }));
         console.log("res is : ", res.toString(10));
         chai.assert.isTrue(Math.abs(eth_deposit_amount.div(4).plus(eth_deposit_amount.div(2)).minus(res)) < 100, 'Absolute difference should be less than 100');
+
+        // check staking value
+        let stakingValue = BigNumber(await eigenLSTRestaking.getRestakingValue.call({
+            from: controllerAddr
+        }));
+        console.log("stakingValue is : ", stakingValue.toString());
+        chai.assert.isTrue(Math.abs(eth_deposit_amount.minus(res).minus(eth_deposit_amount.div(5)).minus(stakingValue)) < 100, 'Absolute difference should be less than 100');
 
         value = BigNumber(await eigenLSTRestaking.getAllValue.call({
             from: controllerAddr
