@@ -10,4 +10,6 @@ interface IWETH9 is IERC20 {
 
     /// @notice Withdraw wrapped ether to get ether
     function withdraw(uint256) external;
+
+    function approve(address, uint) external returns (bool) ;
 }
