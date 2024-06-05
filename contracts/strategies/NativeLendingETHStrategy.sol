@@ -3,40 +3,61 @@ pragma solidity 0.8.21;
 
 import {TransferHelper} from "@uniswap/v3-periphery/contracts/libraries/TransferHelper.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import {Strategy} from "../strategies/Strategy.sol";
+import {StrategyV2} from "../strategies/StrategyV2.sol";
 import {StrategyController} from "../strategies/StrategyController.sol";
 import {IWETH9} from "../interfaces/IWETH9.sol";
 import {IAquaLpToken} from "../interfaces/IAquaLpToken.sol";
 
-contract NativeLendingETHStrategy is Strategy {
+contract NativeLendingETHStrategy is StrategyV2 {
 
     address public immutable LPTOKEN;
-    IWETH9 private constant WETH = IWETH9(0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2);
+    IWETH9 public immutable WETH;
 
     event Invoked(address indexed targetAddress, uint256 value, bytes data);
 
     constructor(
         address payable _controller,
         string memory _name,
-        address _lptoken
-    ) Strategy(_controller, _name) {
+        address _lptoken,
+        address _weth
+    ) StrategyV2(_controller, _name) {
         require(
-            _lptoken != address(0),
+            _lptoken != address(0) &&
+            _weth != address(0),
             "ZERO ADDRESS"
         );
+        WETH = IWETH9(_weth);
         LPTOKEN = _lptoken;
     }
 
+    // owner functions
+
+    function depositIntoNative(
+        uint256 _amount
+    ) external onlyOwner {
+        WETH.deposit{value: _amount}();
+        WETH.approve(LPTOKEN, _amount);
+
+        IAquaLpToken(LPTOKEN).mint(_amount);
+    }
+
+    function withdrawFromNativeByAmount(
+        uint256 _amount
+    ) external onlyOwner {
+        IAquaLpToken(LPTOKEN).redeemUnderlying(_amount);
+    }
+
+    function withdrawFromNativeByShare(
+        uint256 _share
+    ) external onlyOwner {
+        IAquaLpToken(LPTOKEN).redeem(_share);
+    }
+
+
+    // public functions
+
     function deposit() public payable override onlyController notAtSameBlock {
-        latestUpdateTime = block.timestamp;
-
-        uint256 amount = msg.value;
-        require(amount != 0, "zero value");
-
-        WETH.deposit{value: amount}();
-        WETH.approve(LPTOKEN, amount);
-
-        IAquaLpToken(LPTOKEN).mint(amount);
+        require(msg.value != 0, "zero value");
     }
 
     function withdraw(
@@ -68,20 +89,18 @@ contract NativeLendingETHStrategy is Strategy {
     ) internal returns (uint256 actualAmount) {
         require(_amount != 0, "zero value");
 
-        latestUpdateTime = block.timestamp;
         actualAmount = _amount;
 
-        IAquaLpToken(LPTOKEN).redeemUnderlying(_amount);
         TransferHelper.safeTransferETH(controller, actualAmount);
 
     }
 
     function clear() public override onlyController returns (uint256 amount) {
-        uint256 balance = IERC20(LPTOKEN).balanceOf(address(this));
+        uint256 balance = address(this).balance;
 
         if (balance != 0) {
-            IAquaLpToken(LPTOKEN).redeem(balance);
-            TransferHelper.safeTransferETH(controller, address(this).balance);
+            TransferHelper.safeTransferETH(controller, balance);
+            amount = balance;
         }
     }
 
@@ -95,22 +114,6 @@ contract NativeLendingETHStrategy is Strategy {
             IAquaLpToken(LPTOKEN).exchangeRateCurrent()
             / 1e18
             + address(this).balance;
-    }
-
-    function invoke(
-        address target,
-        bytes memory data
-    ) external payable onlyGovernance returns (bytes memory result) {
-        bool success;
-        (success, result) = target.call{value: msg.value}(data);
-        if (!success) {
-            // solhint-disable-next-line no-inline-assembly
-            assembly {
-                returndatacopy(0, 0, returndatasize())
-                revert(0, returndatasize())
-            }
-        }
-        emit Invoked(target, msg.value, data);
     }
 
     receive() external payable {}
