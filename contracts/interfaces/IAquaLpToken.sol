@@ -2,7 +2,6 @@
 pragma solidity ^0.8.17;
 
 interface IAquaLpToken {
-
     function mint(uint mintAmount) external returns (uint);
 
     function redeem(uint redeemTokens) external returns (uint);

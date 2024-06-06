@@ -4,11 +4,11 @@ pragma solidity 0.8.21;
 import {StrategyController} from "../strategies/StrategyController.sol";
 import {Ownable2Step} from "@openzeppelin/contracts/access/Ownable2Step.sol";
 
-abstract contract StrategyV2 is Ownable2Step{
+abstract contract StrategyV2 is Ownable2Step {
     address payable public immutable controller;
 
     uint256 public latestUpdateTime;
-    uint256 public bufferTime = 12;
+    uint256 public bufferTime;
 
     string public name;
 

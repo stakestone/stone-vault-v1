@@ -9,7 +9,6 @@ import {IWETH9} from "../interfaces/IWETH9.sol";
 import {IAquaLpToken} from "../interfaces/IAquaLpToken.sol";
 
 contract NativeLendingETHStrategy is StrategyV2 {
-
     address public immutable LPTOKEN;
     IWETH9 public immutable WETH;
 
@@ -21,11 +20,7 @@ contract NativeLendingETHStrategy is StrategyV2 {
         address _lptoken,
         address _weth
     ) StrategyV2(_controller, _name) {
-        require(
-            _lptoken != address(0) &&
-            _weth != address(0),
-            "ZERO ADDRESS"
-        );
+        require(_lptoken != address(0) && _weth != address(0), "ZERO ADDRESS");
         WETH = IWETH9(_weth);
         LPTOKEN = _lptoken;
     }
@@ -35,33 +30,42 @@ contract NativeLendingETHStrategy is StrategyV2 {
     function depositIntoNative(
         uint256 _amount
     ) external onlyOwner returns (uint256 mintAmount) {
-        uint256 beforeLPBalance = IAquaLpToken(LPTOKEN).balanceOf(address(this));
+        uint256 beforeLPBalance = IAquaLpToken(LPTOKEN).balanceOf(
+            address(this)
+        );
 
         WETH.deposit{value: _amount}();
         WETH.approve(LPTOKEN, _amount);
         IAquaLpToken(LPTOKEN).mint(_amount);
 
-        mintAmount = IAquaLpToken(LPTOKEN).balanceOf(address(this)) - beforeLPBalance;
+        mintAmount =
+            IAquaLpToken(LPTOKEN).balanceOf(address(this)) -
+            beforeLPBalance;
     }
 
     function withdrawFromNativeByAmount(
         uint256 _amount
     ) external onlyOwner returns (uint256 withdrawAmount) {
+        uint256 beforeBalance = address(this).balance;
+
         IAquaLpToken(LPTOKEN).redeemUnderlying(_amount);
 
-        withdrawAmount = _amount;
         WETH.withdraw(_amount);
+
+        withdrawAmount = address(this).balance - beforeBalance;
     }
 
     function withdrawFromNativeByShare(
         uint256 _share
     ) external onlyOwner returns (uint256 withdrawAmount) {
+        uint256 beforeBalance = address(this).balance;
+
         IAquaLpToken(LPTOKEN).redeem(_share);
 
-        withdrawAmount = WETH.balanceOf(address(this));
         WETH.withdraw(withdrawAmount);
-    }
 
+        withdrawAmount = address(this).balance - beforeBalance;
+    }
 
     // public functions
 
@@ -70,20 +74,21 @@ contract NativeLendingETHStrategy is StrategyV2 {
     }
 
     function getInvestedValue() public override returns (uint256 value) {
-        value = 
-            IERC20(LPTOKEN).balanceOf(address(this)) *
-            IAquaLpToken(LPTOKEN).exchangeRateCurrent()
-            / 1e18
-            + address(this).balance;
+        value =
+            (IERC20(LPTOKEN).balanceOf(address(this)) *
+                IAquaLpToken(LPTOKEN).exchangeRateCurrent()) /
+            1e18 +
+            address(this).balance;
     }
 
     receive() external payable {}
-
 
     // controller functions
 
     function deposit() public payable override onlyController notAtSameBlock {
         require(msg.value != 0, "zero value");
+
+        latestUpdateTime = block.timestamp;
     }
 
     function withdraw(
@@ -129,5 +134,7 @@ contract NativeLendingETHStrategy is StrategyV2 {
         actualAmount = _amount;
 
         TransferHelper.safeTransferETH(controller, actualAmount);
+
+        latestUpdateTime = block.timestamp;
     }
 }
