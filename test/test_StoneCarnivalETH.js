@@ -105,7 +105,7 @@ contract("test_StoneCarnivalETH", async ([deployer, taker1, taker2, taker3, take
         cSTONE = await StoneCarnival.at(cSTONEAddress);
 
     });
-    it("test1_taker deposit ETH_taker1 claim cSTONE_taker2 claim cSTONE", async () => {
+    it("test1_taker1 deposit ETH_taker1 claim cSTONE_taker2 claim cSTONE", async () => {
 
         const stoneCarnivalETH = await StoneCarnivalETH.new(
             stone.address,
