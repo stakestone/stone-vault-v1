@@ -10,4 +10,6 @@ interface IAquaLpToken {
     function redeemUnderlying(uint redeemAmount) external returns (uint);
 
     function exchangeRateCurrent() external returns (uint);
+
+    function balanceOf(address owner) external view returns (uint256);
 }

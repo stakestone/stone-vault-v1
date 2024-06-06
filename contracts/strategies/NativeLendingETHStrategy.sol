@@ -34,27 +34,53 @@ contract NativeLendingETHStrategy is StrategyV2 {
 
     function depositIntoNative(
         uint256 _amount
-    ) external onlyOwner {
+    ) external onlyOwner returns (uint256 mintAmount) {
+        uint256 beforeLPBalance = IAquaLpToken(LPTOKEN).balanceOf(address(this));
+
         WETH.deposit{value: _amount}();
         WETH.approve(LPTOKEN, _amount);
-
         IAquaLpToken(LPTOKEN).mint(_amount);
+
+        mintAmount = IAquaLpToken(LPTOKEN).balanceOf(address(this)) - beforeLPBalance;
     }
 
     function withdrawFromNativeByAmount(
         uint256 _amount
-    ) external onlyOwner {
+    ) external onlyOwner returns (uint256 withdrawAmount) {
         IAquaLpToken(LPTOKEN).redeemUnderlying(_amount);
+
+        withdrawAmount = _amount;
+        WETH.withdraw(_amount);
     }
 
     function withdrawFromNativeByShare(
         uint256 _share
-    ) external onlyOwner {
+    ) external onlyOwner returns (uint256 withdrawAmount) {
         IAquaLpToken(LPTOKEN).redeem(_share);
+
+        withdrawAmount = WETH.balanceOf(address(this));
+        WETH.withdraw(withdrawAmount);
     }
 
 
     // public functions
+
+    function getAllValue() public override returns (uint256 value) {
+        value = getInvestedValue();
+    }
+
+    function getInvestedValue() public override returns (uint256 value) {
+        value = 
+            IERC20(LPTOKEN).balanceOf(address(this)) *
+            IAquaLpToken(LPTOKEN).exchangeRateCurrent()
+            / 1e18
+            + address(this).balance;
+    }
+
+    receive() external payable {}
+
+
+    // controller functions
 
     function deposit() public payable override onlyController notAtSameBlock {
         require(msg.value != 0, "zero value");
@@ -84,17 +110,6 @@ contract NativeLendingETHStrategy is StrategyV2 {
         actualAmount = _withdraw(_amount);
     }
 
-    function _withdraw(
-        uint256 _amount
-    ) internal returns (uint256 actualAmount) {
-        require(_amount != 0, "zero value");
-
-        actualAmount = _amount;
-
-        TransferHelper.safeTransferETH(controller, actualAmount);
-
-    }
-
     function clear() public override onlyController returns (uint256 amount) {
         uint256 balance = address(this).balance;
 
@@ -104,17 +119,15 @@ contract NativeLendingETHStrategy is StrategyV2 {
         }
     }
 
-    function getAllValue() public override returns (uint256 value) {
-        value = getInvestedValue();
-    }
+    // internal function
 
-    function getInvestedValue() public override returns (uint256 value) {
-        value = 
-            IERC20(LPTOKEN).balanceOf(address(this)) *
-            IAquaLpToken(LPTOKEN).exchangeRateCurrent()
-            / 1e18
-            + address(this).balance;
-    }
+    function _withdraw(
+        uint256 _amount
+    ) internal returns (uint256 actualAmount) {
+        require(_amount != 0, "zero value");
 
-    receive() external payable {}
+        actualAmount = _amount;
+
+        TransferHelper.safeTransferETH(controller, actualAmount);
+    }
 }
