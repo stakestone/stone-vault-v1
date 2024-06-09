@@ -50,7 +50,7 @@ contract NativeLendingETHStrategy is StrategyV2 {
 
         IAquaLpToken(LPTOKEN).redeemUnderlying(_amount);
 
-        WETH.withdraw(_amount);
+        WETH.withdraw(WETH.balanceOf(address(this)));
 
         withdrawAmount = address(this).balance - beforeBalance;
     }
@@ -62,7 +62,7 @@ contract NativeLendingETHStrategy is StrategyV2 {
 
         IAquaLpToken(LPTOKEN).redeem(_share);
 
-        WETH.withdraw(withdrawAmount);
+        WETH.withdraw(WETH.balanceOf(address(this)));
 
         withdrawAmount = address(this).balance - beforeBalance;
     }
