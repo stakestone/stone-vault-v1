@@ -3,7 +3,7 @@ pragma solidity 0.8.19;
 
 import "@layerzerolabs/solidity-examples/contracts/token/oft/OFT.sol";
 
-contract StoneCross is OFT {
+contract StoneOFT is OFT {
     using BytesLib for bytes;
 
     uint256 public constant DAY_INTERVAL = 24 * 60 * 60;
