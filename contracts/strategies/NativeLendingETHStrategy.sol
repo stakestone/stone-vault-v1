@@ -12,8 +12,6 @@ contract NativeLendingETHStrategy is StrategyV2 {
     address public immutable LPTOKEN;
     IWETH9 public immutable WETH;
 
-    event Invoked(address indexed targetAddress, uint256 value, bytes data);
-
     constructor(
         address payable _controller,
         string memory _name,
