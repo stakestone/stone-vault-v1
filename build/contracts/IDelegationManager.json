@@ -1,0 +1,1394 @@
+{
+  "contractName": "IDelegationManager",
+  "abi": [
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": false,
+          "internalType": "bytes32",
+          "name": "withdrawalRoot",
+          "type": "bytes32"
+        },
+        {
+          "components": [
+            {
+              "internalType": "address",
+              "name": "staker",
+              "type": "address"
+            },
+            {
+              "internalType": "address",
+              "name": "delegatedTo",
+              "type": "address"
+            },
+            {
+              "internalType": "address",
+              "name": "withdrawer",
+              "type": "address"
+            },
+            {
+              "internalType": "uint256",
+              "name": "nonce",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint32",
+              "name": "startBlock",
+              "type": "uint32"
+            },
+            {
+              "internalType": "address[]",
+              "name": "strategies",
+              "type": "address[]"
+            },
+            {
+              "internalType": "uint256[]",
+              "name": "shares",
+              "type": "uint256[]"
+            }
+          ],
+          "indexed": false,
+          "internalType": "struct IDelegationManager.Withdrawal",
+          "name": "withdrawal",
+          "type": "tuple"
+        }
+      ],
+      "name": "WithdrawalQueued",
+      "type": "event"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "operator",
+          "type": "address"
+        },
+        {
+          "components": [
+            {
+              "internalType": "bytes",
+              "name": "signature",
+              "type": "bytes"
+            },
+            {
+              "internalType": "uint256",
+              "name": "expiry",
+              "type": "uint256"
+            }
+          ],
+          "internalType": "struct IDelegationManager.SignatureWithExpiry",
+          "name": "approverSignatureAndExpiry",
+          "type": "tuple"
+        },
+        {
+          "internalType": "bytes32",
+          "name": "approverSalt",
+          "type": "bytes32"
+        }
+      ],
+      "name": "delegateTo",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "staker",
+          "type": "address"
+        }
+      ],
+      "name": "undelegate",
+      "outputs": [
+        {
+          "internalType": "bytes32[]",
+          "name": "withdrawalRoots",
+          "type": "bytes32[]"
+        }
+      ],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "components": [
+            {
+              "internalType": "address[]",
+              "name": "strategies",
+              "type": "address[]"
+            },
+            {
+              "internalType": "uint256[]",
+              "name": "shares",
+              "type": "uint256[]"
+            },
+            {
+              "internalType": "address",
+              "name": "withdrawer",
+              "type": "address"
+            }
+          ],
+          "internalType": "struct IDelegationManager.QueuedWithdrawalParams[]",
+          "name": "queuedWithdrawalParams",
+          "type": "tuple[]"
+        }
+      ],
+      "name": "queueWithdrawals",
+      "outputs": [
+        {
+          "internalType": "bytes32[]",
+          "name": "",
+          "type": "bytes32[]"
+        }
+      ],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "components": [
+            {
+              "internalType": "address",
+              "name": "staker",
+              "type": "address"
+            },
+            {
+              "internalType": "address",
+              "name": "delegatedTo",
+              "type": "address"
+            },
+            {
+              "internalType": "address",
+              "name": "withdrawer",
+              "type": "address"
+            },
+            {
+              "internalType": "uint256",
+              "name": "nonce",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint32",
+              "name": "startBlock",
+              "type": "uint32"
+            },
+            {
+              "internalType": "address[]",
+              "name": "strategies",
+              "type": "address[]"
+            },
+            {
+              "internalType": "uint256[]",
+              "name": "shares",
+              "type": "uint256[]"
+            }
+          ],
+          "internalType": "struct IDelegationManager.Withdrawal",
+          "name": "withdrawal",
+          "type": "tuple"
+        },
+        {
+          "internalType": "contract IERC20[]",
+          "name": "tokens",
+          "type": "address[]"
+        },
+        {
+          "internalType": "uint256",
+          "name": "middlewareTimesIndex",
+          "type": "uint256"
+        },
+        {
+          "internalType": "bool",
+          "name": "receiveAsTokens",
+          "type": "bool"
+        }
+      ],
+      "name": "completeQueuedWithdrawal",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "operator",
+          "type": "address"
+        }
+      ],
+      "name": "isOperator",
+      "outputs": [
+        {
+          "internalType": "bool",
+          "name": "",
+          "type": "bool"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    }
+  ],
+  "metadata": "{\"compiler\":{\"version\":\"0.8.21+commit.d9974bed\"},\"language\":\"Solidity\",\"output\":{\"abi\":[{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"internalType\":\"bytes32\",\"name\":\"withdrawalRoot\",\"type\":\"bytes32\"},{\"components\":[{\"internalType\":\"address\",\"name\":\"staker\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"delegatedTo\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"withdrawer\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"nonce\",\"type\":\"uint256\"},{\"internalType\":\"uint32\",\"name\":\"startBlock\",\"type\":\"uint32\"},{\"internalType\":\"address[]\",\"name\":\"strategies\",\"type\":\"address[]\"},{\"internalType\":\"uint256[]\",\"name\":\"shares\",\"type\":\"uint256[]\"}],\"indexed\":false,\"internalType\":\"struct IDelegationManager.Withdrawal\",\"name\":\"withdrawal\",\"type\":\"tuple\"}],\"name\":\"WithdrawalQueued\",\"type\":\"event\"},{\"inputs\":[{\"components\":[{\"internalType\":\"address\",\"name\":\"staker\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"delegatedTo\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"withdrawer\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"nonce\",\"type\":\"uint256\"},{\"internalType\":\"uint32\",\"name\":\"startBlock\",\"type\":\"uint32\"},{\"internalType\":\"address[]\",\"name\":\"strategies\",\"type\":\"address[]\"},{\"internalType\":\"uint256[]\",\"name\":\"shares\",\"type\":\"uint256[]\"}],\"internalType\":\"struct IDelegationManager.Withdrawal\",\"name\":\"withdrawal\",\"type\":\"tuple\"},{\"internalType\":\"contract IERC20[]\",\"name\":\"tokens\",\"type\":\"address[]\"},{\"internalType\":\"uint256\",\"name\":\"middlewareTimesIndex\",\"type\":\"uint256\"},{\"internalType\":\"bool\",\"name\":\"receiveAsTokens\",\"type\":\"bool\"}],\"name\":\"completeQueuedWithdrawal\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"operator\",\"type\":\"address\"},{\"components\":[{\"internalType\":\"bytes\",\"name\":\"signature\",\"type\":\"bytes\"},{\"internalType\":\"uint256\",\"name\":\"expiry\",\"type\":\"uint256\"}],\"internalType\":\"struct IDelegationManager.SignatureWithExpiry\",\"name\":\"approverSignatureAndExpiry\",\"type\":\"tuple\"},{\"internalType\":\"bytes32\",\"name\":\"approverSalt\",\"type\":\"bytes32\"}],\"name\":\"delegateTo\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"operator\",\"type\":\"address\"}],\"name\":\"isOperator\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"components\":[{\"internalType\":\"address[]\",\"name\":\"strategies\",\"type\":\"address[]\"},{\"internalType\":\"uint256[]\",\"name\":\"shares\",\"type\":\"uint256[]\"},{\"internalType\":\"address\",\"name\":\"withdrawer\",\"type\":\"address\"}],\"internalType\":\"struct IDelegationManager.QueuedWithdrawalParams[]\",\"name\":\"queuedWithdrawalParams\",\"type\":\"tuple[]\"}],\"name\":\"queueWithdrawals\",\"outputs\":[{\"internalType\":\"bytes32[]\",\"name\":\"\",\"type\":\"bytes32[]\"}],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"staker\",\"type\":\"address\"}],\"name\":\"undelegate\",\"outputs\":[{\"internalType\":\"bytes32[]\",\"name\":\"withdrawalRoots\",\"type\":\"bytes32[]\"}],\"stateMutability\":\"nonpayable\",\"type\":\"function\"}],\"devdoc\":{\"kind\":\"dev\",\"methods\":{},\"version\":1},\"userdoc\":{\"kind\":\"user\",\"methods\":{},\"version\":1}},\"settings\":{\"compilationTarget\":{\"project:/contracts/interfaces/IDelegationManager.sol\":\"IDelegationManager\"},\"evmVersion\":\"shanghai\",\"libraries\":{},\"metadata\":{\"bytecodeHash\":\"ipfs\"},\"optimizer\":{\"enabled\":true,\"runs\":20},\"remappings\":[],\"viaIR\":true},\"sources\":{\"@openzeppelin/contracts/token/ERC20/IERC20.sol\":{\"keccak256\":\"0x287b55befed2961a7eabd7d7b1b2839cbca8a5b80ef8dcbb25ed3d4c2002c305\",\"license\":\"MIT\",\"urls\":[\"bzz-raw://bd39944e8fc06be6dbe2dd1d8449b5336e23c6a7ba3e8e9ae5ae0f37f35283f5\",\"dweb:/ipfs/QmPV3FGYjVwvKSgAXKUN3r9T9GwniZz83CxBpM7vyj2G53\"]},\"project:/contracts/interfaces/IDelegationManager.sol\":{\"keccak256\":\"0xcf3c3e840a5a6dcad247e05f40a54ab173dfb61d0b707a71c7ddf00abbb11c3f\",\"license\":\"MIT\",\"urls\":[\"bzz-raw://9722770ab8f82c9d958196b8421d803c4367d1fbe7b067c22a7c2c1eff516dfa\",\"dweb:/ipfs/QmYYzM2sys7TqcdCB3tXG3D7ree7c83h7ZWKKhSNcqPSmn\"]}},\"version\":1}",
+  "bytecode": "0x",
+  "deployedBytecode": "0x",
+  "immutableReferences": {},
+  "generatedSources": [],
+  "deployedGeneratedSources": [],
+  "sourceMap": "",
+  "deployedSourceMap": "",
+  "source": "// SPDX-License-Identifier: MIT\npragma solidity 0.8.21;\n\nimport {IERC20} from \"@openzeppelin/contracts/token/ERC20/IERC20.sol\";\n\ninterface IDelegationManager {\n    struct SignatureWithExpiry {\n        bytes signature;\n        uint256 expiry;\n    }\n\n    struct QueuedWithdrawalParams {\n        address[] strategies;\n        uint256[] shares;\n        address withdrawer;\n    }\n\n    struct Withdrawal {\n        address staker;\n        address delegatedTo;\n        address withdrawer;\n        uint256 nonce;\n        uint32 startBlock;\n        address[] strategies;\n        uint256[] shares;\n    }\n\n    event WithdrawalQueued(bytes32 withdrawalRoot, Withdrawal withdrawal);\n\n    function delegateTo(\n        address operator,\n        SignatureWithExpiry memory approverSignatureAndExpiry,\n        bytes32 approverSalt\n    ) external;\n\n    function undelegate(\n        address staker\n    ) external returns (bytes32[] memory withdrawalRoots);\n\n    function queueWithdrawals(\n        QueuedWithdrawalParams[] calldata queuedWithdrawalParams\n    ) external returns (bytes32[] memory);\n\n    function completeQueuedWithdrawal(\n        Withdrawal calldata withdrawal,\n        IERC20[] calldata tokens,\n        uint256 middlewareTimesIndex,\n        bool receiveAsTokens\n    ) external;\n\n    function isOperator(address operator) external view returns (bool);\n}\n",
+  "sourcePath": "/Users/mingyuzhang/Downloads/stone-vault-v1/contracts/interfaces/IDelegationManager.sol",
+  "ast": {
+    "absolutePath": "project:/contracts/interfaces/IDelegationManager.sol",
+    "exportedSymbols": {
+      "IDelegationManager": [
+        11407
+      ],
+      "IERC20": [
+        3716
+      ]
+    },
+    "id": 11408,
+    "license": "MIT",
+    "nodeType": "SourceUnit",
+    "nodes": [
+      {
+        "id": 11317,
+        "literals": [
+          "solidity",
+          "0.8",
+          ".21"
+        ],
+        "nodeType": "PragmaDirective",
+        "src": "32:23:55"
+      },
+      {
+        "absolutePath": "@openzeppelin/contracts/token/ERC20/IERC20.sol",
+        "file": "@openzeppelin/contracts/token/ERC20/IERC20.sol",
+        "id": 11319,
+        "nameLocation": "-1:-1:-1",
+        "nodeType": "ImportDirective",
+        "scope": 11408,
+        "sourceUnit": 3717,
+        "src": "57:70:55",
+        "symbolAliases": [
+          {
+            "foreign": {
+              "id": 11318,
+              "name": "IERC20",
+              "nodeType": "Identifier",
+              "overloadedDeclarations": [],
+              "referencedDeclaration": 3716,
+              "src": "65:6:55",
+              "typeDescriptions": {}
+            },
+            "nameLocation": "-1:-1:-1"
+          }
+        ],
+        "unitAlias": ""
+      },
+      {
+        "abstract": false,
+        "baseContracts": [],
+        "canonicalName": "IDelegationManager",
+        "contractDependencies": [],
+        "contractKind": "interface",
+        "fullyImplemented": false,
+        "id": 11407,
+        "linearizedBaseContracts": [
+          11407
+        ],
+        "name": "IDelegationManager",
+        "nameLocation": "139:18:55",
+        "nodeType": "ContractDefinition",
+        "nodes": [
+          {
+            "canonicalName": "IDelegationManager.SignatureWithExpiry",
+            "id": 11324,
+            "members": [
+              {
+                "constant": false,
+                "id": 11321,
+                "mutability": "mutable",
+                "name": "signature",
+                "nameLocation": "207:9:55",
+                "nodeType": "VariableDeclaration",
+                "scope": 11324,
+                "src": "201:15:55",
+                "stateVariable": false,
+                "storageLocation": "default",
+                "typeDescriptions": {
+                  "typeIdentifier": "t_bytes_storage_ptr",
+                  "typeString": "bytes"
+                },
+                "typeName": {
+                  "id": 11320,
+                  "name": "bytes",
+                  "nodeType": "ElementaryTypeName",
+                  "src": "201:5:55",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_bytes_storage_ptr",
+                    "typeString": "bytes"
+                  }
+                },
+                "visibility": "internal"
+              },
+              {
+                "constant": false,
+                "id": 11323,
+                "mutability": "mutable",
+                "name": "expiry",
+                "nameLocation": "234:6:55",
+                "nodeType": "VariableDeclaration",
+                "scope": 11324,
+                "src": "226:14:55",
+                "stateVariable": false,
+                "storageLocation": "default",
+                "typeDescriptions": {
+                  "typeIdentifier": "t_uint256",
+                  "typeString": "uint256"
+                },
+                "typeName": {
+                  "id": 11322,
+                  "name": "uint256",
+                  "nodeType": "ElementaryTypeName",
+                  "src": "226:7:55",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_uint256",
+                    "typeString": "uint256"
+                  }
+                },
+                "visibility": "internal"
+              }
+            ],
+            "name": "SignatureWithExpiry",
+            "nameLocation": "171:19:55",
+            "nodeType": "StructDefinition",
+            "scope": 11407,
+            "src": "164:83:55",
+            "visibility": "public"
+          },
+          {
+            "canonicalName": "IDelegationManager.QueuedWithdrawalParams",
+            "id": 11333,
+            "members": [
+              {
+                "constant": false,
+                "id": 11327,
+                "mutability": "mutable",
+                "name": "strategies",
+                "nameLocation": "303:10:55",
+                "nodeType": "VariableDeclaration",
+                "scope": 11333,
+                "src": "293:20:55",
+                "stateVariable": false,
+                "storageLocation": "default",
+                "typeDescriptions": {
+                  "typeIdentifier": "t_array$_t_address_$dyn_storage_ptr",
+                  "typeString": "address[]"
+                },
+                "typeName": {
+                  "baseType": {
+                    "id": 11325,
+                    "name": "address",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "293:7:55",
+                    "stateMutability": "nonpayable",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_address",
+                      "typeString": "address"
+                    }
+                  },
+                  "id": 11326,
+                  "nodeType": "ArrayTypeName",
+                  "src": "293:9:55",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_array$_t_address_$dyn_storage_ptr",
+                    "typeString": "address[]"
+                  }
+                },
+                "visibility": "internal"
+              },
+              {
+                "constant": false,
+                "id": 11330,
+                "mutability": "mutable",
+                "name": "shares",
+                "nameLocation": "333:6:55",
+                "nodeType": "VariableDeclaration",
+                "scope": 11333,
+                "src": "323:16:55",
+                "stateVariable": false,
+                "storageLocation": "default",
+                "typeDescriptions": {
+                  "typeIdentifier": "t_array$_t_uint256_$dyn_storage_ptr",
+                  "typeString": "uint256[]"
+                },
+                "typeName": {
+                  "baseType": {
+                    "id": 11328,
+                    "name": "uint256",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "323:7:55",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_uint256",
+                      "typeString": "uint256"
+                    }
+                  },
+                  "id": 11329,
+                  "nodeType": "ArrayTypeName",
+                  "src": "323:9:55",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_array$_t_uint256_$dyn_storage_ptr",
+                    "typeString": "uint256[]"
+                  }
+                },
+                "visibility": "internal"
+              },
+              {
+                "constant": false,
+                "id": 11332,
+                "mutability": "mutable",
+                "name": "withdrawer",
+                "nameLocation": "357:10:55",
+                "nodeType": "VariableDeclaration",
+                "scope": 11333,
+                "src": "349:18:55",
+                "stateVariable": false,
+                "storageLocation": "default",
+                "typeDescriptions": {
+                  "typeIdentifier": "t_address",
+                  "typeString": "address"
+                },
+                "typeName": {
+                  "id": 11331,
+                  "name": "address",
+                  "nodeType": "ElementaryTypeName",
+                  "src": "349:7:55",
+                  "stateMutability": "nonpayable",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_address",
+                    "typeString": "address"
+                  }
+                },
+                "visibility": "internal"
+              }
+            ],
+            "name": "QueuedWithdrawalParams",
+            "nameLocation": "260:22:55",
+            "nodeType": "StructDefinition",
+            "scope": 11407,
+            "src": "253:121:55",
+            "visibility": "public"
+          },
+          {
+            "canonicalName": "IDelegationManager.Withdrawal",
+            "id": 11350,
+            "members": [
+              {
+                "constant": false,
+                "id": 11335,
+                "mutability": "mutable",
+                "name": "staker",
+                "nameLocation": "416:6:55",
+                "nodeType": "VariableDeclaration",
+                "scope": 11350,
+                "src": "408:14:55",
+                "stateVariable": false,
+                "storageLocation": "default",
+                "typeDescriptions": {
+                  "typeIdentifier": "t_address",
+                  "typeString": "address"
+                },
+                "typeName": {
+                  "id": 11334,
+                  "name": "address",
+                  "nodeType": "ElementaryTypeName",
+                  "src": "408:7:55",
+                  "stateMutability": "nonpayable",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_address",
+                    "typeString": "address"
+                  }
+                },
+                "visibility": "internal"
+              },
+              {
+                "constant": false,
+                "id": 11337,
+                "mutability": "mutable",
+                "name": "delegatedTo",
+                "nameLocation": "440:11:55",
+                "nodeType": "VariableDeclaration",
+                "scope": 11350,
+                "src": "432:19:55",
+                "stateVariable": false,
+                "storageLocation": "default",
+                "typeDescriptions": {
+                  "typeIdentifier": "t_address",
+                  "typeString": "address"
+                },
+                "typeName": {
+                  "id": 11336,
+                  "name": "address",
+                  "nodeType": "ElementaryTypeName",
+                  "src": "432:7:55",
+                  "stateMutability": "nonpayable",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_address",
+                    "typeString": "address"
+                  }
+                },
+                "visibility": "internal"
+              },
+              {
+                "constant": false,
+                "id": 11339,
+                "mutability": "mutable",
+                "name": "withdrawer",
+                "nameLocation": "469:10:55",
+                "nodeType": "VariableDeclaration",
+                "scope": 11350,
+                "src": "461:18:55",
+                "stateVariable": false,
+                "storageLocation": "default",
+                "typeDescriptions": {
+                  "typeIdentifier": "t_address",
+                  "typeString": "address"
+                },
+                "typeName": {
+                  "id": 11338,
+                  "name": "address",
+                  "nodeType": "ElementaryTypeName",
+                  "src": "461:7:55",
+                  "stateMutability": "nonpayable",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_address",
+                    "typeString": "address"
+                  }
+                },
+                "visibility": "internal"
+              },
+              {
+                "constant": false,
+                "id": 11341,
+                "mutability": "mutable",
+                "name": "nonce",
+                "nameLocation": "497:5:55",
+                "nodeType": "VariableDeclaration",
+                "scope": 11350,
+                "src": "489:13:55",
+                "stateVariable": false,
+                "storageLocation": "default",
+                "typeDescriptions": {
+                  "typeIdentifier": "t_uint256",
+                  "typeString": "uint256"
+                },
+                "typeName": {
+                  "id": 11340,
+                  "name": "uint256",
+                  "nodeType": "ElementaryTypeName",
+                  "src": "489:7:55",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_uint256",
+                    "typeString": "uint256"
+                  }
+                },
+                "visibility": "internal"
+              },
+              {
+                "constant": false,
+                "id": 11343,
+                "mutability": "mutable",
+                "name": "startBlock",
+                "nameLocation": "519:10:55",
+                "nodeType": "VariableDeclaration",
+                "scope": 11350,
+                "src": "512:17:55",
+                "stateVariable": false,
+                "storageLocation": "default",
+                "typeDescriptions": {
+                  "typeIdentifier": "t_uint32",
+                  "typeString": "uint32"
+                },
+                "typeName": {
+                  "id": 11342,
+                  "name": "uint32",
+                  "nodeType": "ElementaryTypeName",
+                  "src": "512:6:55",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_uint32",
+                    "typeString": "uint32"
+                  }
+                },
+                "visibility": "internal"
+              },
+              {
+                "constant": false,
+                "id": 11346,
+                "mutability": "mutable",
+                "name": "strategies",
+                "nameLocation": "549:10:55",
+                "nodeType": "VariableDeclaration",
+                "scope": 11350,
+                "src": "539:20:55",
+                "stateVariable": false,
+                "storageLocation": "default",
+                "typeDescriptions": {
+                  "typeIdentifier": "t_array$_t_address_$dyn_storage_ptr",
+                  "typeString": "address[]"
+                },
+                "typeName": {
+                  "baseType": {
+                    "id": 11344,
+                    "name": "address",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "539:7:55",
+                    "stateMutability": "nonpayable",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_address",
+                      "typeString": "address"
+                    }
+                  },
+                  "id": 11345,
+                  "nodeType": "ArrayTypeName",
+                  "src": "539:9:55",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_array$_t_address_$dyn_storage_ptr",
+                    "typeString": "address[]"
+                  }
+                },
+                "visibility": "internal"
+              },
+              {
+                "constant": false,
+                "id": 11349,
+                "mutability": "mutable",
+                "name": "shares",
+                "nameLocation": "579:6:55",
+                "nodeType": "VariableDeclaration",
+                "scope": 11350,
+                "src": "569:16:55",
+                "stateVariable": false,
+                "storageLocation": "default",
+                "typeDescriptions": {
+                  "typeIdentifier": "t_array$_t_uint256_$dyn_storage_ptr",
+                  "typeString": "uint256[]"
+                },
+                "typeName": {
+                  "baseType": {
+                    "id": 11347,
+                    "name": "uint256",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "569:7:55",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_uint256",
+                      "typeString": "uint256"
+                    }
+                  },
+                  "id": 11348,
+                  "nodeType": "ArrayTypeName",
+                  "src": "569:9:55",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_array$_t_uint256_$dyn_storage_ptr",
+                    "typeString": "uint256[]"
+                  }
+                },
+                "visibility": "internal"
+              }
+            ],
+            "name": "Withdrawal",
+            "nameLocation": "387:10:55",
+            "nodeType": "StructDefinition",
+            "scope": 11407,
+            "src": "380:212:55",
+            "visibility": "public"
+          },
+          {
+            "anonymous": false,
+            "eventSelector": "9009ab153e8014fbfb02f2217f5cde7aa7f9ad734ae85ca3ee3f4ca2fdd499f9",
+            "id": 11357,
+            "name": "WithdrawalQueued",
+            "nameLocation": "604:16:55",
+            "nodeType": "EventDefinition",
+            "parameters": {
+              "id": 11356,
+              "nodeType": "ParameterList",
+              "parameters": [
+                {
+                  "constant": false,
+                  "id": 11352,
+                  "indexed": false,
+                  "mutability": "mutable",
+                  "name": "withdrawalRoot",
+                  "nameLocation": "629:14:55",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 11357,
+                  "src": "621:22:55",
+                  "stateVariable": false,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_bytes32",
+                    "typeString": "bytes32"
+                  },
+                  "typeName": {
+                    "id": 11351,
+                    "name": "bytes32",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "621:7:55",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_bytes32",
+                      "typeString": "bytes32"
+                    }
+                  },
+                  "visibility": "internal"
+                },
+                {
+                  "constant": false,
+                  "id": 11355,
+                  "indexed": false,
+                  "mutability": "mutable",
+                  "name": "withdrawal",
+                  "nameLocation": "656:10:55",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 11357,
+                  "src": "645:21:55",
+                  "stateVariable": false,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_struct$_Withdrawal_$11350_memory_ptr",
+                    "typeString": "struct IDelegationManager.Withdrawal"
+                  },
+                  "typeName": {
+                    "id": 11354,
+                    "nodeType": "UserDefinedTypeName",
+                    "pathNode": {
+                      "id": 11353,
+                      "name": "Withdrawal",
+                      "nameLocations": [
+                        "645:10:55"
+                      ],
+                      "nodeType": "IdentifierPath",
+                      "referencedDeclaration": 11350,
+                      "src": "645:10:55"
+                    },
+                    "referencedDeclaration": 11350,
+                    "src": "645:10:55",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_struct$_Withdrawal_$11350_storage_ptr",
+                      "typeString": "struct IDelegationManager.Withdrawal"
+                    }
+                  },
+                  "visibility": "internal"
+                }
+              ],
+              "src": "620:47:55"
+            },
+            "src": "598:70:55"
+          },
+          {
+            "functionSelector": "eea9064b",
+            "id": 11367,
+            "implemented": false,
+            "kind": "function",
+            "modifiers": [],
+            "name": "delegateTo",
+            "nameLocation": "683:10:55",
+            "nodeType": "FunctionDefinition",
+            "parameters": {
+              "id": 11365,
+              "nodeType": "ParameterList",
+              "parameters": [
+                {
+                  "constant": false,
+                  "id": 11359,
+                  "mutability": "mutable",
+                  "name": "operator",
+                  "nameLocation": "711:8:55",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 11367,
+                  "src": "703:16:55",
+                  "stateVariable": false,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_address",
+                    "typeString": "address"
+                  },
+                  "typeName": {
+                    "id": 11358,
+                    "name": "address",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "703:7:55",
+                    "stateMutability": "nonpayable",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_address",
+                      "typeString": "address"
+                    }
+                  },
+                  "visibility": "internal"
+                },
+                {
+                  "constant": false,
+                  "id": 11362,
+                  "mutability": "mutable",
+                  "name": "approverSignatureAndExpiry",
+                  "nameLocation": "756:26:55",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 11367,
+                  "src": "729:53:55",
+                  "stateVariable": false,
+                  "storageLocation": "memory",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_struct$_SignatureWithExpiry_$11324_memory_ptr",
+                    "typeString": "struct IDelegationManager.SignatureWithExpiry"
+                  },
+                  "typeName": {
+                    "id": 11361,
+                    "nodeType": "UserDefinedTypeName",
+                    "pathNode": {
+                      "id": 11360,
+                      "name": "SignatureWithExpiry",
+                      "nameLocations": [
+                        "729:19:55"
+                      ],
+                      "nodeType": "IdentifierPath",
+                      "referencedDeclaration": 11324,
+                      "src": "729:19:55"
+                    },
+                    "referencedDeclaration": 11324,
+                    "src": "729:19:55",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_struct$_SignatureWithExpiry_$11324_storage_ptr",
+                      "typeString": "struct IDelegationManager.SignatureWithExpiry"
+                    }
+                  },
+                  "visibility": "internal"
+                },
+                {
+                  "constant": false,
+                  "id": 11364,
+                  "mutability": "mutable",
+                  "name": "approverSalt",
+                  "nameLocation": "800:12:55",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 11367,
+                  "src": "792:20:55",
+                  "stateVariable": false,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_bytes32",
+                    "typeString": "bytes32"
+                  },
+                  "typeName": {
+                    "id": 11363,
+                    "name": "bytes32",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "792:7:55",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_bytes32",
+                      "typeString": "bytes32"
+                    }
+                  },
+                  "visibility": "internal"
+                }
+              ],
+              "src": "693:125:55"
+            },
+            "returnParameters": {
+              "id": 11366,
+              "nodeType": "ParameterList",
+              "parameters": [],
+              "src": "827:0:55"
+            },
+            "scope": 11407,
+            "src": "674:154:55",
+            "stateMutability": "nonpayable",
+            "virtual": false,
+            "visibility": "external"
+          },
+          {
+            "functionSelector": "da8be864",
+            "id": 11375,
+            "implemented": false,
+            "kind": "function",
+            "modifiers": [],
+            "name": "undelegate",
+            "nameLocation": "843:10:55",
+            "nodeType": "FunctionDefinition",
+            "parameters": {
+              "id": 11370,
+              "nodeType": "ParameterList",
+              "parameters": [
+                {
+                  "constant": false,
+                  "id": 11369,
+                  "mutability": "mutable",
+                  "name": "staker",
+                  "nameLocation": "871:6:55",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 11375,
+                  "src": "863:14:55",
+                  "stateVariable": false,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_address",
+                    "typeString": "address"
+                  },
+                  "typeName": {
+                    "id": 11368,
+                    "name": "address",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "863:7:55",
+                    "stateMutability": "nonpayable",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_address",
+                      "typeString": "address"
+                    }
+                  },
+                  "visibility": "internal"
+                }
+              ],
+              "src": "853:30:55"
+            },
+            "returnParameters": {
+              "id": 11374,
+              "nodeType": "ParameterList",
+              "parameters": [
+                {
+                  "constant": false,
+                  "id": 11373,
+                  "mutability": "mutable",
+                  "name": "withdrawalRoots",
+                  "nameLocation": "919:15:55",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 11375,
+                  "src": "902:32:55",
+                  "stateVariable": false,
+                  "storageLocation": "memory",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_array$_t_bytes32_$dyn_memory_ptr",
+                    "typeString": "bytes32[]"
+                  },
+                  "typeName": {
+                    "baseType": {
+                      "id": 11371,
+                      "name": "bytes32",
+                      "nodeType": "ElementaryTypeName",
+                      "src": "902:7:55",
+                      "typeDescriptions": {
+                        "typeIdentifier": "t_bytes32",
+                        "typeString": "bytes32"
+                      }
+                    },
+                    "id": 11372,
+                    "nodeType": "ArrayTypeName",
+                    "src": "902:9:55",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_array$_t_bytes32_$dyn_storage_ptr",
+                      "typeString": "bytes32[]"
+                    }
+                  },
+                  "visibility": "internal"
+                }
+              ],
+              "src": "901:34:55"
+            },
+            "scope": 11407,
+            "src": "834:102:55",
+            "stateMutability": "nonpayable",
+            "virtual": false,
+            "visibility": "external"
+          },
+          {
+            "functionSelector": "0dd8dd02",
+            "id": 11385,
+            "implemented": false,
+            "kind": "function",
+            "modifiers": [],
+            "name": "queueWithdrawals",
+            "nameLocation": "951:16:55",
+            "nodeType": "FunctionDefinition",
+            "parameters": {
+              "id": 11380,
+              "nodeType": "ParameterList",
+              "parameters": [
+                {
+                  "constant": false,
+                  "id": 11379,
+                  "mutability": "mutable",
+                  "name": "queuedWithdrawalParams",
+                  "nameLocation": "1011:22:55",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 11385,
+                  "src": "977:56:55",
+                  "stateVariable": false,
+                  "storageLocation": "calldata",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_array$_t_struct$_QueuedWithdrawalParams_$11333_calldata_ptr_$dyn_calldata_ptr",
+                    "typeString": "struct IDelegationManager.QueuedWithdrawalParams[]"
+                  },
+                  "typeName": {
+                    "baseType": {
+                      "id": 11377,
+                      "nodeType": "UserDefinedTypeName",
+                      "pathNode": {
+                        "id": 11376,
+                        "name": "QueuedWithdrawalParams",
+                        "nameLocations": [
+                          "977:22:55"
+                        ],
+                        "nodeType": "IdentifierPath",
+                        "referencedDeclaration": 11333,
+                        "src": "977:22:55"
+                      },
+                      "referencedDeclaration": 11333,
+                      "src": "977:22:55",
+                      "typeDescriptions": {
+                        "typeIdentifier": "t_struct$_QueuedWithdrawalParams_$11333_storage_ptr",
+                        "typeString": "struct IDelegationManager.QueuedWithdrawalParams"
+                      }
+                    },
+                    "id": 11378,
+                    "nodeType": "ArrayTypeName",
+                    "src": "977:24:55",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_array$_t_struct$_QueuedWithdrawalParams_$11333_storage_$dyn_storage_ptr",
+                      "typeString": "struct IDelegationManager.QueuedWithdrawalParams[]"
+                    }
+                  },
+                  "visibility": "internal"
+                }
+              ],
+              "src": "967:72:55"
+            },
+            "returnParameters": {
+              "id": 11384,
+              "nodeType": "ParameterList",
+              "parameters": [
+                {
+                  "constant": false,
+                  "id": 11383,
+                  "mutability": "mutable",
+                  "name": "",
+                  "nameLocation": "-1:-1:-1",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 11385,
+                  "src": "1058:16:55",
+                  "stateVariable": false,
+                  "storageLocation": "memory",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_array$_t_bytes32_$dyn_memory_ptr",
+                    "typeString": "bytes32[]"
+                  },
+                  "typeName": {
+                    "baseType": {
+                      "id": 11381,
+                      "name": "bytes32",
+                      "nodeType": "ElementaryTypeName",
+                      "src": "1058:7:55",
+                      "typeDescriptions": {
+                        "typeIdentifier": "t_bytes32",
+                        "typeString": "bytes32"
+                      }
+                    },
+                    "id": 11382,
+                    "nodeType": "ArrayTypeName",
+                    "src": "1058:9:55",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_array$_t_bytes32_$dyn_storage_ptr",
+                      "typeString": "bytes32[]"
+                    }
+                  },
+                  "visibility": "internal"
+                }
+              ],
+              "src": "1057:18:55"
+            },
+            "scope": 11407,
+            "src": "942:134:55",
+            "stateMutability": "nonpayable",
+            "virtual": false,
+            "visibility": "external"
+          },
+          {
+            "functionSelector": "60d7faed",
+            "id": 11399,
+            "implemented": false,
+            "kind": "function",
+            "modifiers": [],
+            "name": "completeQueuedWithdrawal",
+            "nameLocation": "1091:24:55",
+            "nodeType": "FunctionDefinition",
+            "parameters": {
+              "id": 11397,
+              "nodeType": "ParameterList",
+              "parameters": [
+                {
+                  "constant": false,
+                  "id": 11388,
+                  "mutability": "mutable",
+                  "name": "withdrawal",
+                  "nameLocation": "1145:10:55",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 11399,
+                  "src": "1125:30:55",
+                  "stateVariable": false,
+                  "storageLocation": "calldata",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_struct$_Withdrawal_$11350_calldata_ptr",
+                    "typeString": "struct IDelegationManager.Withdrawal"
+                  },
+                  "typeName": {
+                    "id": 11387,
+                    "nodeType": "UserDefinedTypeName",
+                    "pathNode": {
+                      "id": 11386,
+                      "name": "Withdrawal",
+                      "nameLocations": [
+                        "1125:10:55"
+                      ],
+                      "nodeType": "IdentifierPath",
+                      "referencedDeclaration": 11350,
+                      "src": "1125:10:55"
+                    },
+                    "referencedDeclaration": 11350,
+                    "src": "1125:10:55",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_struct$_Withdrawal_$11350_storage_ptr",
+                      "typeString": "struct IDelegationManager.Withdrawal"
+                    }
+                  },
+                  "visibility": "internal"
+                },
+                {
+                  "constant": false,
+                  "id": 11392,
+                  "mutability": "mutable",
+                  "name": "tokens",
+                  "nameLocation": "1183:6:55",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 11399,
+                  "src": "1165:24:55",
+                  "stateVariable": false,
+                  "storageLocation": "calldata",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_array$_t_contract$_IERC20_$3716_$dyn_calldata_ptr",
+                    "typeString": "contract IERC20[]"
+                  },
+                  "typeName": {
+                    "baseType": {
+                      "id": 11390,
+                      "nodeType": "UserDefinedTypeName",
+                      "pathNode": {
+                        "id": 11389,
+                        "name": "IERC20",
+                        "nameLocations": [
+                          "1165:6:55"
+                        ],
+                        "nodeType": "IdentifierPath",
+                        "referencedDeclaration": 3716,
+                        "src": "1165:6:55"
+                      },
+                      "referencedDeclaration": 3716,
+                      "src": "1165:6:55",
+                      "typeDescriptions": {
+                        "typeIdentifier": "t_contract$_IERC20_$3716",
+                        "typeString": "contract IERC20"
+                      }
+                    },
+                    "id": 11391,
+                    "nodeType": "ArrayTypeName",
+                    "src": "1165:8:55",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_array$_t_contract$_IERC20_$3716_$dyn_storage_ptr",
+                      "typeString": "contract IERC20[]"
+                    }
+                  },
+                  "visibility": "internal"
+                },
+                {
+                  "constant": false,
+                  "id": 11394,
+                  "mutability": "mutable",
+                  "name": "middlewareTimesIndex",
+                  "nameLocation": "1207:20:55",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 11399,
+                  "src": "1199:28:55",
+                  "stateVariable": false,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_uint256",
+                    "typeString": "uint256"
+                  },
+                  "typeName": {
+                    "id": 11393,
+                    "name": "uint256",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "1199:7:55",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_uint256",
+                      "typeString": "uint256"
+                    }
+                  },
+                  "visibility": "internal"
+                },
+                {
+                  "constant": false,
+                  "id": 11396,
+                  "mutability": "mutable",
+                  "name": "receiveAsTokens",
+                  "nameLocation": "1242:15:55",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 11399,
+                  "src": "1237:20:55",
+                  "stateVariable": false,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_bool",
+                    "typeString": "bool"
+                  },
+                  "typeName": {
+                    "id": 11395,
+                    "name": "bool",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "1237:4:55",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_bool",
+                      "typeString": "bool"
+                    }
+                  },
+                  "visibility": "internal"
+                }
+              ],
+              "src": "1115:148:55"
+            },
+            "returnParameters": {
+              "id": 11398,
+              "nodeType": "ParameterList",
+              "parameters": [],
+              "src": "1272:0:55"
+            },
+            "scope": 11407,
+            "src": "1082:191:55",
+            "stateMutability": "nonpayable",
+            "virtual": false,
+            "visibility": "external"
+          },
+          {
+            "functionSelector": "6d70f7ae",
+            "id": 11406,
+            "implemented": false,
+            "kind": "function",
+            "modifiers": [],
+            "name": "isOperator",
+            "nameLocation": "1288:10:55",
+            "nodeType": "FunctionDefinition",
+            "parameters": {
+              "id": 11402,
+              "nodeType": "ParameterList",
+              "parameters": [
+                {
+                  "constant": false,
+                  "id": 11401,
+                  "mutability": "mutable",
+                  "name": "operator",
+                  "nameLocation": "1307:8:55",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 11406,
+                  "src": "1299:16:55",
+                  "stateVariable": false,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_address",
+                    "typeString": "address"
+                  },
+                  "typeName": {
+                    "id": 11400,
+                    "name": "address",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "1299:7:55",
+                    "stateMutability": "nonpayable",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_address",
+                      "typeString": "address"
+                    }
+                  },
+                  "visibility": "internal"
+                }
+              ],
+              "src": "1298:18:55"
+            },
+            "returnParameters": {
+              "id": 11405,
+              "nodeType": "ParameterList",
+              "parameters": [
+                {
+                  "constant": false,
+                  "id": 11404,
+                  "mutability": "mutable",
+                  "name": "",
+                  "nameLocation": "-1:-1:-1",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 11406,
+                  "src": "1340:4:55",
+                  "stateVariable": false,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_bool",
+                    "typeString": "bool"
+                  },
+                  "typeName": {
+                    "id": 11403,
+                    "name": "bool",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "1340:4:55",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_bool",
+                      "typeString": "bool"
+                    }
+                  },
+                  "visibility": "internal"
+                }
+              ],
+              "src": "1339:6:55"
+            },
+            "scope": 11407,
+            "src": "1279:67:55",
+            "stateMutability": "view",
+            "virtual": false,
+            "visibility": "external"
+          }
+        ],
+        "scope": 11408,
+        "src": "129:1219:55",
+        "usedErrors": [],
+        "usedEvents": [
+          11357
+        ]
+      }
+    ],
+    "src": "32:1317:55"
+  },
+  "compiler": {
+    "name": "solc",
+    "version": "0.8.21+commit.d9974bed.Emscripten.clang"
+  },
+  "networks": {},
+  "schemaVersion": "3.4.16",
+  "updatedAt": "2024-06-07T05:41:32.617Z",
+  "devdoc": {
+    "kind": "dev",
+    "methods": {},
+    "version": 1
+  },
+  "userdoc": {
+    "kind": "user",
+    "methods": {},
+    "version": 1
+  }
+}

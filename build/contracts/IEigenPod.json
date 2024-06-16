@@ -1,0 +1,1155 @@
+{
+  "contractName": "IEigenPod",
+  "abi": [
+    {
+      "inputs": [],
+      "name": "withdrawBeforeRestaking",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint64",
+          "name": "oracleTimestamp",
+          "type": "uint64"
+        },
+        {
+          "components": [
+            {
+              "internalType": "bytes32",
+              "name": "beaconStateRoot",
+              "type": "bytes32"
+            },
+            {
+              "internalType": "bytes",
+              "name": "proof",
+              "type": "bytes"
+            }
+          ],
+          "internalType": "struct IEigenPod.StateRootProof",
+          "name": "stateRootProof",
+          "type": "tuple"
+        },
+        {
+          "components": [
+            {
+              "internalType": "bytes",
+              "name": "withdrawalProof",
+              "type": "bytes"
+            },
+            {
+              "internalType": "bytes",
+              "name": "slotProof",
+              "type": "bytes"
+            },
+            {
+              "internalType": "bytes",
+              "name": "executionPayloadProof",
+              "type": "bytes"
+            },
+            {
+              "internalType": "bytes",
+              "name": "timestampProof",
+              "type": "bytes"
+            },
+            {
+              "internalType": "bytes",
+              "name": "historicalSummaryBlockRootProof",
+              "type": "bytes"
+            },
+            {
+              "internalType": "uint64",
+              "name": "blockRootIndex",
+              "type": "uint64"
+            },
+            {
+              "internalType": "uint64",
+              "name": "historicalSummaryIndex",
+              "type": "uint64"
+            },
+            {
+              "internalType": "uint64",
+              "name": "withdrawalIndex",
+              "type": "uint64"
+            },
+            {
+              "internalType": "bytes32",
+              "name": "blockRoot",
+              "type": "bytes32"
+            },
+            {
+              "internalType": "bytes32",
+              "name": "slotRoot",
+              "type": "bytes32"
+            },
+            {
+              "internalType": "bytes32",
+              "name": "timestampRoot",
+              "type": "bytes32"
+            },
+            {
+              "internalType": "bytes32",
+              "name": "executionPayloadRoot",
+              "type": "bytes32"
+            }
+          ],
+          "internalType": "struct IEigenPod.WithdrawalProof[]",
+          "name": "withdrawalProofs",
+          "type": "tuple[]"
+        },
+        {
+          "internalType": "bytes[]",
+          "name": "validatorFieldsProofs",
+          "type": "bytes[]"
+        },
+        {
+          "internalType": "bytes32[][]",
+          "name": "validatorFields",
+          "type": "bytes32[][]"
+        },
+        {
+          "internalType": "bytes32[][]",
+          "name": "withdrawalFields",
+          "type": "bytes32[][]"
+        }
+      ],
+      "name": "verifyAndProcessWithdrawals",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint64",
+          "name": "oracleTimestamp",
+          "type": "uint64"
+        },
+        {
+          "components": [
+            {
+              "internalType": "bytes32",
+              "name": "beaconStateRoot",
+              "type": "bytes32"
+            },
+            {
+              "internalType": "bytes",
+              "name": "proof",
+              "type": "bytes"
+            }
+          ],
+          "internalType": "struct IEigenPod.StateRootProof",
+          "name": "stateRootProof",
+          "type": "tuple"
+        },
+        {
+          "internalType": "uint40[]",
+          "name": "validatorIndices",
+          "type": "uint40[]"
+        },
+        {
+          "internalType": "bytes[]",
+          "name": "validatorFieldsProofs",
+          "type": "bytes[]"
+        },
+        {
+          "internalType": "bytes32[][]",
+          "name": "validatorFields",
+          "type": "bytes32[][]"
+        }
+      ],
+      "name": "verifyWithdrawalCredentials",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    }
+  ],
+  "metadata": "{\"compiler\":{\"version\":\"0.8.21+commit.d9974bed\"},\"language\":\"Solidity\",\"output\":{\"abi\":[{\"inputs\":[{\"internalType\":\"uint64\",\"name\":\"oracleTimestamp\",\"type\":\"uint64\"},{\"components\":[{\"internalType\":\"bytes32\",\"name\":\"beaconStateRoot\",\"type\":\"bytes32\"},{\"internalType\":\"bytes\",\"name\":\"proof\",\"type\":\"bytes\"}],\"internalType\":\"struct IEigenPod.StateRootProof\",\"name\":\"stateRootProof\",\"type\":\"tuple\"},{\"components\":[{\"internalType\":\"bytes\",\"name\":\"withdrawalProof\",\"type\":\"bytes\"},{\"internalType\":\"bytes\",\"name\":\"slotProof\",\"type\":\"bytes\"},{\"internalType\":\"bytes\",\"name\":\"executionPayloadProof\",\"type\":\"bytes\"},{\"internalType\":\"bytes\",\"name\":\"timestampProof\",\"type\":\"bytes\"},{\"internalType\":\"bytes\",\"name\":\"historicalSummaryBlockRootProof\",\"type\":\"bytes\"},{\"internalType\":\"uint64\",\"name\":\"blockRootIndex\",\"type\":\"uint64\"},{\"internalType\":\"uint64\",\"name\":\"historicalSummaryIndex\",\"type\":\"uint64\"},{\"internalType\":\"uint64\",\"name\":\"withdrawalIndex\",\"type\":\"uint64\"},{\"internalType\":\"bytes32\",\"name\":\"blockRoot\",\"type\":\"bytes32\"},{\"internalType\":\"bytes32\",\"name\":\"slotRoot\",\"type\":\"bytes32\"},{\"internalType\":\"bytes32\",\"name\":\"timestampRoot\",\"type\":\"bytes32\"},{\"internalType\":\"bytes32\",\"name\":\"executionPayloadRoot\",\"type\":\"bytes32\"}],\"internalType\":\"struct IEigenPod.WithdrawalProof[]\",\"name\":\"withdrawalProofs\",\"type\":\"tuple[]\"},{\"internalType\":\"bytes[]\",\"name\":\"validatorFieldsProofs\",\"type\":\"bytes[]\"},{\"internalType\":\"bytes32[][]\",\"name\":\"validatorFields\",\"type\":\"bytes32[][]\"},{\"internalType\":\"bytes32[][]\",\"name\":\"withdrawalFields\",\"type\":\"bytes32[][]\"}],\"name\":\"verifyAndProcessWithdrawals\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint64\",\"name\":\"oracleTimestamp\",\"type\":\"uint64\"},{\"components\":[{\"internalType\":\"bytes32\",\"name\":\"beaconStateRoot\",\"type\":\"bytes32\"},{\"internalType\":\"bytes\",\"name\":\"proof\",\"type\":\"bytes\"}],\"internalType\":\"struct IEigenPod.StateRootProof\",\"name\":\"stateRootProof\",\"type\":\"tuple\"},{\"internalType\":\"uint40[]\",\"name\":\"validatorIndices\",\"type\":\"uint40[]\"},{\"internalType\":\"bytes[]\",\"name\":\"validatorFieldsProofs\",\"type\":\"bytes[]\"},{\"internalType\":\"bytes32[][]\",\"name\":\"validatorFields\",\"type\":\"bytes32[][]\"}],\"name\":\"verifyWithdrawalCredentials\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"withdrawBeforeRestaking\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"}],\"devdoc\":{\"kind\":\"dev\",\"methods\":{},\"version\":1},\"userdoc\":{\"kind\":\"user\",\"methods\":{},\"version\":1}},\"settings\":{\"compilationTarget\":{\"project:/contracts/interfaces/IEigenPod.sol\":\"IEigenPod\"},\"evmVersion\":\"shanghai\",\"libraries\":{},\"metadata\":{\"bytecodeHash\":\"ipfs\"},\"optimizer\":{\"enabled\":true,\"runs\":20},\"remappings\":[],\"viaIR\":true},\"sources\":{\"project:/contracts/interfaces/IEigenPod.sol\":{\"keccak256\":\"0x95d96dbc432302594e11039f28bd65abd9f27bcdd25404f7c1ebc1712e3218ce\",\"license\":\"MIT\",\"urls\":[\"bzz-raw://7e42781c4c41e35a04ed3c2a81ff1eed40f78dd504b4237b4bdbcdb111a63dbe\",\"dweb:/ipfs/QmUGFnmxprqxmZFcc76Aeaa9k3zy5tCkTeLp8PEjtdz3N7\"]}},\"version\":1}",
+  "bytecode": "0x",
+  "deployedBytecode": "0x",
+  "immutableReferences": {},
+  "generatedSources": [],
+  "deployedGeneratedSources": [],
+  "sourceMap": "",
+  "deployedSourceMap": "",
+  "source": "// SPDX-License-Identifier: MIT\npragma solidity 0.8.21;\n\ninterface IEigenPod {\n    /// @notice This struct contains the merkle proofs and leaves needed to verify a partial/full withdrawal\n    struct WithdrawalProof {\n        bytes withdrawalProof;\n        bytes slotProof;\n        bytes executionPayloadProof;\n        bytes timestampProof;\n        bytes historicalSummaryBlockRootProof;\n        uint64 blockRootIndex;\n        uint64 historicalSummaryIndex;\n        uint64 withdrawalIndex;\n        bytes32 blockRoot;\n        bytes32 slotRoot;\n        bytes32 timestampRoot;\n        bytes32 executionPayloadRoot;\n    }\n\n    /// @notice This struct contains the root and proof for verifying the state root against the oracle block root\n    struct StateRootProof {\n        bytes32 beaconStateRoot;\n        bytes proof;\n    }\n\n    function withdrawBeforeRestaking() external;\n\n    function verifyAndProcessWithdrawals(\n        uint64 oracleTimestamp,\n        StateRootProof calldata stateRootProof,\n        WithdrawalProof[] calldata withdrawalProofs,\n        bytes[] calldata validatorFieldsProofs,\n        bytes32[][] calldata validatorFields,\n        bytes32[][] calldata withdrawalFields\n    ) external;\n\n    function verifyWithdrawalCredentials(\n        uint64 oracleTimestamp,\n        StateRootProof calldata stateRootProof,\n        uint40[] calldata validatorIndices,\n        bytes[] calldata validatorFieldsProofs,\n        bytes32[][] calldata validatorFields\n    ) external;\n}\n",
+  "sourcePath": "/Users/mingyuzhang/Downloads/stone-vault-v1/contracts/interfaces/IEigenPod.sol",
+  "ast": {
+    "absolutePath": "project:/contracts/interfaces/IEigenPod.sol",
+    "exportedSymbols": {
+      "IEigenPod": [
+        11486
+      ]
+    },
+    "id": 11487,
+    "license": "MIT",
+    "nodeType": "SourceUnit",
+    "nodes": [
+      {
+        "id": 11409,
+        "literals": [
+          "solidity",
+          "0.8",
+          ".21"
+        ],
+        "nodeType": "PragmaDirective",
+        "src": "32:23:56"
+      },
+      {
+        "abstract": false,
+        "baseContracts": [],
+        "canonicalName": "IEigenPod",
+        "contractDependencies": [],
+        "contractKind": "interface",
+        "fullyImplemented": false,
+        "id": 11486,
+        "linearizedBaseContracts": [
+          11486
+        ],
+        "name": "IEigenPod",
+        "nameLocation": "67:9:56",
+        "nodeType": "ContractDefinition",
+        "nodes": [
+          {
+            "canonicalName": "IEigenPod.WithdrawalProof",
+            "documentation": {
+              "id": 11410,
+              "nodeType": "StructuredDocumentation",
+              "src": "83:104:56",
+              "text": "@notice This struct contains the merkle proofs and leaves needed to verify a partial/full withdrawal"
+            },
+            "id": 11435,
+            "members": [
+              {
+                "constant": false,
+                "id": 11412,
+                "mutability": "mutable",
+                "name": "withdrawalProof",
+                "nameLocation": "231:15:56",
+                "nodeType": "VariableDeclaration",
+                "scope": 11435,
+                "src": "225:21:56",
+                "stateVariable": false,
+                "storageLocation": "default",
+                "typeDescriptions": {
+                  "typeIdentifier": "t_bytes_storage_ptr",
+                  "typeString": "bytes"
+                },
+                "typeName": {
+                  "id": 11411,
+                  "name": "bytes",
+                  "nodeType": "ElementaryTypeName",
+                  "src": "225:5:56",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_bytes_storage_ptr",
+                    "typeString": "bytes"
+                  }
+                },
+                "visibility": "internal"
+              },
+              {
+                "constant": false,
+                "id": 11414,
+                "mutability": "mutable",
+                "name": "slotProof",
+                "nameLocation": "262:9:56",
+                "nodeType": "VariableDeclaration",
+                "scope": 11435,
+                "src": "256:15:56",
+                "stateVariable": false,
+                "storageLocation": "default",
+                "typeDescriptions": {
+                  "typeIdentifier": "t_bytes_storage_ptr",
+                  "typeString": "bytes"
+                },
+                "typeName": {
+                  "id": 11413,
+                  "name": "bytes",
+                  "nodeType": "ElementaryTypeName",
+                  "src": "256:5:56",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_bytes_storage_ptr",
+                    "typeString": "bytes"
+                  }
+                },
+                "visibility": "internal"
+              },
+              {
+                "constant": false,
+                "id": 11416,
+                "mutability": "mutable",
+                "name": "executionPayloadProof",
+                "nameLocation": "287:21:56",
+                "nodeType": "VariableDeclaration",
+                "scope": 11435,
+                "src": "281:27:56",
+                "stateVariable": false,
+                "storageLocation": "default",
+                "typeDescriptions": {
+                  "typeIdentifier": "t_bytes_storage_ptr",
+                  "typeString": "bytes"
+                },
+                "typeName": {
+                  "id": 11415,
+                  "name": "bytes",
+                  "nodeType": "ElementaryTypeName",
+                  "src": "281:5:56",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_bytes_storage_ptr",
+                    "typeString": "bytes"
+                  }
+                },
+                "visibility": "internal"
+              },
+              {
+                "constant": false,
+                "id": 11418,
+                "mutability": "mutable",
+                "name": "timestampProof",
+                "nameLocation": "324:14:56",
+                "nodeType": "VariableDeclaration",
+                "scope": 11435,
+                "src": "318:20:56",
+                "stateVariable": false,
+                "storageLocation": "default",
+                "typeDescriptions": {
+                  "typeIdentifier": "t_bytes_storage_ptr",
+                  "typeString": "bytes"
+                },
+                "typeName": {
+                  "id": 11417,
+                  "name": "bytes",
+                  "nodeType": "ElementaryTypeName",
+                  "src": "318:5:56",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_bytes_storage_ptr",
+                    "typeString": "bytes"
+                  }
+                },
+                "visibility": "internal"
+              },
+              {
+                "constant": false,
+                "id": 11420,
+                "mutability": "mutable",
+                "name": "historicalSummaryBlockRootProof",
+                "nameLocation": "354:31:56",
+                "nodeType": "VariableDeclaration",
+                "scope": 11435,
+                "src": "348:37:56",
+                "stateVariable": false,
+                "storageLocation": "default",
+                "typeDescriptions": {
+                  "typeIdentifier": "t_bytes_storage_ptr",
+                  "typeString": "bytes"
+                },
+                "typeName": {
+                  "id": 11419,
+                  "name": "bytes",
+                  "nodeType": "ElementaryTypeName",
+                  "src": "348:5:56",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_bytes_storage_ptr",
+                    "typeString": "bytes"
+                  }
+                },
+                "visibility": "internal"
+              },
+              {
+                "constant": false,
+                "id": 11422,
+                "mutability": "mutable",
+                "name": "blockRootIndex",
+                "nameLocation": "402:14:56",
+                "nodeType": "VariableDeclaration",
+                "scope": 11435,
+                "src": "395:21:56",
+                "stateVariable": false,
+                "storageLocation": "default",
+                "typeDescriptions": {
+                  "typeIdentifier": "t_uint64",
+                  "typeString": "uint64"
+                },
+                "typeName": {
+                  "id": 11421,
+                  "name": "uint64",
+                  "nodeType": "ElementaryTypeName",
+                  "src": "395:6:56",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_uint64",
+                    "typeString": "uint64"
+                  }
+                },
+                "visibility": "internal"
+              },
+              {
+                "constant": false,
+                "id": 11424,
+                "mutability": "mutable",
+                "name": "historicalSummaryIndex",
+                "nameLocation": "433:22:56",
+                "nodeType": "VariableDeclaration",
+                "scope": 11435,
+                "src": "426:29:56",
+                "stateVariable": false,
+                "storageLocation": "default",
+                "typeDescriptions": {
+                  "typeIdentifier": "t_uint64",
+                  "typeString": "uint64"
+                },
+                "typeName": {
+                  "id": 11423,
+                  "name": "uint64",
+                  "nodeType": "ElementaryTypeName",
+                  "src": "426:6:56",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_uint64",
+                    "typeString": "uint64"
+                  }
+                },
+                "visibility": "internal"
+              },
+              {
+                "constant": false,
+                "id": 11426,
+                "mutability": "mutable",
+                "name": "withdrawalIndex",
+                "nameLocation": "472:15:56",
+                "nodeType": "VariableDeclaration",
+                "scope": 11435,
+                "src": "465:22:56",
+                "stateVariable": false,
+                "storageLocation": "default",
+                "typeDescriptions": {
+                  "typeIdentifier": "t_uint64",
+                  "typeString": "uint64"
+                },
+                "typeName": {
+                  "id": 11425,
+                  "name": "uint64",
+                  "nodeType": "ElementaryTypeName",
+                  "src": "465:6:56",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_uint64",
+                    "typeString": "uint64"
+                  }
+                },
+                "visibility": "internal"
+              },
+              {
+                "constant": false,
+                "id": 11428,
+                "mutability": "mutable",
+                "name": "blockRoot",
+                "nameLocation": "505:9:56",
+                "nodeType": "VariableDeclaration",
+                "scope": 11435,
+                "src": "497:17:56",
+                "stateVariable": false,
+                "storageLocation": "default",
+                "typeDescriptions": {
+                  "typeIdentifier": "t_bytes32",
+                  "typeString": "bytes32"
+                },
+                "typeName": {
+                  "id": 11427,
+                  "name": "bytes32",
+                  "nodeType": "ElementaryTypeName",
+                  "src": "497:7:56",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_bytes32",
+                    "typeString": "bytes32"
+                  }
+                },
+                "visibility": "internal"
+              },
+              {
+                "constant": false,
+                "id": 11430,
+                "mutability": "mutable",
+                "name": "slotRoot",
+                "nameLocation": "532:8:56",
+                "nodeType": "VariableDeclaration",
+                "scope": 11435,
+                "src": "524:16:56",
+                "stateVariable": false,
+                "storageLocation": "default",
+                "typeDescriptions": {
+                  "typeIdentifier": "t_bytes32",
+                  "typeString": "bytes32"
+                },
+                "typeName": {
+                  "id": 11429,
+                  "name": "bytes32",
+                  "nodeType": "ElementaryTypeName",
+                  "src": "524:7:56",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_bytes32",
+                    "typeString": "bytes32"
+                  }
+                },
+                "visibility": "internal"
+              },
+              {
+                "constant": false,
+                "id": 11432,
+                "mutability": "mutable",
+                "name": "timestampRoot",
+                "nameLocation": "558:13:56",
+                "nodeType": "VariableDeclaration",
+                "scope": 11435,
+                "src": "550:21:56",
+                "stateVariable": false,
+                "storageLocation": "default",
+                "typeDescriptions": {
+                  "typeIdentifier": "t_bytes32",
+                  "typeString": "bytes32"
+                },
+                "typeName": {
+                  "id": 11431,
+                  "name": "bytes32",
+                  "nodeType": "ElementaryTypeName",
+                  "src": "550:7:56",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_bytes32",
+                    "typeString": "bytes32"
+                  }
+                },
+                "visibility": "internal"
+              },
+              {
+                "constant": false,
+                "id": 11434,
+                "mutability": "mutable",
+                "name": "executionPayloadRoot",
+                "nameLocation": "589:20:56",
+                "nodeType": "VariableDeclaration",
+                "scope": 11435,
+                "src": "581:28:56",
+                "stateVariable": false,
+                "storageLocation": "default",
+                "typeDescriptions": {
+                  "typeIdentifier": "t_bytes32",
+                  "typeString": "bytes32"
+                },
+                "typeName": {
+                  "id": 11433,
+                  "name": "bytes32",
+                  "nodeType": "ElementaryTypeName",
+                  "src": "581:7:56",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_bytes32",
+                    "typeString": "bytes32"
+                  }
+                },
+                "visibility": "internal"
+              }
+            ],
+            "name": "WithdrawalProof",
+            "nameLocation": "199:15:56",
+            "nodeType": "StructDefinition",
+            "scope": 11486,
+            "src": "192:424:56",
+            "visibility": "public"
+          },
+          {
+            "canonicalName": "IEigenPod.StateRootProof",
+            "documentation": {
+              "id": 11436,
+              "nodeType": "StructuredDocumentation",
+              "src": "622:110:56",
+              "text": "@notice This struct contains the root and proof for verifying the state root against the oracle block root"
+            },
+            "id": 11441,
+            "members": [
+              {
+                "constant": false,
+                "id": 11438,
+                "mutability": "mutable",
+                "name": "beaconStateRoot",
+                "nameLocation": "777:15:56",
+                "nodeType": "VariableDeclaration",
+                "scope": 11441,
+                "src": "769:23:56",
+                "stateVariable": false,
+                "storageLocation": "default",
+                "typeDescriptions": {
+                  "typeIdentifier": "t_bytes32",
+                  "typeString": "bytes32"
+                },
+                "typeName": {
+                  "id": 11437,
+                  "name": "bytes32",
+                  "nodeType": "ElementaryTypeName",
+                  "src": "769:7:56",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_bytes32",
+                    "typeString": "bytes32"
+                  }
+                },
+                "visibility": "internal"
+              },
+              {
+                "constant": false,
+                "id": 11440,
+                "mutability": "mutable",
+                "name": "proof",
+                "nameLocation": "808:5:56",
+                "nodeType": "VariableDeclaration",
+                "scope": 11441,
+                "src": "802:11:56",
+                "stateVariable": false,
+                "storageLocation": "default",
+                "typeDescriptions": {
+                  "typeIdentifier": "t_bytes_storage_ptr",
+                  "typeString": "bytes"
+                },
+                "typeName": {
+                  "id": 11439,
+                  "name": "bytes",
+                  "nodeType": "ElementaryTypeName",
+                  "src": "802:5:56",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_bytes_storage_ptr",
+                    "typeString": "bytes"
+                  }
+                },
+                "visibility": "internal"
+              }
+            ],
+            "name": "StateRootProof",
+            "nameLocation": "744:14:56",
+            "nodeType": "StructDefinition",
+            "scope": 11486,
+            "src": "737:83:56",
+            "visibility": "public"
+          },
+          {
+            "functionSelector": "baa7145a",
+            "id": 11444,
+            "implemented": false,
+            "kind": "function",
+            "modifiers": [],
+            "name": "withdrawBeforeRestaking",
+            "nameLocation": "835:23:56",
+            "nodeType": "FunctionDefinition",
+            "parameters": {
+              "id": 11442,
+              "nodeType": "ParameterList",
+              "parameters": [],
+              "src": "858:2:56"
+            },
+            "returnParameters": {
+              "id": 11443,
+              "nodeType": "ParameterList",
+              "parameters": [],
+              "src": "869:0:56"
+            },
+            "scope": 11486,
+            "src": "826:44:56",
+            "stateMutability": "nonpayable",
+            "virtual": false,
+            "visibility": "external"
+          },
+          {
+            "functionSelector": "e251ef52",
+            "id": 11467,
+            "implemented": false,
+            "kind": "function",
+            "modifiers": [],
+            "name": "verifyAndProcessWithdrawals",
+            "nameLocation": "885:27:56",
+            "nodeType": "FunctionDefinition",
+            "parameters": {
+              "id": 11465,
+              "nodeType": "ParameterList",
+              "parameters": [
+                {
+                  "constant": false,
+                  "id": 11446,
+                  "mutability": "mutable",
+                  "name": "oracleTimestamp",
+                  "nameLocation": "929:15:56",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 11467,
+                  "src": "922:22:56",
+                  "stateVariable": false,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_uint64",
+                    "typeString": "uint64"
+                  },
+                  "typeName": {
+                    "id": 11445,
+                    "name": "uint64",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "922:6:56",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_uint64",
+                      "typeString": "uint64"
+                    }
+                  },
+                  "visibility": "internal"
+                },
+                {
+                  "constant": false,
+                  "id": 11449,
+                  "mutability": "mutable",
+                  "name": "stateRootProof",
+                  "nameLocation": "978:14:56",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 11467,
+                  "src": "954:38:56",
+                  "stateVariable": false,
+                  "storageLocation": "calldata",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_struct$_StateRootProof_$11441_calldata_ptr",
+                    "typeString": "struct IEigenPod.StateRootProof"
+                  },
+                  "typeName": {
+                    "id": 11448,
+                    "nodeType": "UserDefinedTypeName",
+                    "pathNode": {
+                      "id": 11447,
+                      "name": "StateRootProof",
+                      "nameLocations": [
+                        "954:14:56"
+                      ],
+                      "nodeType": "IdentifierPath",
+                      "referencedDeclaration": 11441,
+                      "src": "954:14:56"
+                    },
+                    "referencedDeclaration": 11441,
+                    "src": "954:14:56",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_struct$_StateRootProof_$11441_storage_ptr",
+                      "typeString": "struct IEigenPod.StateRootProof"
+                    }
+                  },
+                  "visibility": "internal"
+                },
+                {
+                  "constant": false,
+                  "id": 11453,
+                  "mutability": "mutable",
+                  "name": "withdrawalProofs",
+                  "nameLocation": "1029:16:56",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 11467,
+                  "src": "1002:43:56",
+                  "stateVariable": false,
+                  "storageLocation": "calldata",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_array$_t_struct$_WithdrawalProof_$11435_calldata_ptr_$dyn_calldata_ptr",
+                    "typeString": "struct IEigenPod.WithdrawalProof[]"
+                  },
+                  "typeName": {
+                    "baseType": {
+                      "id": 11451,
+                      "nodeType": "UserDefinedTypeName",
+                      "pathNode": {
+                        "id": 11450,
+                        "name": "WithdrawalProof",
+                        "nameLocations": [
+                          "1002:15:56"
+                        ],
+                        "nodeType": "IdentifierPath",
+                        "referencedDeclaration": 11435,
+                        "src": "1002:15:56"
+                      },
+                      "referencedDeclaration": 11435,
+                      "src": "1002:15:56",
+                      "typeDescriptions": {
+                        "typeIdentifier": "t_struct$_WithdrawalProof_$11435_storage_ptr",
+                        "typeString": "struct IEigenPod.WithdrawalProof"
+                      }
+                    },
+                    "id": 11452,
+                    "nodeType": "ArrayTypeName",
+                    "src": "1002:17:56",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_array$_t_struct$_WithdrawalProof_$11435_storage_$dyn_storage_ptr",
+                      "typeString": "struct IEigenPod.WithdrawalProof[]"
+                    }
+                  },
+                  "visibility": "internal"
+                },
+                {
+                  "constant": false,
+                  "id": 11456,
+                  "mutability": "mutable",
+                  "name": "validatorFieldsProofs",
+                  "nameLocation": "1072:21:56",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 11467,
+                  "src": "1055:38:56",
+                  "stateVariable": false,
+                  "storageLocation": "calldata",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_array$_t_bytes_calldata_ptr_$dyn_calldata_ptr",
+                    "typeString": "bytes[]"
+                  },
+                  "typeName": {
+                    "baseType": {
+                      "id": 11454,
+                      "name": "bytes",
+                      "nodeType": "ElementaryTypeName",
+                      "src": "1055:5:56",
+                      "typeDescriptions": {
+                        "typeIdentifier": "t_bytes_storage_ptr",
+                        "typeString": "bytes"
+                      }
+                    },
+                    "id": 11455,
+                    "nodeType": "ArrayTypeName",
+                    "src": "1055:7:56",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_array$_t_bytes_storage_$dyn_storage_ptr",
+                      "typeString": "bytes[]"
+                    }
+                  },
+                  "visibility": "internal"
+                },
+                {
+                  "constant": false,
+                  "id": 11460,
+                  "mutability": "mutable",
+                  "name": "validatorFields",
+                  "nameLocation": "1124:15:56",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 11467,
+                  "src": "1103:36:56",
+                  "stateVariable": false,
+                  "storageLocation": "calldata",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_array$_t_array$_t_bytes32_$dyn_calldata_ptr_$dyn_calldata_ptr",
+                    "typeString": "bytes32[][]"
+                  },
+                  "typeName": {
+                    "baseType": {
+                      "baseType": {
+                        "id": 11457,
+                        "name": "bytes32",
+                        "nodeType": "ElementaryTypeName",
+                        "src": "1103:7:56",
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_bytes32",
+                          "typeString": "bytes32"
+                        }
+                      },
+                      "id": 11458,
+                      "nodeType": "ArrayTypeName",
+                      "src": "1103:9:56",
+                      "typeDescriptions": {
+                        "typeIdentifier": "t_array$_t_bytes32_$dyn_storage_ptr",
+                        "typeString": "bytes32[]"
+                      }
+                    },
+                    "id": 11459,
+                    "nodeType": "ArrayTypeName",
+                    "src": "1103:11:56",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_array$_t_array$_t_bytes32_$dyn_storage_$dyn_storage_ptr",
+                      "typeString": "bytes32[][]"
+                    }
+                  },
+                  "visibility": "internal"
+                },
+                {
+                  "constant": false,
+                  "id": 11464,
+                  "mutability": "mutable",
+                  "name": "withdrawalFields",
+                  "nameLocation": "1170:16:56",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 11467,
+                  "src": "1149:37:56",
+                  "stateVariable": false,
+                  "storageLocation": "calldata",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_array$_t_array$_t_bytes32_$dyn_calldata_ptr_$dyn_calldata_ptr",
+                    "typeString": "bytes32[][]"
+                  },
+                  "typeName": {
+                    "baseType": {
+                      "baseType": {
+                        "id": 11461,
+                        "name": "bytes32",
+                        "nodeType": "ElementaryTypeName",
+                        "src": "1149:7:56",
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_bytes32",
+                          "typeString": "bytes32"
+                        }
+                      },
+                      "id": 11462,
+                      "nodeType": "ArrayTypeName",
+                      "src": "1149:9:56",
+                      "typeDescriptions": {
+                        "typeIdentifier": "t_array$_t_bytes32_$dyn_storage_ptr",
+                        "typeString": "bytes32[]"
+                      }
+                    },
+                    "id": 11463,
+                    "nodeType": "ArrayTypeName",
+                    "src": "1149:11:56",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_array$_t_array$_t_bytes32_$dyn_storage_$dyn_storage_ptr",
+                      "typeString": "bytes32[][]"
+                    }
+                  },
+                  "visibility": "internal"
+                }
+              ],
+              "src": "912:280:56"
+            },
+            "returnParameters": {
+              "id": 11466,
+              "nodeType": "ParameterList",
+              "parameters": [],
+              "src": "1201:0:56"
+            },
+            "scope": 11486,
+            "src": "876:326:56",
+            "stateMutability": "nonpayable",
+            "virtual": false,
+            "visibility": "external"
+          },
+          {
+            "functionSelector": "3f65cf19",
+            "id": 11485,
+            "implemented": false,
+            "kind": "function",
+            "modifiers": [],
+            "name": "verifyWithdrawalCredentials",
+            "nameLocation": "1217:27:56",
+            "nodeType": "FunctionDefinition",
+            "parameters": {
+              "id": 11483,
+              "nodeType": "ParameterList",
+              "parameters": [
+                {
+                  "constant": false,
+                  "id": 11469,
+                  "mutability": "mutable",
+                  "name": "oracleTimestamp",
+                  "nameLocation": "1261:15:56",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 11485,
+                  "src": "1254:22:56",
+                  "stateVariable": false,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_uint64",
+                    "typeString": "uint64"
+                  },
+                  "typeName": {
+                    "id": 11468,
+                    "name": "uint64",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "1254:6:56",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_uint64",
+                      "typeString": "uint64"
+                    }
+                  },
+                  "visibility": "internal"
+                },
+                {
+                  "constant": false,
+                  "id": 11472,
+                  "mutability": "mutable",
+                  "name": "stateRootProof",
+                  "nameLocation": "1310:14:56",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 11485,
+                  "src": "1286:38:56",
+                  "stateVariable": false,
+                  "storageLocation": "calldata",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_struct$_StateRootProof_$11441_calldata_ptr",
+                    "typeString": "struct IEigenPod.StateRootProof"
+                  },
+                  "typeName": {
+                    "id": 11471,
+                    "nodeType": "UserDefinedTypeName",
+                    "pathNode": {
+                      "id": 11470,
+                      "name": "StateRootProof",
+                      "nameLocations": [
+                        "1286:14:56"
+                      ],
+                      "nodeType": "IdentifierPath",
+                      "referencedDeclaration": 11441,
+                      "src": "1286:14:56"
+                    },
+                    "referencedDeclaration": 11441,
+                    "src": "1286:14:56",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_struct$_StateRootProof_$11441_storage_ptr",
+                      "typeString": "struct IEigenPod.StateRootProof"
+                    }
+                  },
+                  "visibility": "internal"
+                },
+                {
+                  "constant": false,
+                  "id": 11475,
+                  "mutability": "mutable",
+                  "name": "validatorIndices",
+                  "nameLocation": "1352:16:56",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 11485,
+                  "src": "1334:34:56",
+                  "stateVariable": false,
+                  "storageLocation": "calldata",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_array$_t_uint40_$dyn_calldata_ptr",
+                    "typeString": "uint40[]"
+                  },
+                  "typeName": {
+                    "baseType": {
+                      "id": 11473,
+                      "name": "uint40",
+                      "nodeType": "ElementaryTypeName",
+                      "src": "1334:6:56",
+                      "typeDescriptions": {
+                        "typeIdentifier": "t_uint40",
+                        "typeString": "uint40"
+                      }
+                    },
+                    "id": 11474,
+                    "nodeType": "ArrayTypeName",
+                    "src": "1334:8:56",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_array$_t_uint40_$dyn_storage_ptr",
+                      "typeString": "uint40[]"
+                    }
+                  },
+                  "visibility": "internal"
+                },
+                {
+                  "constant": false,
+                  "id": 11478,
+                  "mutability": "mutable",
+                  "name": "validatorFieldsProofs",
+                  "nameLocation": "1395:21:56",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 11485,
+                  "src": "1378:38:56",
+                  "stateVariable": false,
+                  "storageLocation": "calldata",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_array$_t_bytes_calldata_ptr_$dyn_calldata_ptr",
+                    "typeString": "bytes[]"
+                  },
+                  "typeName": {
+                    "baseType": {
+                      "id": 11476,
+                      "name": "bytes",
+                      "nodeType": "ElementaryTypeName",
+                      "src": "1378:5:56",
+                      "typeDescriptions": {
+                        "typeIdentifier": "t_bytes_storage_ptr",
+                        "typeString": "bytes"
+                      }
+                    },
+                    "id": 11477,
+                    "nodeType": "ArrayTypeName",
+                    "src": "1378:7:56",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_array$_t_bytes_storage_$dyn_storage_ptr",
+                      "typeString": "bytes[]"
+                    }
+                  },
+                  "visibility": "internal"
+                },
+                {
+                  "constant": false,
+                  "id": 11482,
+                  "mutability": "mutable",
+                  "name": "validatorFields",
+                  "nameLocation": "1447:15:56",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 11485,
+                  "src": "1426:36:56",
+                  "stateVariable": false,
+                  "storageLocation": "calldata",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_array$_t_array$_t_bytes32_$dyn_calldata_ptr_$dyn_calldata_ptr",
+                    "typeString": "bytes32[][]"
+                  },
+                  "typeName": {
+                    "baseType": {
+                      "baseType": {
+                        "id": 11479,
+                        "name": "bytes32",
+                        "nodeType": "ElementaryTypeName",
+                        "src": "1426:7:56",
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_bytes32",
+                          "typeString": "bytes32"
+                        }
+                      },
+                      "id": 11480,
+                      "nodeType": "ArrayTypeName",
+                      "src": "1426:9:56",
+                      "typeDescriptions": {
+                        "typeIdentifier": "t_array$_t_bytes32_$dyn_storage_ptr",
+                        "typeString": "bytes32[]"
+                      }
+                    },
+                    "id": 11481,
+                    "nodeType": "ArrayTypeName",
+                    "src": "1426:11:56",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_array$_t_array$_t_bytes32_$dyn_storage_$dyn_storage_ptr",
+                      "typeString": "bytes32[][]"
+                    }
+                  },
+                  "visibility": "internal"
+                }
+              ],
+              "src": "1244:224:56"
+            },
+            "returnParameters": {
+              "id": 11484,
+              "nodeType": "ParameterList",
+              "parameters": [],
+              "src": "1477:0:56"
+            },
+            "scope": 11486,
+            "src": "1208:270:56",
+            "stateMutability": "nonpayable",
+            "virtual": false,
+            "visibility": "external"
+          }
+        ],
+        "scope": 11487,
+        "src": "57:1423:56",
+        "usedErrors": [],
+        "usedEvents": []
+      }
+    ],
+    "src": "32:1449:56"
+  },
+  "compiler": {
+    "name": "solc",
+    "version": "0.8.21+commit.d9974bed.Emscripten.clang"
+  },
+  "networks": {},
+  "schemaVersion": "3.4.16",
+  "updatedAt": "2024-06-07T05:41:32.617Z",
+  "devdoc": {
+    "kind": "dev",
+    "methods": {},
+    "version": 1
+  },
+  "userdoc": {
+    "kind": "user",
+    "methods": {},
+    "version": 1
+  }
+}

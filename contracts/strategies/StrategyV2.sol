@@ -17,7 +17,6 @@ abstract contract StrategyV2 is Ownable2Step {
             latestUpdateTime + bufferTime <= block.timestamp,
             "at the same block"
         );
-        latestUpdateTime = block.timestamp;
         _;
     }
 

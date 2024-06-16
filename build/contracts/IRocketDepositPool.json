@@ -1,0 +1,179 @@
+{
+  "contractName": "IRocketDepositPool",
+  "abi": [
+    {
+      "inputs": [],
+      "name": "deposit",
+      "outputs": [],
+      "stateMutability": "payable",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "getMaximumDepositAmount",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    }
+  ],
+  "metadata": "{\"compiler\":{\"version\":\"0.8.21+commit.d9974bed\"},\"language\":\"Solidity\",\"output\":{\"abi\":[{\"inputs\":[],\"name\":\"deposit\",\"outputs\":[],\"stateMutability\":\"payable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"getMaximumDepositAmount\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"}],\"devdoc\":{\"kind\":\"dev\",\"methods\":{},\"version\":1},\"userdoc\":{\"kind\":\"user\",\"methods\":{},\"version\":1}},\"settings\":{\"compilationTarget\":{\"project:/contracts/interfaces/IRocketDepositPool.sol\":\"IRocketDepositPool\"},\"evmVersion\":\"shanghai\",\"libraries\":{},\"metadata\":{\"bytecodeHash\":\"ipfs\"},\"optimizer\":{\"enabled\":true,\"runs\":20},\"remappings\":[],\"viaIR\":true},\"sources\":{\"project:/contracts/interfaces/IRocketDepositPool.sol\":{\"keccak256\":\"0xfc29322f6b553eb15377d9a35607795dfe84f1865f390df2e6b74416b41d8ce9\",\"license\":\"MIT\",\"urls\":[\"bzz-raw://53e52941732371c30be604cce88baf9fd9787a91c985c0caae5c897609aea298\",\"dweb:/ipfs/QmZswuRxBfVU7fv4EGZEfSbM3AJn3yaU2MQdVJp1t2qUJB\"]}},\"version\":1}",
+  "bytecode": "0x",
+  "deployedBytecode": "0x",
+  "immutableReferences": {},
+  "generatedSources": [],
+  "deployedGeneratedSources": [],
+  "sourceMap": "",
+  "deployedSourceMap": "",
+  "source": "// SPDX-License-Identifier: MIT\npragma solidity 0.8.21;\n\ninterface IRocketDepositPool {\n    function deposit() external payable;\n\n    function getMaximumDepositAmount() external view returns (uint256);\n}\n",
+  "sourcePath": "/Users/mingyuzhang/Downloads/stone-vault-v1/contracts/interfaces/IRocketDepositPool.sol",
+  "ast": {
+    "absolutePath": "project:/contracts/interfaces/IRocketDepositPool.sol",
+    "exportedSymbols": {
+      "IRocketDepositPool": [
+        11710
+      ]
+    },
+    "id": 11711,
+    "license": "MIT",
+    "nodeType": "SourceUnit",
+    "nodes": [
+      {
+        "id": 11701,
+        "literals": [
+          "solidity",
+          "0.8",
+          ".21"
+        ],
+        "nodeType": "PragmaDirective",
+        "src": "32:23:65"
+      },
+      {
+        "abstract": false,
+        "baseContracts": [],
+        "canonicalName": "IRocketDepositPool",
+        "contractDependencies": [],
+        "contractKind": "interface",
+        "fullyImplemented": false,
+        "id": 11710,
+        "linearizedBaseContracts": [
+          11710
+        ],
+        "name": "IRocketDepositPool",
+        "nameLocation": "67:18:65",
+        "nodeType": "ContractDefinition",
+        "nodes": [
+          {
+            "functionSelector": "d0e30db0",
+            "id": 11704,
+            "implemented": false,
+            "kind": "function",
+            "modifiers": [],
+            "name": "deposit",
+            "nameLocation": "101:7:65",
+            "nodeType": "FunctionDefinition",
+            "parameters": {
+              "id": 11702,
+              "nodeType": "ParameterList",
+              "parameters": [],
+              "src": "108:2:65"
+            },
+            "returnParameters": {
+              "id": 11703,
+              "nodeType": "ParameterList",
+              "parameters": [],
+              "src": "127:0:65"
+            },
+            "scope": 11710,
+            "src": "92:36:65",
+            "stateMutability": "payable",
+            "virtual": false,
+            "visibility": "external"
+          },
+          {
+            "functionSelector": "1eddb626",
+            "id": 11709,
+            "implemented": false,
+            "kind": "function",
+            "modifiers": [],
+            "name": "getMaximumDepositAmount",
+            "nameLocation": "143:23:65",
+            "nodeType": "FunctionDefinition",
+            "parameters": {
+              "id": 11705,
+              "nodeType": "ParameterList",
+              "parameters": [],
+              "src": "166:2:65"
+            },
+            "returnParameters": {
+              "id": 11708,
+              "nodeType": "ParameterList",
+              "parameters": [
+                {
+                  "constant": false,
+                  "id": 11707,
+                  "mutability": "mutable",
+                  "name": "",
+                  "nameLocation": "-1:-1:-1",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 11709,
+                  "src": "192:7:65",
+                  "stateVariable": false,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_uint256",
+                    "typeString": "uint256"
+                  },
+                  "typeName": {
+                    "id": 11706,
+                    "name": "uint256",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "192:7:65",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_uint256",
+                      "typeString": "uint256"
+                    }
+                  },
+                  "visibility": "internal"
+                }
+              ],
+              "src": "191:9:65"
+            },
+            "scope": 11710,
+            "src": "134:67:65",
+            "stateMutability": "view",
+            "virtual": false,
+            "visibility": "external"
+          }
+        ],
+        "scope": 11711,
+        "src": "57:146:65",
+        "usedErrors": [],
+        "usedEvents": []
+      }
+    ],
+    "src": "32:172:65"
+  },
+  "compiler": {
+    "name": "solc",
+    "version": "0.8.21+commit.d9974bed.Emscripten.clang"
+  },
+  "networks": {},
+  "schemaVersion": "3.4.16",
+  "updatedAt": "2024-06-07T05:41:32.619Z",
+  "devdoc": {
+    "kind": "dev",
+    "methods": {},
+    "version": 1
+  },
+  "userdoc": {
+    "kind": "user",
+    "methods": {},
+    "version": 1
+  }
+}

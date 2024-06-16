@@ -1,0 +1,145 @@
+{
+  "contractName": "IMetaStablePool",
+  "abi": [
+    {
+      "inputs": [],
+      "name": "getRate",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    }
+  ],
+  "metadata": "{\"compiler\":{\"version\":\"0.8.21+commit.d9974bed\"},\"language\":\"Solidity\",\"output\":{\"abi\":[{\"inputs\":[],\"name\":\"getRate\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"}],\"devdoc\":{\"kind\":\"dev\",\"methods\":{},\"version\":1},\"userdoc\":{\"kind\":\"user\",\"methods\":{},\"version\":1}},\"settings\":{\"compilationTarget\":{\"project:/contracts/interfaces/IMetaStablePool.sol\":\"IMetaStablePool\"},\"evmVersion\":\"shanghai\",\"libraries\":{},\"metadata\":{\"bytecodeHash\":\"ipfs\"},\"optimizer\":{\"enabled\":true,\"runs\":20},\"remappings\":[],\"viaIR\":true},\"sources\":{\"project:/contracts/interfaces/IMetaStablePool.sol\":{\"keccak256\":\"0xda810115e7a0e3505193630c0cc8dfdd467c56874863853d9d3dc97b040865a6\",\"license\":\"MIT\",\"urls\":[\"bzz-raw://fb20f2c7724fb851c762167729d2e06c946d1523a4a24159ff3443148ff80938\",\"dweb:/ipfs/QmVcH6MVhRVN2GLRVNrwcam8nsp7P9FD6Wg1YLWviSiqKJ\"]}},\"version\":1}",
+  "bytecode": "0x",
+  "deployedBytecode": "0x",
+  "immutableReferences": {},
+  "generatedSources": [],
+  "deployedGeneratedSources": [],
+  "sourceMap": "",
+  "deployedSourceMap": "",
+  "source": "// SPDX-License-Identifier: MIT\npragma solidity 0.8.21;\n\ninterface IMetaStablePool {\n    function getRate() external view returns (uint256);\n}\n",
+  "sourcePath": "/Users/mingyuzhang/Downloads/stone-vault-v1/contracts/interfaces/IMetaStablePool.sol",
+  "ast": {
+    "absolutePath": "project:/contracts/interfaces/IMetaStablePool.sol",
+    "exportedSymbols": {
+      "IMetaStablePool": [
+        11648
+      ]
+    },
+    "id": 11649,
+    "license": "MIT",
+    "nodeType": "SourceUnit",
+    "nodes": [
+      {
+        "id": 11642,
+        "literals": [
+          "solidity",
+          "0.8",
+          ".21"
+        ],
+        "nodeType": "PragmaDirective",
+        "src": "32:23:62"
+      },
+      {
+        "abstract": false,
+        "baseContracts": [],
+        "canonicalName": "IMetaStablePool",
+        "contractDependencies": [],
+        "contractKind": "interface",
+        "fullyImplemented": false,
+        "id": 11648,
+        "linearizedBaseContracts": [
+          11648
+        ],
+        "name": "IMetaStablePool",
+        "nameLocation": "67:15:62",
+        "nodeType": "ContractDefinition",
+        "nodes": [
+          {
+            "functionSelector": "679aefce",
+            "id": 11647,
+            "implemented": false,
+            "kind": "function",
+            "modifiers": [],
+            "name": "getRate",
+            "nameLocation": "98:7:62",
+            "nodeType": "FunctionDefinition",
+            "parameters": {
+              "id": 11643,
+              "nodeType": "ParameterList",
+              "parameters": [],
+              "src": "105:2:62"
+            },
+            "returnParameters": {
+              "id": 11646,
+              "nodeType": "ParameterList",
+              "parameters": [
+                {
+                  "constant": false,
+                  "id": 11645,
+                  "mutability": "mutable",
+                  "name": "",
+                  "nameLocation": "-1:-1:-1",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 11647,
+                  "src": "131:7:62",
+                  "stateVariable": false,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_uint256",
+                    "typeString": "uint256"
+                  },
+                  "typeName": {
+                    "id": 11644,
+                    "name": "uint256",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "131:7:62",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_uint256",
+                      "typeString": "uint256"
+                    }
+                  },
+                  "visibility": "internal"
+                }
+              ],
+              "src": "130:9:62"
+            },
+            "scope": 11648,
+            "src": "89:51:62",
+            "stateMutability": "view",
+            "virtual": false,
+            "visibility": "external"
+          }
+        ],
+        "scope": 11649,
+        "src": "57:85:62",
+        "usedErrors": [],
+        "usedEvents": []
+      }
+    ],
+    "src": "32:111:62"
+  },
+  "compiler": {
+    "name": "solc",
+    "version": "0.8.21+commit.d9974bed.Emscripten.clang"
+  },
+  "networks": {},
+  "schemaVersion": "3.4.16",
+  "updatedAt": "2024-06-07T05:41:32.618Z",
+  "devdoc": {
+    "kind": "dev",
+    "methods": {},
+    "version": 1
+  },
+  "userdoc": {
+    "kind": "user",
+    "methods": {},
+    "version": 1
+  }
+}

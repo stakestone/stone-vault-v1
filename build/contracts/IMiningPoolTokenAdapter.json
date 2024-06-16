@@ -1,0 +1,179 @@
+{
+  "contractName": "IMiningPoolTokenAdapter",
+  "abi": [
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "_amount",
+          "type": "uint256"
+        }
+      ],
+      "name": "getStoneValue",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "value",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    }
+  ],
+  "metadata": "{\"compiler\":{\"version\":\"0.8.21+commit.d9974bed\"},\"language\":\"Solidity\",\"output\":{\"abi\":[{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"_amount\",\"type\":\"uint256\"}],\"name\":\"getStoneValue\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"value\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"}],\"devdoc\":{\"kind\":\"dev\",\"methods\":{},\"version\":1},\"userdoc\":{\"kind\":\"user\",\"methods\":{},\"version\":1}},\"settings\":{\"compilationTarget\":{\"project:/contracts/interfaces/IMiningPoolTokenAdapter.sol\":\"IMiningPoolTokenAdapter\"},\"evmVersion\":\"shanghai\",\"libraries\":{},\"metadata\":{\"bytecodeHash\":\"ipfs\"},\"optimizer\":{\"enabled\":true,\"runs\":20},\"remappings\":[],\"viaIR\":true},\"sources\":{\"project:/contracts/interfaces/IMiningPoolTokenAdapter.sol\":{\"keccak256\":\"0xa497aa1e4b8a76e532fb63fd886dcfa52804a37baef5e7fa4c1bffbe2dfe3757\",\"license\":\"MIT\",\"urls\":[\"bzz-raw://967d465b42fa499c93cf0e930fc87fa78c15ce0d9caaba1c440d417bb99deff6\",\"dweb:/ipfs/QmSrUAQDV1KMfUgSw975Z5AUYfZSZjWYgpmP9AiCFWB9o5\"]}},\"version\":1}",
+  "bytecode": "0x",
+  "deployedBytecode": "0x",
+  "immutableReferences": {},
+  "generatedSources": [],
+  "deployedGeneratedSources": [],
+  "sourceMap": "",
+  "deployedSourceMap": "",
+  "source": "// SPDX-License-Identifier: MIT\npragma solidity 0.8.21;\n\ninterface IMiningPoolTokenAdapter {\n    function getStoneValue(\n        uint256 _amount\n    ) external view returns (uint256 value);\n}\n",
+  "sourcePath": "/Users/mingyuzhang/Downloads/stone-vault-v1/contracts/interfaces/IMiningPoolTokenAdapter.sol",
+  "ast": {
+    "absolutePath": "project:/contracts/interfaces/IMiningPoolTokenAdapter.sol",
+    "exportedSymbols": {
+      "IMiningPoolTokenAdapter": [
+        11658
+      ]
+    },
+    "id": 11659,
+    "license": "MIT",
+    "nodeType": "SourceUnit",
+    "nodes": [
+      {
+        "id": 11650,
+        "literals": [
+          "solidity",
+          "0.8",
+          ".21"
+        ],
+        "nodeType": "PragmaDirective",
+        "src": "32:23:63"
+      },
+      {
+        "abstract": false,
+        "baseContracts": [],
+        "canonicalName": "IMiningPoolTokenAdapter",
+        "contractDependencies": [],
+        "contractKind": "interface",
+        "fullyImplemented": false,
+        "id": 11658,
+        "linearizedBaseContracts": [
+          11658
+        ],
+        "name": "IMiningPoolTokenAdapter",
+        "nameLocation": "67:23:63",
+        "nodeType": "ContractDefinition",
+        "nodes": [
+          {
+            "functionSelector": "03fab65c",
+            "id": 11657,
+            "implemented": false,
+            "kind": "function",
+            "modifiers": [],
+            "name": "getStoneValue",
+            "nameLocation": "106:13:63",
+            "nodeType": "FunctionDefinition",
+            "parameters": {
+              "id": 11653,
+              "nodeType": "ParameterList",
+              "parameters": [
+                {
+                  "constant": false,
+                  "id": 11652,
+                  "mutability": "mutable",
+                  "name": "_amount",
+                  "nameLocation": "137:7:63",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 11657,
+                  "src": "129:15:63",
+                  "stateVariable": false,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_uint256",
+                    "typeString": "uint256"
+                  },
+                  "typeName": {
+                    "id": 11651,
+                    "name": "uint256",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "129:7:63",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_uint256",
+                      "typeString": "uint256"
+                    }
+                  },
+                  "visibility": "internal"
+                }
+              ],
+              "src": "119:31:63"
+            },
+            "returnParameters": {
+              "id": 11656,
+              "nodeType": "ParameterList",
+              "parameters": [
+                {
+                  "constant": false,
+                  "id": 11655,
+                  "mutability": "mutable",
+                  "name": "value",
+                  "nameLocation": "182:5:63",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 11657,
+                  "src": "174:13:63",
+                  "stateVariable": false,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_uint256",
+                    "typeString": "uint256"
+                  },
+                  "typeName": {
+                    "id": 11654,
+                    "name": "uint256",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "174:7:63",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_uint256",
+                      "typeString": "uint256"
+                    }
+                  },
+                  "visibility": "internal"
+                }
+              ],
+              "src": "173:15:63"
+            },
+            "scope": 11658,
+            "src": "97:92:63",
+            "stateMutability": "view",
+            "virtual": false,
+            "visibility": "external"
+          }
+        ],
+        "scope": 11659,
+        "src": "57:134:63",
+        "usedErrors": [],
+        "usedEvents": []
+      }
+    ],
+    "src": "32:160:63"
+  },
+  "compiler": {
+    "name": "solc",
+    "version": "0.8.21+commit.d9974bed.Emscripten.clang"
+  },
+  "networks": {},
+  "schemaVersion": "3.4.16",
+  "updatedAt": "2024-06-07T05:41:32.619Z",
+  "devdoc": {
+    "kind": "dev",
+    "methods": {},
+    "version": 1
+  },
+  "userdoc": {
+    "kind": "user",
+    "methods": {},
+    "version": 1
+  }
+}
