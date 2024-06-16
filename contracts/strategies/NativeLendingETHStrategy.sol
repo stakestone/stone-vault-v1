@@ -13,7 +13,11 @@ contract NativeLendingETHStrategy is StrategyV2 {
     IWETH9 public immutable WETH;
 
     event Invoked(address indexed targetAddress, uint256 value, bytes data);
-
+    event Deposit(uint256 amount, uint256 mintAmount); // Add this event
+    event WithdrawByShare(uint256 share, uint256 withdrawAmount); // Emit the event
+    event WithdrawByAmount(uint256 amount, uint256 withdrawAmount); // Emit the event
+    event Clear(uint256 amount);
+    event Withdraw(uint256 amount, uint256 actualAmount);
     constructor(
         address payable _controller,
         string memory _name,
@@ -33,7 +37,6 @@ contract NativeLendingETHStrategy is StrategyV2 {
         uint256 beforeLPBalance = IAquaLpToken(LPTOKEN).balanceOf(
             address(this)
         );
-
         WETH.deposit{value: _amount}();
         WETH.approve(LPTOKEN, _amount);
         IAquaLpToken(LPTOKEN).mint(_amount);
@@ -41,6 +44,7 @@ contract NativeLendingETHStrategy is StrategyV2 {
         mintAmount =
             IAquaLpToken(LPTOKEN).balanceOf(address(this)) -
             beforeLPBalance;
+        emit Deposit(_amount, mintAmount); // Emit the event
     }
 
     function withdrawFromNativeByAmount(
@@ -50,9 +54,9 @@ contract NativeLendingETHStrategy is StrategyV2 {
 
         IAquaLpToken(LPTOKEN).redeemUnderlying(_amount);
 
-        WETH.withdraw(_amount);
-
+        WETH.withdraw(WETH.balanceOf(address(this)));
         withdrawAmount = address(this).balance - beforeBalance;
+        emit WithdrawByAmount(_amount, withdrawAmount); // Emit the event
     }
 
     function withdrawFromNativeByShare(
@@ -62,9 +66,10 @@ contract NativeLendingETHStrategy is StrategyV2 {
 
         IAquaLpToken(LPTOKEN).redeem(_share);
 
-        WETH.withdraw(withdrawAmount);
+        WETH.withdraw(WETH.balanceOf(address(this)));
 
         withdrawAmount = address(this).balance - beforeBalance;
+        emit WithdrawByShare(_share, withdrawAmount); // Emit the event
     }
 
     // public functions
@@ -101,6 +106,7 @@ contract NativeLendingETHStrategy is StrategyV2 {
         returns (uint256 actualAmount)
     {
         actualAmount = _withdraw(_amount);
+        emit Withdraw(_amount, actualAmount); // Emit the event
     }
 
     function instantWithdraw(
@@ -121,6 +127,7 @@ contract NativeLendingETHStrategy is StrategyV2 {
         if (balance != 0) {
             TransferHelper.safeTransferETH(controller, balance);
             amount = balance;
+            emit Clear(amount);
         }
     }
 
