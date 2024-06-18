@@ -128,9 +128,13 @@ contract SymbioticDepositWstETHStrategy is StrategyV2 {
         require(_ethAmount != 0, "zero");
         require(_ethAmount <= address(this).balance, "exceed balance");
 
-        uint256 stETHAmount = ILido(stETHAddr).submit{value: _ethAmount}(
-            _referral
-        );
+        ILido lido = ILido(stETHAddr);
+
+        uint256 balanceBefore = lido.balanceOf(address(this));
+
+        ILido(stETHAddr).submit{value: _ethAmount}(_referral);
+
+        uint256 stETHAmount = lido.balanceOf(address(this)) - balanceBefore;
         TransferHelper.safeApprove(stETHAddr, wstETHAddr, stETHAmount);
 
         amount = IWstETH(wstETHAddr).wrap(stETHAmount);
