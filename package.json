@@ -1,0 +1,7 @@
+{
+  "dependencies": {
+    "@eth-optimism/contracts": "^0.6.0",
+    "@truffle/hdwallet-provider": "^2.1.15",
+    "@uniswap/v3-periphery": "^1.4.4"
+  }
+}
