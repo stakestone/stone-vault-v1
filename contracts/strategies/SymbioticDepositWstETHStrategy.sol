@@ -164,6 +164,8 @@ contract SymbioticDepositWstETHStrategy is StrategyV2 {
             _wstETHAmount
         );
 
+        require(shares != 0, "mint zero share");
+
         emit DepositIntoSymbiotic(
             collateralAddr,
             address(this),
