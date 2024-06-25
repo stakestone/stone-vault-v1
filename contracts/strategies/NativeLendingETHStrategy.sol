@@ -13,6 +13,9 @@ contract NativeLendingETHStrategy is StrategyV2 {
     IWETH9 public immutable WETH;
 
     event Invoked(address indexed targetAddress, uint256 value, bytes data);
+    event DepositIntoNative(uint256 amount);
+    event WithdrawFromNativeByAmount(uint256 amount);
+    event WithdrawFromNativeByShare(uint256 amount);
 
     constructor(
         address payable _controller,
@@ -30,6 +33,7 @@ contract NativeLendingETHStrategy is StrategyV2 {
     function depositIntoNative(
         uint256 _amount
     ) external onlyOwner returns (uint256 mintAmount) {
+        require(_amount != 0, "Invalid 0 input");
         uint256 beforeLPBalance = IAquaLpToken(LPTOKEN).balanceOf(
             address(this)
         );
@@ -41,11 +45,15 @@ contract NativeLendingETHStrategy is StrategyV2 {
         mintAmount =
             IAquaLpToken(LPTOKEN).balanceOf(address(this)) -
             beforeLPBalance;
+        require(mintAmount != 0, "Invalid 0 output");
+
+        emit DepositIntoNative(mintAmount);
     }
 
     function withdrawFromNativeByAmount(
         uint256 _amount
     ) external onlyOwner returns (uint256 withdrawAmount) {
+        require(_amount != 0, "Invalid 0 input");
         uint256 beforeBalance = address(this).balance;
 
         IAquaLpToken(LPTOKEN).redeemUnderlying(_amount);
@@ -53,11 +61,13 @@ contract NativeLendingETHStrategy is StrategyV2 {
         WETH.withdraw(_amount);
 
         withdrawAmount = address(this).balance - beforeBalance;
+        emit WithdrawFromNativeByAmount(withdrawAmount);
     }
 
     function withdrawFromNativeByShare(
         uint256 _share
     ) external onlyOwner returns (uint256 withdrawAmount) {
+        require(_share != 0, "Invalid 0 input");
         uint256 beforeBalance = address(this).balance;
 
         IAquaLpToken(LPTOKEN).redeem(_share);
@@ -65,6 +75,7 @@ contract NativeLendingETHStrategy is StrategyV2 {
         WETH.withdraw(withdrawAmount);
 
         withdrawAmount = address(this).balance - beforeBalance;
+        emit WithdrawFromNativeByShare(withdrawAmount);
     }
 
     // public functions
