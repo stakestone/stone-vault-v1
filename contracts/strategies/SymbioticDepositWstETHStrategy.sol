@@ -174,7 +174,7 @@ contract SymbioticDepositWstETHStrategy is StrategyV2 {
         );
     }
 
-    function withdraswFromSymbiotic(
+    function withdrawFromSymbiotic(
         uint256 _share
     ) external onlyOwner returns (uint256 wstETHAmount) {
         require(_share != 0, "zero");
