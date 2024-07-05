@@ -164,6 +164,8 @@ contract SymbioticDepositWstETHStrategy is StrategyV2 {
             _wstETHAmount
         );
 
+        require(shares != 0, "mint zero share");
+
         emit DepositIntoSymbiotic(
             collateralAddr,
             address(this),
@@ -172,7 +174,7 @@ contract SymbioticDepositWstETHStrategy is StrategyV2 {
         );
     }
 
-    function withdraswFromSymbiotic(
+    function withdrawFromSymbiotic(
         uint256 _share
     ) external onlyOwner returns (uint256 wstETHAmount) {
         require(_share != 0, "zero");

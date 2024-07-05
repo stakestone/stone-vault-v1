@@ -12,12 +12,10 @@ contract NativeLendingETHStrategy is StrategyV2 {
     address public immutable LPTOKEN;
     IWETH9 public immutable WETH;
 
-    event Invoked(address indexed targetAddress, uint256 value, bytes data);
-    event Deposit(uint256 amount, uint256 mintAmount); // Add this event
-    event WithdrawByShare(uint256 share, uint256 withdrawAmount); // Emit the event
-    event WithdrawByAmount(uint256 amount, uint256 withdrawAmount); // Emit the event
-    event Clear(uint256 amount);
-    event Withdraw(uint256 amount, uint256 actualAmount);
+    event DepositIntoNative(uint256 amount);
+    event WithdrawFromNativeByAmount(uint256 amount);
+    event WithdrawFromNativeByShare(uint256 amount);
+
     constructor(
         address payable _controller,
         string memory _name,
@@ -34,9 +32,11 @@ contract NativeLendingETHStrategy is StrategyV2 {
     function depositIntoNative(
         uint256 _amount
     ) external onlyOwner returns (uint256 mintAmount) {
+        require(_amount != 0, "Invalid 0 input");
         uint256 beforeLPBalance = IAquaLpToken(LPTOKEN).balanceOf(
             address(this)
         );
+
         WETH.deposit{value: _amount}();
         WETH.approve(LPTOKEN, _amount);
         IAquaLpToken(LPTOKEN).mint(_amount);
@@ -44,24 +44,29 @@ contract NativeLendingETHStrategy is StrategyV2 {
         mintAmount =
             IAquaLpToken(LPTOKEN).balanceOf(address(this)) -
             beforeLPBalance;
-        emit Deposit(_amount, mintAmount); // Emit the event
+        require(mintAmount != 0, "Invalid 0 output");
+
+        emit DepositIntoNative(mintAmount);
     }
 
     function withdrawFromNativeByAmount(
         uint256 _amount
     ) external onlyOwner returns (uint256 withdrawAmount) {
+        require(_amount != 0, "Invalid 0 input");
         uint256 beforeBalance = address(this).balance;
 
         IAquaLpToken(LPTOKEN).redeemUnderlying(_amount);
 
         WETH.withdraw(WETH.balanceOf(address(this)));
+
         withdrawAmount = address(this).balance - beforeBalance;
-        emit WithdrawByAmount(_amount, withdrawAmount); // Emit the event
+        emit WithdrawFromNativeByAmount(withdrawAmount);
     }
 
     function withdrawFromNativeByShare(
         uint256 _share
     ) external onlyOwner returns (uint256 withdrawAmount) {
+        require(_share != 0, "Invalid 0 input");
         uint256 beforeBalance = address(this).balance;
 
         IAquaLpToken(LPTOKEN).redeem(_share);
@@ -69,7 +74,7 @@ contract NativeLendingETHStrategy is StrategyV2 {
         WETH.withdraw(WETH.balanceOf(address(this)));
 
         withdrawAmount = address(this).balance - beforeBalance;
-        emit WithdrawByShare(_share, withdrawAmount); // Emit the event
+        emit WithdrawFromNativeByShare(withdrawAmount);
     }
 
     // public functions
@@ -106,7 +111,6 @@ contract NativeLendingETHStrategy is StrategyV2 {
         returns (uint256 actualAmount)
     {
         actualAmount = _withdraw(_amount);
-        emit Withdraw(_amount, actualAmount); // Emit the event
     }
 
     function instantWithdraw(
@@ -127,7 +131,6 @@ contract NativeLendingETHStrategy is StrategyV2 {
         if (balance != 0) {
             TransferHelper.safeTransferETH(controller, balance);
             amount = balance;
-            emit Clear(amount);
         }
     }
 
