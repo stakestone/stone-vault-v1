@@ -54,6 +54,7 @@ module.exports = async function (callback) {
 
         let allValue = BigNumber(await nativeLendingETHStrategy.getAllValue.call({ from: owner }));
         console.log("allValue is : ", allValue.toString(10));
+        //exchangeRateCurrent = 2e18;
         assert.strictEqual(allValue.toString(10), eth_deposit_amount.times(2).toString(10));
         callback();
     } catch (e) {

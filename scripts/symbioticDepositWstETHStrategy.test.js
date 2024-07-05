@@ -78,13 +78,10 @@ module.exports = async function (callback) {
 
         // wrapToWstETH
         console.log("======== wrapToWstETH ========")
-        result = await symbioticDepositWstETHStrategy.wrapToWstETH.call(
+        await symbioticDepositWstETHStrategy.wrapToWstETH(
             BigNumber(5).times(1e18).toString(10),
             ZERO_ADDRESS
         );
-        console.log("result", result.toString(10));
-        // const emittedEvents = result.receipt.rawLogs.map(log => log.topics[0]);
-        // console.log("emittedEvents is : ", emittedEvents);
 
         await checkStrategy(symbioticDepositWstETHStrategy.address);
 
@@ -96,64 +93,62 @@ module.exports = async function (callback) {
 
         await checkStrategy(symbioticDepositWstETHStrategy.address);
 
-
         // depositIntoSymbiotic
-        // console.log("======== depositIntoSymbiotic 5 ========")
-        // await symbioticDepositWstETHStrategy.depositIntoSymbiotic(
-        //     BigNumber(2).times(1e18).toString(10),
-        // );
+        console.log("======== depositIntoSymbiotic 5 ========")
+        await symbioticDepositWstETHStrategy.depositIntoSymbiotic(
+            BigNumber(2).times(1e18).toString(10),
+        );
 
-        // await checkStrategy(symbioticDepositWstETHStrategy.address);
+        await checkStrategy(symbioticDepositWstETHStrategy.address);
 
-        // // withdraswFromSymbiotic
-        // console.log("======== depositIntoSymbiotic 20 ========")
-        // await symbioticDepositWstETHStrategy.withdraswFromSymbiotic(
-        //     BigNumber(2).times(1e18).toString(10),
-        // );
+        // withdraswFromSymbiotic
+        console.log("======== withdraswFromSymbiotic 20 ========")
+        await symbioticDepositWstETHStrategy.withdraswFromSymbiotic(
+            BigNumber(2).times(1e18).toString(10),
+        );
 
-        // await checkStrategy(symbioticDepositWstETHStrategy.address);
+        await checkStrategy(symbioticDepositWstETHStrategy.address);
 
-        // // withdraswFromSymbiotic
-        // console.log("======== depositIntoSymbiotic 15 ========")
-        // await symbioticDepositWstETHStrategy.withdraswFromSymbiotic(
-        //     BigNumber(1).times(1e18).toString(10),
-        // );
+        // withdraswFromSymbiotic
+        console.log("======== withdraswFromSymbiotic 15 ========")
+        await symbioticDepositWstETHStrategy.withdraswFromSymbiotic(
+            BigNumber(1).times(1e18).toString(10),
+        );
 
-        // await checkStrategy(symbioticDepositWstETHStrategy.address);
+        await checkStrategy(symbioticDepositWstETHStrategy.address);
 
-        // // unwrapToStETH
-        // console.log("======== unwrapToStETH 15 ========")
-        // await symbioticDepositWstETHStrategy.unwrapToStETH(
-        //     BigNumber(1).times(1e18).toString(10),
-        // );
+        // unwrapToStETH
+        console.log("======== unwrapToStETH 15 ========")
+        await symbioticDepositWstETHStrategy.unwrapToStETH(
+            BigNumber(1).times(1e18).toString(10),
+        );
 
-        // await checkStrategy(symbioticDepositWstETHStrategy.address);
+        await checkStrategy(symbioticDepositWstETHStrategy.address);
 
-        // // unwrapToStETH
-        // console.log("======== unwrapToStETH 10 ========")
-        // await symbioticDepositWstETHStrategy.unwrapToStETH(
-        //     BigNumber(2).times(1e18).toString(10),
-        // );
+        // unwrapToStETH
+        console.log("======== unwrapToStETH 10 ========")
+        await symbioticDepositWstETHStrategy.unwrapToStETH(
+            BigNumber(2).times(1e18).toString(10),
+        );
 
-        // await checkStrategy(symbioticDepositWstETHStrategy.address);
+        await checkStrategy(symbioticDepositWstETHStrategy.address);
 
-        // // requestToEther
-        // console.log("======== requestToEther 10 ========")
-        // await symbioticDepositWstETHStrategy.requestToEther(
-        //     BigNumber(1).times(1e18).toString(10),
-        // );
+        // requestToEther
+        console.log("======== requestToEther 10 ========")
+        await symbioticDepositWstETHStrategy.requestToEther(
+            BigNumber(1).times(1e18).toString(10),
+        );
 
-        // await checkStrategy(symbioticDepositWstETHStrategy.address);
+        await checkStrategy(symbioticDepositWstETHStrategy.address);
 
-        // // requestToEther
-        // console.log("======== requestToEther 20 ========")
-        // await symbioticDepositWstETHStrategy.requestToEther(
-        //     BigNumber(5).times(1e17).toString(10),
-        // );
+        // requestToEther
+        console.log("======== requestToEther 20 ========")
+        await symbioticDepositWstETHStrategy.requestToEther(
+            BigNumber(1).times(1e17).toString(10),
+        );
 
-        // await checkStrategy(symbioticDepositWstETHStrategy.address);
+        await checkStrategy(symbioticDepositWstETHStrategy.address);
 
-        // assert.strictEqual(1, 2);
 
         callback();
     } catch (e) {
@@ -191,6 +186,8 @@ module.exports = async function (callback) {
         })
         console.log("total pending num: ", allids.length);
         console.log("all ids: ", allids);
+        // assert.strictEqual(1, 2);
+
     }
 
 }
