@@ -53,7 +53,7 @@ contract MellowDepositWstETHStrategy is StrategyV2 {
         stETHAddr = IWstETH(wstETHAddr).stETH();
     }
 
-    function deposit() public payable override onlyController notAtSameBlock {
+    function deposit() public payable override onlyController {
         require(msg.value != 0, "zero value");
 
         latestUpdateTime = block.timestamp;
@@ -61,25 +61,13 @@ contract MellowDepositWstETHStrategy is StrategyV2 {
 
     function withdraw(
         uint256 _amount
-    )
-        public
-        override
-        onlyController
-        notAtSameBlock
-        returns (uint256 actualAmount)
-    {
+    ) public override onlyController returns (uint256 actualAmount) {
         actualAmount = _withdraw(_amount);
     }
 
     function instantWithdraw(
         uint256 _amount
-    )
-        public
-        override
-        onlyController
-        notAtSameBlock
-        returns (uint256 actualAmount)
-    {
+    ) public override onlyController returns (uint256 actualAmount) {
         actualAmount = _withdraw(_amount);
     }
 
