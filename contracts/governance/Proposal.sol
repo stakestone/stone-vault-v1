@@ -25,6 +25,7 @@ contract Proposal is AccessControlEnumerable {
     uint256 public votePeriod = 7 * 24 * 60 * 60;
 
     uint256 public constant minVotePeriod = 24 * 60 * 60;
+    uint256 public constant maxVotePeriod = 30 * 24 * 60 * 60;
 
     EnumerableSet.AddressSet private proposals;
     mapping(address => ProposalDetail) public proposalDetails;
@@ -76,7 +77,7 @@ contract Proposal is AccessControlEnumerable {
         );
     }
 
-    function revokePeoposal(address _proposal) external onlyRole(REVOKE_ROLE) {
+    function revokeProposal(address _proposal) external onlyRole(REVOKE_ROLE) {
         ProposalDetail storage detail = proposalDetails[_proposal];
 
         detail.isRevoked = true;
@@ -150,6 +151,8 @@ contract Proposal is AccessControlEnumerable {
 
     function setVotePeriod(uint256 _period) external onlyRole(SET_PARAM_ROLE) {
         require(_period >= minVotePeriod, "too short for a proposal");
+        require(_period <= maxVotePeriod, "too long for a proposal");
+
         votePeriod = _period;
 
         emit SetVotePeriod(_period);
