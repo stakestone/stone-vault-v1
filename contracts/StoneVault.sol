@@ -2,7 +2,7 @@
 pragma solidity 0.8.21;
 
 import {ReentrancyGuard} from "@openzeppelin/contracts/security/ReentrancyGuard.sol";
-import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
+import {Ownable2Step} from "@openzeppelin/contracts/access/Ownable2Step.sol";
 import {TransferHelper} from "@uniswap/v3-periphery/contracts/libraries/TransferHelper.sol";
 
 import {Minter} from "./token/Minter.sol";
@@ -12,7 +12,7 @@ import {StrategyController} from "./strategies/StrategyController.sol";
 
 import {VaultMath} from "./libraries/VaultMath.sol";
 
-contract StoneVault is ReentrancyGuard, Ownable {
+contract StoneVault is ReentrancyGuard, Ownable2Step {
     uint256 internal constant MULTIPLIER = 1e18;
     uint256 internal constant ONE_HUNDRED_PERCENT = 1e6;
     uint256 internal constant MAXMIUM_FEE_RATE = ONE_HUNDRED_PERCENT / 100; // 1%
