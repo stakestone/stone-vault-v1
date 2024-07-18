@@ -277,6 +277,7 @@ contract EigenLSTRestaking is EigenStrategy {
             if (_amount <= maxAmountPerRequest) {
                 amounts = new uint256[](1);
                 amounts[0] = _amount;
+                etherAmount = _amount;
             } else {
                 uint256 length = _amount / maxAmountPerRequest + 1;
                 uint256 remainder = _amount % maxAmountPerRequest;
@@ -284,8 +285,10 @@ contract EigenLSTRestaking is EigenStrategy {
                 if (remainder >= minAmountPerRequest) {
                     amounts = new uint256[](length);
                     amounts[length - 1] = remainder;
+                    etherAmount = _amount;
                 } else {
                     amounts = new uint256[](length - 1);
+                    etherAmount = _amount - remainder;
                 }
 
                 uint256 i;
@@ -299,8 +302,6 @@ contract EigenLSTRestaking is EigenStrategy {
                 address(this)
             );
             require(ids.length != 0, "Lido request withdrawal error");
-
-            etherAmount = _amount;
         } else {
             TransferHelper.safeApprove(tokenAddr, SWAPPING, _amount);
             etherAmount = SwappingAggregator(SWAPPING).swap(
