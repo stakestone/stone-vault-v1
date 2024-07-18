@@ -27,10 +27,6 @@ contract Minter {
         Stone(stone).burn(_from, _amount);
     }
 
-    function setNewVault(address _vault) external onlyVault {
-        vault = payable(_vault);
-    }
-
     function getTokenPrice() public returns (uint256 price) {
         price = StoneVault(vault).currentSharePrice();
     }

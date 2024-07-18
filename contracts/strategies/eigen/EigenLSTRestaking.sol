@@ -50,7 +50,6 @@ contract EigenLSTRestaking is EigenStrategy {
     event SetWithdrawQueueParams(uint256 length, uint256 amount);
     event SetRouter(bool buyOnDex, bool sellOnDex);
     event SetReferral(address oldAddr, address newAddr);
-    event Invoked(address indexed targetAddress, uint256 value, bytes data);
 
     constructor(
         address payable _controller,
@@ -278,6 +277,7 @@ contract EigenLSTRestaking is EigenStrategy {
             if (_amount <= maxAmountPerRequest) {
                 amounts = new uint256[](1);
                 amounts[0] = _amount;
+                etherAmount = _amount;
             } else {
                 uint256 length = _amount / maxAmountPerRequest + 1;
                 uint256 remainder = _amount % maxAmountPerRequest;
@@ -285,8 +285,10 @@ contract EigenLSTRestaking is EigenStrategy {
                 if (remainder >= minAmountPerRequest) {
                     amounts = new uint256[](length);
                     amounts[length - 1] = remainder;
+                    etherAmount = _amount;
                 } else {
                     amounts = new uint256[](length - 1);
+                    etherAmount = _amount - remainder;
                 }
 
                 uint256 i;
@@ -300,8 +302,6 @@ contract EigenLSTRestaking is EigenStrategy {
                 address(this)
             );
             require(ids.length != 0, "Lido request withdrawal error");
-
-            etherAmount = _amount;
         } else {
             TransferHelper.safeApprove(tokenAddr, SWAPPING, _amount);
             etherAmount = SwappingAggregator(SWAPPING).swap(
@@ -431,24 +431,6 @@ contract EigenLSTRestaking is EigenStrategy {
         IDelegationManager.Withdrawal memory withdrawal
     ) public pure returns (bytes32) {
         return keccak256(abi.encode(withdrawal));
-    }
-
-    function invoke(
-        address target,
-        bytes memory data
-    ) external onlyOwner returns (bytes memory result) {
-        require(target != tokenAddr, "not permit");
-
-        bool success;
-        (success, result) = target.call{value: 0}(data);
-        if (!success) {
-            // solhint-disable-next-line no-inline-assembly
-            assembly {
-                returndatacopy(0, 0, returndatasize())
-                revert(0, returndatasize())
-            }
-        }
-        emit Invoked(target, 0, data);
     }
 
     receive() external payable {}

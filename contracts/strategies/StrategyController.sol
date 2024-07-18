@@ -321,9 +321,5 @@ contract StrategyController {
             ratios[_strategy] == 0 && Strategy(_strategy).getAllValue() < 1e4;
     }
 
-    function setNewVault(address _vault) external onlyVault {
-        stoneVault = _vault;
-    }
-
     receive() external payable {}
 }

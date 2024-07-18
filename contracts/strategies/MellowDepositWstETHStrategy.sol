@@ -26,17 +26,16 @@ contract MellowDepositWstETHStrategy is StrategyV2 {
     );
     event WrapToWstETH(uint256 stETHAmount, uint256 wstETHAmount);
     event UnwrapToStETH(uint256 wstETHAmount, uint256 stETHAmount);
-    event DepositIntoSymbiotic(
-        address indexed collateral,
+    event DepositIntoMellow(
+        address indexed vault,
         address indexed recipient,
         uint256 amount,
         uint256 share
     );
-    event WithdrawFromSymbiotic(
-        address indexed collateral,
+    event WithdrawFromMellow(
+        address indexed vault,
         address indexed recipient,
-        uint256 share,
-        uint256 amount
+        uint256 share
     );
 
     constructor(
@@ -183,6 +182,13 @@ contract MellowDepositWstETHStrategy is StrategyV2 {
             _minLpAmount,
             block.timestamp
         );
+
+        emit DepositIntoMellow(
+            mellowVaultAddr,
+            address(this),
+            _wstETHAmount,
+            lpAmount
+        );
     }
 
     function requestWithdrawFromMellow(
@@ -201,6 +207,8 @@ contract MellowDepositWstETHStrategy is StrategyV2 {
             type(uint256).max,
             true
         );
+
+        emit WithdrawFromMellow(mellowVaultAddr, address(this), _share);
     }
 
     function emergencyWithdrawFromMellow(

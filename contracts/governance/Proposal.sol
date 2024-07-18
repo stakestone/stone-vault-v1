@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.21;
 
-import {SafeMath} from "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import {EnumerableSet} from "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
 import {AccessControlEnumerable} from "@openzeppelin/contracts/access/AccessControlEnumerable.sol";
 import {TransferHelper} from "@uniswap/v3-periphery/contracts/libraries/TransferHelper.sol";
@@ -11,7 +10,6 @@ import {StoneVault} from "../StoneVault.sol";
 
 contract Proposal is AccessControlEnumerable {
     using EnumerableSet for EnumerableSet.AddressSet;
-    using SafeMath for uint256;
 
     address public immutable stoneToken;
 
@@ -25,6 +23,7 @@ contract Proposal is AccessControlEnumerable {
     uint256 public votePeriod = 7 * 24 * 60 * 60;
 
     uint256 public constant minVotePeriod = 24 * 60 * 60;
+    uint256 public constant maxVotePeriod = 30 * 24 * 60 * 60;
 
     EnumerableSet.AddressSet private proposals;
     mapping(address => ProposalDetail) public proposalDetails;
@@ -76,7 +75,7 @@ contract Proposal is AccessControlEnumerable {
         );
     }
 
-    function revokePeoposal(address _proposal) external onlyRole(REVOKE_ROLE) {
+    function revokeProposal(address _proposal) external onlyRole(REVOKE_ROLE) {
         ProposalDetail storage detail = proposalDetails[_proposal];
 
         detail.isRevoked = true;
@@ -96,12 +95,12 @@ contract Proposal is AccessControlEnumerable {
 
         ProposalDetail storage detail = proposalDetails[_proposal];
         if (_flag) {
-            detail.support = detail.support.add(_poll);
+            detail.support = detail.support + _poll;
         } else {
-            detail.oppose = detail.oppose.add(_poll);
+            detail.oppose = detail.oppose + _poll;
         }
 
-        polls[msg.sender][_proposal] = polls[msg.sender][_proposal].add(_poll);
+        polls[msg.sender][_proposal] = polls[msg.sender][_proposal] + _poll;
 
         emit VoteFor(_proposal, _poll, _flag);
     }
@@ -128,7 +127,7 @@ contract Proposal is AccessControlEnumerable {
 
             if (!canVote(addr) && voteAmount != 0) {
                 polls[msg.sender][addr] = 0;
-                withAmount = withAmount.add(voteAmount);
+                withAmount = withAmount + voteAmount;
 
                 emit RetrieveToken(addr, voteAmount);
             }
@@ -150,6 +149,8 @@ contract Proposal is AccessControlEnumerable {
 
     function setVotePeriod(uint256 _period) external onlyRole(SET_PARAM_ROLE) {
         require(_period >= minVotePeriod, "too short for a proposal");
+        require(_period <= maxVotePeriod, "too long for a proposal");
+
         votePeriod = _period;
 
         emit SetVotePeriod(_period);

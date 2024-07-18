@@ -106,10 +106,10 @@ contract SwappingAggregator is ReentrancyGuard {
             _isSell
         );
         if (!_isSell) {
-            require(_amount == msg.value, "wrong value");
-        }
-        if (expected == 0) {
-            return 0;
+            require(
+                _amount == msg.value && msg.value != 0 && expected != 0,
+                "wrong value"
+            );
         }
         if (dex == DEX_TYPE.UNISWAPV3) {
             amount = swapOnUniV3(_token, _amount, _isSell);
