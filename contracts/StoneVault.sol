@@ -176,6 +176,7 @@ contract StoneVault is ReentrancyGuard, Ownable {
     }
 
     function requestWithdraw(uint256 _shares) external nonReentrant {
+        require(msg.sender != proposal, "forbidden");
         require(_shares != 0, "too small");
         require(latestRoundID != 0, "should withdraw instantly");
         Stone stoneToken = Stone(stone);
