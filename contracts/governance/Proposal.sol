@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.21;
 
-import {SafeMath} from "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import {EnumerableSet} from "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
 import {AccessControlEnumerable} from "@openzeppelin/contracts/access/AccessControlEnumerable.sol";
 import {TransferHelper} from "@uniswap/v3-periphery/contracts/libraries/TransferHelper.sol";
@@ -11,7 +10,6 @@ import {StoneVault} from "../StoneVault.sol";
 
 contract Proposal is AccessControlEnumerable {
     using EnumerableSet for EnumerableSet.AddressSet;
-    using SafeMath for uint256;
 
     address public immutable stoneToken;
 
@@ -97,12 +95,12 @@ contract Proposal is AccessControlEnumerable {
 
         ProposalDetail storage detail = proposalDetails[_proposal];
         if (_flag) {
-            detail.support = detail.support.add(_poll);
+            detail.support = detail.support + _poll;
         } else {
-            detail.oppose = detail.oppose.add(_poll);
+            detail.oppose = detail.oppose + _poll;
         }
 
-        polls[msg.sender][_proposal] = polls[msg.sender][_proposal].add(_poll);
+        polls[msg.sender][_proposal] = polls[msg.sender][_proposal] + _poll;
 
         emit VoteFor(_proposal, _poll, _flag);
     }
@@ -129,7 +127,7 @@ contract Proposal is AccessControlEnumerable {
 
             if (!canVote(addr) && voteAmount != 0) {
                 polls[msg.sender][addr] = 0;
-                withAmount = withAmount.add(voteAmount);
+                withAmount = withAmount + voteAmount;
 
                 emit RetrieveToken(addr, voteAmount);
             }
