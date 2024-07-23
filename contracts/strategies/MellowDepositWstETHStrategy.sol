@@ -10,12 +10,14 @@ import {ILido} from "../interfaces/ILido.sol";
 import {ILidoWithdrawalQueue} from "../interfaces/ILidoWithdrawalQueue.sol";
 import {IWstETH} from "../interfaces/IWstETH.sol";
 import {IMellowVault} from "../interfaces/IMellowVault.sol";
+import {ICollateral} from "../interfaces/ICollateral.sol";
 
 contract MellowDepositWstETHStrategy is StrategyV2 {
     address public immutable stETHAddr;
     address public immutable wstETHAddr;
     address public immutable lidoWithdrawalQueue;
     address public immutable mellowVaultAddr;
+    address public immutable collateralAddr;
 
     uint256 internal immutable MULTIPLIER = 1e18;
 
@@ -37,17 +39,25 @@ contract MellowDepositWstETHStrategy is StrategyV2 {
         address indexed recipient,
         uint256 share
     );
+    event WithdrawFromSymbiotic(
+        address indexed collateral,
+        address indexed recipient,
+        uint256 share,
+        uint256 amount
+    );
 
     constructor(
         address payable _controller,
         address _wstETHAddr,
         address _lidoWithdrawalQueue,
         address _mellowVaultAddr,
+        address _collateralAddr,
         string memory _name
     ) StrategyV2(_controller, _name) {
         wstETHAddr = _wstETHAddr;
         lidoWithdrawalQueue = _lidoWithdrawalQueue;
         mellowVaultAddr = _mellowVaultAddr;
+        collateralAddr = _collateralAddr;
 
         stETHAddr = IWstETH(wstETHAddr).stETH();
     }
@@ -113,8 +123,13 @@ contract MellowDepositWstETHStrategy is StrategyV2 {
 
     function getWstETHValue() public view returns (uint256 value) {
         uint256 wstBalance = IERC20(wstETHAddr).balanceOf(address(this));
+        uint256 collateralValue = IERC20(collateralAddr).balanceOf(
+            address(this)
+        );
 
-        value = IWstETH(wstETHAddr).getStETHByWstETH(wstBalance);
+        value = IWstETH(wstETHAddr).getStETHByWstETH(
+            wstBalance + collateralValue
+        );
     }
 
     function getDepositedValue() public view returns (uint256 value) {
@@ -209,6 +224,27 @@ contract MellowDepositWstETHStrategy is StrategyV2 {
         );
 
         emit WithdrawFromMellow(mellowVaultAddr, address(this), _share);
+    }
+
+    function withdrawFromSymbiotic(
+        uint256 _share
+    ) external onlyOwner returns (uint256 wstETHAmount) {
+        require(_share != 0, "zero");
+
+        wstETHAmount = IWstETH(wstETHAddr).balanceOf(address(this));
+
+        ICollateral(collateralAddr).withdraw(address(this), _share);
+
+        wstETHAmount =
+            IWstETH(wstETHAddr).balanceOf(address(this)) -
+            wstETHAmount;
+
+        emit WithdrawFromSymbiotic(
+            collateralAddr,
+            address(this),
+            _share,
+            wstETHAmount
+        );
     }
 
     function emergencyWithdrawFromMellow(
