@@ -24,6 +24,8 @@ interface IMellowVault {
         bytes32 tokensHash; // keccak256 hash of the tokens array at the moment of the call
     }
 
+    function underlyingTokens() external view returns (address[] memory);
+
     function calculateStack()
         external
         view

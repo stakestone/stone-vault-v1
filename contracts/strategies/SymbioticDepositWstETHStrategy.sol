@@ -224,8 +224,10 @@ contract SymbioticDepositWstETHStrategy is StrategyV2 {
             if (remainder >= minAmountPerRequest) {
                 amounts = new uint256[](length);
                 amounts[length - 1] = remainder;
+                etherAmount = _amount;
             } else {
                 amounts = new uint256[](length - 1);
+                etherAmount = _amount - remainder;
             }
 
             uint256 i;
@@ -239,8 +241,6 @@ contract SymbioticDepositWstETHStrategy is StrategyV2 {
             address(this)
         );
         require(ids.length != 0, "Lido request withdrawal error");
-
-        etherAmount = _amount;
     }
 
     function claimPendingAssets(uint256[] memory _ids) external onlyOwner {
