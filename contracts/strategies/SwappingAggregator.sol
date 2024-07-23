@@ -110,6 +110,8 @@ contract SwappingAggregator is ReentrancyGuard {
                 _amount == msg.value && msg.value != 0 && expected != 0,
                 "wrong value"
             );
+        } else {
+            require(msg.value == 0, "ether value should be zero");
         }
         if (dex == DEX_TYPE.UNISWAPV3) {
             amount = swapOnUniV3(_token, _amount, _isSell);
