@@ -31,7 +31,7 @@ contract MellowDepositWstETHStrategy is StrategyV2 {
     event DepositIntoMellow(
         address indexed vault,
         address indexed recipient,
-        uint256 amount,
+        uint256[] amounts,
         uint256 share
     );
     event WithdrawFromMellow(
@@ -182,18 +182,34 @@ contract MellowDepositWstETHStrategy is StrategyV2 {
     }
 
     function depositIntoMellow(
-        uint256 _wstETHAmount,
+        uint256[] memory _amounts,
         uint256 _minLpAmount
     ) external onlyOwner returns (uint256 lpAmount) {
-        require(_wstETHAmount != 0, "zero");
+        require(_minLpAmount != 0, "zero lp");
 
-        TransferHelper.safeApprove(wstETHAddr, mellowVaultAddr, _wstETHAmount);
+        IMellowVault mellowVault = IMellowVault(mellowVaultAddr);
 
-        uint256[] memory amounts = new uint256[](1);
-        amounts[0] = _wstETHAmount;
-        (, lpAmount) = IMellowVault(mellowVaultAddr).deposit(
+        address[] memory underlyingTokens = mellowVault.underlyingTokens();
+        require(_amounts.length == underlyingTokens.length, "invalid length");
+
+        uint256 i;
+        uint256 total;
+        for (i; i < _amounts.length; i++) {
+            if (_amounts[i] > 0) {
+                TransferHelper.safeApprove(
+                    underlyingTokens[i],
+                    mellowVaultAddr,
+                    _amounts[i]
+                );
+                total += _amounts[i];
+            }
+        }
+
+        require(total != 0, "zero amount");
+
+        (, lpAmount) = mellowVault.deposit(
             address(this),
-            amounts,
+            _amounts,
             _minLpAmount,
             block.timestamp
         );
@@ -201,23 +217,29 @@ contract MellowDepositWstETHStrategy is StrategyV2 {
         emit DepositIntoMellow(
             mellowVaultAddr,
             address(this),
-            _wstETHAmount,
+            _amounts,
             lpAmount
         );
     }
 
     function requestWithdrawFromMellow(
         uint256 _share,
-        uint256 _minAmount
+        uint256[] memory _minAmounts
     ) external onlyOwner {
-        require(_share != 0, "zero");
+        require(_share != 0, "zero share");
 
-        uint256[] memory amounts = new uint256[](1);
-        amounts[0] = _minAmount;
-        IMellowVault(mellowVaultAddr).registerWithdrawal(
+        IMellowVault mellowVault = IMellowVault(mellowVaultAddr);
+
+        address[] memory underlyingTokens = mellowVault.underlyingTokens();
+        require(
+            _minAmounts.length == underlyingTokens.length,
+            "invalid length"
+        );
+
+        mellowVault.registerWithdrawal(
             address(this),
             _share,
-            amounts,
+            _minAmounts,
             block.timestamp,
             type(uint256).max,
             true
