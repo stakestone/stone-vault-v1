@@ -217,6 +217,7 @@ contract SymbioticDepositWstETHStrategy is StrategyV2 {
         if (_amount <= maxAmountPerRequest) {
             amounts = new uint256[](1);
             amounts[0] = _amount;
+            etherAmount = _amount;
         } else {
             uint256 length = _amount / maxAmountPerRequest + 1;
             uint256 remainder = _amount % maxAmountPerRequest;
