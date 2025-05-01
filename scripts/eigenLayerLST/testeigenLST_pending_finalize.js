@@ -36,8 +36,6 @@ module.exports = async function (callback) {
         console.log("account is : ", account);
         let withdrawalQueueAccountBalance = BigNumber(await web3.eth.getBalance(withdrawalQueueAccount));
         console.log("withdrawalQueueAccountBalance is : ", BigNumber(withdrawalQueueAccountBalance).toString(10));
-
-
         let account1 = await withdrawalQueueERC721.getRoleMember("0x485191a2ef18512555bd4426d18a716ce8e98c80ec2de16394dcf86d7d91bc80", BigNumber(0));
         console.log("account1 is : ", account1);
 

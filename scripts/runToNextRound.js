@@ -18,9 +18,15 @@ module.exports = async function (callback) {
         // console.log("rollToNext transaction : ", result);
         // let price0 = BigNumber(await stoneVault.roundPricePerShare(0));
         // console.log("0 round price is : ", price0.toString(10));
-        // let settlementTime0 = BigNumber(await stoneVault.settlementTime(0));
-        // console.log("settlementTime0 is : ", settlementTime0.toString(10));
         // let latestRoundID = BigNumber(await stoneVault.latestRoundID());
+        // console.log("latestRoundID is : ", latestRoundID.toString(10));
+        let rebaseTime = BigNumber(await stoneVault.rebaseTime());
+        console.log("rebaseTime is : ", rebaseTime.toString(10));
+        let rebaseTimeInterval = BigNumber(await stoneVault.rebaseTimeInterval());
+        console.log("rebaseTimeInterval is : ", rebaseTimeInterval.toString(10));
+        let time = rebaseTime.plus(rebaseTimeInterval);
+        console.log("time is : ", time.toString(10));
+
         // let latestPrice = BigNumber(await stoneVault.roundPricePerShare(latestRoundID.minus(BigNumber(1))));
         // console.log("latest round price is : ", latestPrice.toString(10));
         // let latestSettlementTime = BigNumber(await stoneVault.settlementTime(latestRoundID.minus(BigNumber(1))));

@@ -1,8 +1,6 @@
 // truffle compile
 // truffle exec scripts/2Propose.js --network local
 // eslint-disable-next-line no-undef
-const Web3 = require('web3');
-const web3 = new Web3('http://127.0.0.1:8545');
 const BigNumber = require('bignumber.js');
 const StoneVault = artifacts.require("StoneVault");
 const deployer = "0xc1364aD857462e1B60609D9e56b5E24C5c21a312";
@@ -11,11 +9,14 @@ const taker1 = "0x66f1c92b29441bcba925c07abbba2e23676b79a4";
 const taker2 = "0xbaa0e5565f1c52caa68092980e02ba553c8ab5a2";
 const user1 = "0x66f1c92b29441bcba925c07abbba2e23676b79a4";
 const { time } = require("@openzeppelin/test-helpers");
+require("@openzeppelin/test-helpers/configure")({
+    provider: "http://localhost:8545",
+});
 
 const Proposal = artifacts.require("Proposal");
 const MellowDepositWstETHStrategy = artifacts.require("MellowDepositWstETHStrategy");
 const NativeLendingETHStrategy = artifacts.require("NativeLendingETHStrategy");
-const EigenStrategy = artifacts.require("EigenStrategy");
+const EigenStrategy = artifacts.require("EigenLSTRestaking");
 const SymbioticDepositWBETHStrategy = artifacts.require("SymbioticDepositWBETHStrategy");
 const SymbioticDepositWstETHStrategy = artifacts.require("SymbioticDepositWstETHStrategy");
 const StrategyController = artifacts.require("StrategyController");
@@ -28,13 +29,6 @@ const swappingAggregatorAddr = "0x15469528C11E8Ace863F3F9e5a8329216e33dD7d";
 const SwappingAggregator = artifacts.require("SwappingAggregator");
 module.exports = async function (callback) {
     try {
-        // 启用 impersonation
-        await web3.currentProvider.send({
-            jsonrpc: "2.0",
-            method: "anvil_impersonateAccount",
-            params: [taker1],
-            id: 1,
-        });
         const swappingAggregatorAddr = "0x15469528C11E8Ace863F3F9e5a8329216e33dD7d";
         const swappingAggregator = await SwappingAggregator.at(swappingAggregatorAddr);
         const stETHAddr = "0xae7ab96520DE3A18E5e111B5EaAb095312D7fE84";
@@ -42,7 +36,7 @@ module.exports = async function (callback) {
         // const stETHSlippage = 500000;
         // const stETHFee = 10000;
 
-        // await web3.eth.sendTransaction({ from: taker1, to: deployer, value: "900000000000000000" });
+        await web3.eth.sendTransaction({ from: taker1, to: deployer, value: "900000000000000000" });
         console.log("start....");
         const vault = "0xA62F9C5af106FeEE069F38dE51098D9d81B90572";
         const stoneVault = await StoneVault.at(vault);
@@ -84,28 +78,24 @@ module.exports = async function (callback) {
 
         let latestProposal = proposals[proposals.length - 1];
         console.log("latestProposal: ", latestProposal);
-        let proposalDetail = await proposal.proposalDetails(latestProposal);
-        let deadline = proposalDetail.deadline;
-        console.log("deadline is : ", deadline.toString(10));
+        await time.advanceBlock();
 
-        // await time.advanceBlock();
+        // // await web3.eth.sendTransaction({ from: taker1, to: user1, value: "900000000000000000000" });
+        await stone.approve(proposal.address, BigNumber(10).times(1e18), {
+            from: user1
+        });
+        await time.advanceBlock();
+        console.log("start vote");
+        await proposal.voteFor(latestProposal, BigNumber(10e18), true, {
+            from: user1
+        })
+        await time.advanceBlock();
 
-        // // // await web3.eth.sendTransaction({ from: taker1, to: user1, value: "900000000000000000000" });
-        // await stone.approve(proposal.address, BigNumber(10).times(1e18), {
-        //     from: user1
-        // });
-        // await time.advanceBlock();
-        // console.log("start vote");
-        // await proposal.voteFor(latestProposal, BigNumber(10e18), true, {
-        //     from: user1
-        // })
-        // await time.advanceBlock();
-
-        // await sleep(5);
-        // console.log("can vote?");
-        // let canVote = await proposal.canVote(latestProposal);
-        // console.log("canVote or not : ", canVote);
-        // callback();
+        await sleep(5);
+        console.log("can vote?");
+        let canVote = await proposal.canVote(latestProposal);
+        console.log("canVote or not : ", canVote);
+        callback();
     } catch (e) {
         callback(e);
     }

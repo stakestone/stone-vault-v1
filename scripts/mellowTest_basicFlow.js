@@ -9,19 +9,20 @@ const IERC20 = artifacts.require("IERC20");
 const StoneVault = artifacts.require("StoneVault");
 const ILidoWithdrawalQueue = artifacts.require("ILidoWithdrawalQueue");
 const IMellowVault = artifacts.require("IMellowVault");
-const collateralAddr = "0xC329400492c6ff2438472D4651Ad17389fCb843a";
 const deployer = "0x70997970C51812dc3A010C7d01b50e0d17dc79C8";
-
+const collateralAddr = "0xC329400492c6ff2438472D4651Ad17389fCb843a";
 const wstETHAddr = "0x7f39C581F595B53c5cb19bD0b3f8dA6c935E2Ca0";
 const lidoWithdrawalQueueAddr = "0x889edC2eDab5f40e902b864aD4d7AdE8E412F9B1";
 const stETHAddr = "0xae7ab96520DE3A18E5e111B5EaAb095312D7fE84";
 const mellowVaultAddr = "0x7a4EffD87C2f3C55CA251080b1343b605f327E3a";
 const operator = "0x4a3c7F2470Aa00ebE6aE7cB1fAF95964b9de1eF4";
 const stoneVaultAddr = "0xA62F9C5af106FeEE069F38dE51098D9d81B90572";
-//expect lido will seperate the withdraw request to be with multiple ids.
+// Expect the first request from mellow should be overwritten by the second one.
+//times(1e18) expect to withdraw all the amount from mellow when the input exceeds maximum, and all of them will go to deposited state after processWithdrawal since the minAmount exceeds max.
 
 module.exports = async function (callback) {
     try {
+
         await web3.eth.sendTransaction({
             from: "0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC",
             to: operator,
@@ -39,36 +40,51 @@ module.exports = async function (callback) {
         console.log("mellowDepositWstETHStrategy: ", mellowDepositWstETHStrategy.address);
 
         await checkStrategy(mellowDepositWstETHStrategy.address);
-        let amount = BigNumber(2500);
-        await depositToStrategy(mellowDepositWstETHStrategy, amount);
+        let amount1 = BigNumber(60);
+        let amount2 = BigNumber(20);
+        await depositToStrategy(mellowDepositWstETHStrategy, amount1);
+        await depositToStrategy(mellowDepositWstETHStrategy, amount2);
 
         await checkStrategy(mellowDepositWstETHStrategy.address);
 
         let amt1 = await mellowDepositWstETHStrategy.mintToWstETH.call(
-            amount.times(1e18).toString(10),
+            amount1.times(1e18).toString(10),
+            ZERO_ADDRESS
+        );
+        let amt2 = await mellowDepositWstETHStrategy.mintToWstETH.call(
+            amount2.times(1e18).toString(10),
             ZERO_ADDRESS
         );
         console.log("amt1 is : ", BigNumber(amt1).toString(10));
+        console.log("amt2 is : ", BigNumber(amt2).toString(10));
 
-        await wrapToWstETH(mellowDepositWstETHStrategy, amount);
+        await wrapToWstETH(mellowDepositWstETHStrategy, amount1);
+        await wrapToWstETH(mellowDepositWstETHStrategy, amount2);
+
         await checkStrategy(mellowDepositWstETHStrategy.address);
 
-        await depositIntoMellow(mellowDepositWstETHStrategy, amt1);
-        await checkStrategy(mellowDepositWstETHStrategy.address);
+        await depositIntoMellow(mellowDepositWstETHStrategy, [amt1]);
+        await depositIntoMellow(mellowDepositWstETHStrategy, [amt2]);
 
-        await requestWithdrawFromMellow(mellowDepositWstETHStrategy, BigNumber(amt1).minus(100));
+        await checkStrategy(mellowDepositWstETHStrategy.address);
+        await requestWithdrawFromMellow(mellowDepositWstETHStrategy, [amt1]);
+        await checkStrategy(mellowDepositWstETHStrategy.address);
+        await requestWithdrawFromMellow(mellowDepositWstETHStrategy, [amt2]);
         await checkStrategy(mellowDepositWstETHStrategy.address);
 
         await processWithdrawals(mellowDepositWstETHStrategy.address);
         await checkStrategy(mellowDepositWstETHStrategy.address);
 
-        let amtSTETH = await mellowDepositWstETHStrategy.unwrapToStETH.call(BigNumber(amt1).minus(100));
-        console.log("amtSTETH is : ", BigNumber(amtSTETH).toString(10));
-        await unwrapToStETH(mellowDepositWstETHStrategy, BigNumber(amt1).minus(100));
-
+        await unwrapToStETH(mellowDepositWstETHStrategy, 17);
         await checkStrategy(mellowDepositWstETHStrategy.address);
 
-        await requestToEther(mellowDepositWstETHStrategy, amtSTETH);
+        await requestToEther(mellowDepositWstETHStrategy, 17);
+        await checkStrategy(mellowDepositWstETHStrategy.address);
+
+        await requestWithdrawFromMellow(mellowDepositWstETHStrategy, [BigNumber(1).times(1e18).toString(10)]);
+        await checkStrategy(mellowDepositWstETHStrategy.address);
+
+        await cancelWithdrawFromMellow(mellowDepositWstETHStrategy);
         await checkStrategy(mellowDepositWstETHStrategy.address);
 
         callback();
@@ -76,17 +92,22 @@ module.exports = async function (callback) {
         callback(e);
     }
 
+    async function cancelWithdrawFromMellow(strategy) {
+        console.log(`======== cancelWithdrawFromMellow ========`)
+        await strategy.cancelWithdrawFromMellow();
+    }
+
     async function requestToEther(strategy, amount) {
         console.log(`======== request ${amount} stETH To ether ========`)
         await strategy.requestToEther(
-            BigNumber(amount).toString(10)
+            BigNumber(amount).times(1e18).toString(10)
         );
     }
 
     async function unwrapToStETH(strategy, amount) {
         console.log(`======== unwrap ${amount} wstETH To stETH ========`)
         await strategy.unwrapToStETH(
-            BigNumber(amount).toString(10)
+            BigNumber(amount).times(1e18).toString(10)
         );
     }
 
@@ -109,23 +130,25 @@ module.exports = async function (callback) {
         await sleep(5);
     }
 
-    async function requestWithdrawFromMellow(strategy, amount) {
+    async function requestWithdrawFromMellow(strategy, [amount]) {
         console.log(`======== withdraw ${amount} shares From Mellow ========`)
 
         await strategy.requestWithdrawFromMellow(
             BigNumber(amount).toString(10),
-            BigNumber(amount).toString(10)
+            [BigNumber(1).toString(10)]
+            // BigNumber(amount).times(1e18).toString(10),
+            // [BigNumber(1).times(1e16).toString(10)]
         );
     }
 
-    async function depositIntoMellow(strategy, amount) {
+    async function depositIntoMellow(strategy, [amount]) {
         console.log(`======== deposit ${amount} wstETH To Mellow ========`)
         const lpRate = BigNumber(await strategy.getLpRate());
         console.log("lprate is : ", lpRate.toString(10));
         const minLpReceived = BigNumber(amount).div(lpRate).times(1e18).toFixed(0).toString(10);
 
         await strategy.depositIntoMellow(
-            BigNumber(amount).toString(10),
+            [BigNumber(amount).toString(10)],
             minLpReceived
         );
     }
