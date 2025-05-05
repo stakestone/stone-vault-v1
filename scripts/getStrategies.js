@@ -10,7 +10,7 @@ const StrategyController = artifacts.require("StrategyController");
 module.exports = async function (callback) {
     try {
 
-        const strategyController = await StrategyController.at("0x30CAD1dAA1bD1A6f92AA62F259cf3D00a606605D");
+        const strategyController = await StrategyController.at("0x396aBF9fF46E21694F4eF01ca77C6d7893A017B2");
         strategies = await strategyController.getStrategies();
         console.log("strategies are : ", strategies);
         console.log("strategy length is : ", strategies[0].length);
@@ -21,13 +21,13 @@ module.exports = async function (callback) {
         console.log("strategy2 is : ", strategies[0][1]);
         let strategy3 = strategies[0][2];
         console.log("strategy3 is : ", strategies[0][2]);
-        let strategy4 = strategies[0][3];
-        console.log("strategy4 is : ", strategies[0][3]);
+        // let strategy4 = strategies[0][3];
+        // console.log("strategy4 is : ", strategies[0][3]);
 
         console.log("strategy1's portion is : ", strategies[1][0].toString(10));
         console.log("strategy2's portion is : ", strategies[1][1].toString(10));
         console.log("strategy3's portion is : ", strategies[1][2].toString(10));
-        console.log("strategy4's portion is : ", strategies[1][3].toString(10));
+        // console.log("strategy4's portion is : ", strategies[1][3].toString(10));
 
         // let strategy_vaule = BigNumber(await strategyController.getStrategyValue.call(strategies[0][0]));
         // console.log("strategy_vaule is : ", strategy_vaule.toString(10));
