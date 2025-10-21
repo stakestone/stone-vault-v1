@@ -121,7 +121,7 @@ module.exports = async function (callback) {
                     SymbioticWBETHStrategyAddr,
                     eigenLSTRestakingPatchAddr
                 ],
-                [87e4, 1e4, 12e4, 0] // 权重分配
+                [98e4, 1e4, 1e4, 0] // 权重分配
             ]
         );
         const data3 = `${selector2}${encodedParams3.slice(2)}`;

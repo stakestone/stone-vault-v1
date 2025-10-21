@@ -2,12 +2,14 @@
 const BigNumber = require('bignumber.js');
 const assert = require('assert');
 const Abi = web3.eth.abi;
-const ethers = require('ethers');
+const ethers = require('ethers'); // 引入 ethers 库
 
 // --- Artifacts ---
 const IERC20 = artifacts.require("IERC20");
 const Stone = artifacts.require("Stone");
 const EigenLSTRestaking = artifacts.require("EigenLSTRestaking");
+const NativeLendingETHStrategy = artifacts.require("NativeLendingETHStrategy");
+const SymbioticDepositWBETHStrategy = artifacts.require("SymbioticDepositWBETHStrategy");
 const EigenLSTRestakingPatch = artifacts.require("EigenLSTRestakingPatch");
 const StoneVault = artifacts.require("StoneVault");
 const StrategyController = artifacts.require("StrategyController");
@@ -54,7 +56,13 @@ const stETHAddr = "0xae7ab96520DE3A18E5e111B5EaAb095312D7fE84";
 const delegationManagerAddr = "0x39053D51B77DC0d36036Fc1fCc8Cb819df8Ef37A";
 const eigenStrategyAddrForOEGLS = "0x93c4b944D05dfe6df7645A86cd2206016c51564D";
 const eigenLSTRestakingPatchAddr = "0xc13a36F134B5F08A39B1a972B7D2C934F6EE1c95";
-const el_ratio = new BigNumber(0.87);
+const NativeLendingStrategyAddr = "0x2D70868f12A05b8C347974415baC5de053DAa376";
+const SymbioticWBETHStrategyAddr = "0x58907ad5c7eD1EaB5FdCc0Cc347F25bF5BC0e7da";
+
+const el_ratio = new BigNumber(0);
+const native_ratio = new BigNumber(0.88);
+const sym_ratio = new BigNumber(0.12);
+
 const tolerance = new BigNumber(100); // 100 wei tolerance
 let valuesAfterUnstake;
 let valuesAfterDeposit;
@@ -262,11 +270,21 @@ async function printAllValues(logPrefix = "", ...usersToLogReceipts) {
     const oEGLS_getUnstakingValue = await originalEigenLSR.getUnstakingValue.call();
     const oEGLS_stETHBalance = await stETH.balanceOf(originalEigenLSRAddr);
     const oEGLS_ETHBalance = await web3.eth.getBalance(originalEigenLSRAddr);
+    // 获取可提取和待处理的资产
+    const pendingAssets = await originalEigenLSR.checkPendingAssets.call();
+    console.log("Raw pendingAssets:", pendingAssets);
+    // 如果返回对象，检查其结构：
+    console.log("Pending assets keys:", Object.keys(pendingAssets));
+    const claimableValue = pendingAssets[1];
+    const pendingValue = pendingAssets[2];
+
     console.log(`${logPrefix}Original oEGLS - Reported getAllValue:`, fromWei(oEGLS_getAllValue).toString(10));
     console.log(`${logPrefix}Original oEGLS - ETH Balance:`, fromWei(oEGLS_ETHBalance).toString(10));
     console.log(`${logPrefix}Original oEGLS - stETH Balance (liquid):`, fromWei(oEGLS_stETHBalance).toString(10));
     console.log(`${logPrefix}Original oEGLS - Restaking Value (stETH in EL):`, fromWei(oEGLS_getRestakingValue).toString(10));
     console.log(`${logPrefix}Original oEGLS - Unstaking Value (its internal view):`, fromWei(oEGLS_getUnstakingValue).toString(10));
+    console.log(`${logPrefix}Original oEGLS - claimableValue(Lido可提取的):`, fromWei(claimableValue).toString(10));
+    console.log(`${logPrefix}Original oEGLS - pendingValue(Lido待提取的stETH):`, fromWei(pendingValue).toString(10));
 
     const pEGLS_getAllValue = await patchEigenLSR.getAllValue.call();
     const pEGLS_ETHBalance = await web3.eth.getBalance(eigenLSTRestakingPatchAddr);
@@ -276,6 +294,11 @@ async function printAllValues(logPrefix = "", ...usersToLogReceipts) {
     const assetsVault_ETHBalance = await web3.eth.getBalance(assetsVaultAddr);
     console.log(`${logPrefix}AssetsVault - ETH Balance:`, fromWei(assetsVault_ETHBalance).toString(10));
     console.log(`${logPrefix}----------------`);
+    // ==========策略相关=========
+    const nativeLendingETHStrategy_getAllValue = await nativeLendingETHStrategy.getAllValue.call();
+    const symbioticDepositWBETHStrategy_getAllValue = await symbioticDepositWBETHStrategy.getAllValue.call();
+    console.log(`${logPrefix}nativeLendingETHStrategy_getAllValue:`, fromWei(nativeLendingETHStrategy_getAllValue).toString(10));
+    console.log(`${logPrefix}symbioticDepositWBETHStrategy_getAllValue:`, fromWei(symbioticDepositWBETHStrategy_getAllValue).toString(10));
 
     return {
         sv_currentSharePrice: safeToBN(sv_currentSharePrice),
@@ -287,11 +310,14 @@ async function printAllValues(logPrefix = "", ...usersToLogReceipts) {
         pEGLS_getAllValue: safeToBN(pEGLS_getAllValue),
         pEGLS_ETHBalance: safeToBN(pEGLS_ETHBalance),
         sc_totalValue: safeToBN(sc_totalValue),
-        assetsVault_ETHBalance: safeToBN(assetsVault_ETHBalance)
+        assetsVault_ETHBalance: safeToBN(assetsVault_ETHBalance),
+        nativeLendingETHStrategy_getAllValue: safeToBN(nativeLendingETHStrategy_getAllValue),
+        symbioticDepositWBETHStrategy_getAllValue: safeToBN(symbioticDepositWBETHStrategy_getAllValue),
+
     };
 }
 
-let stoneVault, stone, strategyController, originalEigenLSR, patchEigenLSR, stETH, stoneToken, eigenLayerStETHStrategy, originalEigenLSROwner;
+let stoneVault, stone, strategyController, originalEigenLSR, nativeLendingETHStrategy, symbioticDepositWBETHStrategy, patchEigenLSR, stETH, stoneToken, eigenLayerStETHStrategy, originalEigenLSROwner;
 
 module.exports = async function (callback) {
     const safeExit = (error) => {
@@ -311,6 +337,9 @@ module.exports = async function (callback) {
         strategyController = await StrategyController.at(strategyControllerAddr);
         originalEigenLSR = await EigenLSTRestaking.at(originalEigenLSRAddr);
         patchEigenLSR = await EigenLSTRestakingPatch.at(eigenLSTRestakingPatchAddr);
+        nativeLendingETHStrategy = await NativeLendingETHStrategy.at(NativeLendingStrategyAddr);
+        symbioticDepositWBETHStrategy = await SymbioticDepositWBETHStrategy.at(SymbioticWBETHStrategyAddr);
+
         stETH = await IERC20.at(stETHAddr);
         stoneToken = await Stone.at(stoneAddr);
         eigenLayerStETHStrategy = await IEigenStrategy.at(eigenStrategyAddrForOEGLS);
@@ -524,6 +553,22 @@ module.exports = async function (callback) {
         );
         assert(fromWei(valuesAfterRebalance.oEGLS_getUnstakingValue).toString(10) === "0", "After Rebalance.oEGLS_getUnstakingValue should be 0");
         assert(fromWei(valuesAfterRebalance.pEGLS_getAllValue).toString(10) === "0", "After Rebalance.pEGLS_getAllValue should be 0");
+
+        diff = scValueAfterRebalance.times(native_ratio)
+            .minus(valuesAfterRebalance.nativeLendingETHStrategy_getAllValue)
+            .abs();
+        assert(
+            diff.lte(tolerance),
+            `nativeLendingETHStrategy_getAllValue差值超出允许范围！实际差值: ${diff.toString(10)}，允许最大值: ${tolerance.toString(10)}`
+        );
+
+        diff = scValueAfterRebalance.times(sym_ratio)
+            .minus(valuesAfterRebalance.symbioticDepositWBETHStrategy_getAllValue)
+            .abs();
+        assert(
+            diff.lte(tolerance),
+            `symbioticDepositWBETHStrategy_getAllValue: ${diff.toString(10)}，允许最大值: ${tolerance.toString(10)}`
+        );
 
         console.log("======== Test Case 3.1.1 Successfully Completed =========");
         safeExit();

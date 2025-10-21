@@ -122,12 +122,6 @@ module.exports = async function (callback) {
         if (typeof callback === 'function') { callback(error); }
         else { if (error) console.error(error); process.exit(error ? 1 : 0); }
     };
-
-    if (eigenLSTRestakingPatchAddr === "0xYourDeployedPatchAddressPlaceholder1.4.1") {
-        console.error("Placeholder address for Patch contract not replaced.");
-        return safeExit(new Error("Placeholder address for Patch contract not replaced."));
-    }
-
     try {
         console.log("======== Test Case 1.4.1: Settled, User Deposits then Withdraws (Deposit < Withdrawal) =========");
 
@@ -144,9 +138,8 @@ module.exports = async function (callback) {
 
         console.log("\n--- Step 0: Initial state (after user's setup) ---");
         let currentState = await printAllValues("Initial State", { name: "User", address: testUser });
-        // assert(currentState.actualUnstakingValueForOEGLSFromDM_InStETH.isZero(), "Initial unstaking for oEGLS should be 0 unless pre-existing from fork");
+        assert(currentState.actualUnstakingValueForOEGLSFromDM_InStETH.isZero(), "Initial unstaking for oEGLS should be 0 unless pre-existing from fork");
 
-        // --- Step 1: Owner of oEGLS initiates Unstaking from EigenLayer (~3 stETH) ---
         console.log("\n--- Step 1: Owner of oEGLS initiates EL Unstaking (~3 stETH) ---");
         const unstakeTargetInStETH_step1 = toWei(3);
         await impersonateAccount(originalEigenLSROwner);

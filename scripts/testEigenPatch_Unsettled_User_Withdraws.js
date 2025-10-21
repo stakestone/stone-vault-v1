@@ -24,7 +24,7 @@ const originalEigenLSRAddr = "0x87D004f22BDD5F9c85AD6D3F74F1fB6e7A256982";
 const stETHAddr = "0xae7ab96520DE3A18E5e111B5EaAb095312D7fE84";
 const delegationManagerAddr = "0x39053D51B77DC0d36036Fc1fCc8Cb819df8Ef37A";
 const eigenStrategyAddrForOEGLS = "0x93c4b944D05dfe6df7645A86cd2206016c51564D";
-const eigenLSTRestakingPatchAddr = "0xYourDeployedPatchAddressPlaceholder2.1.1"; // <<<--- !!! REPLACE THIS !!!
+const eigenLSTRestakingPatchAddr = ""; //
 
 // --- Helper Functions (copied from previous) ---
 const toWei = (amount, decimals = 18) => new BigNumber(amount).multipliedBy(new BigNumber(10).pow(decimals));

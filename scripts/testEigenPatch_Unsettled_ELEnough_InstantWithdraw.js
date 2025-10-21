@@ -2,7 +2,7 @@
 const BigNumber = require('bignumber.js');
 const assert = require('assert');
 const Abi = web3.eth.abi;
-const ethers = require('ethers');
+const ethers = require('ethers'); // 引入 ethers 库
 
 // --- Artifacts ---
 const IERC20 = artifacts.require("IERC20");

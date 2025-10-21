@@ -7,7 +7,6 @@ const IERC20 = artifacts.require("IERC20");
 
 const EigenLSTRestaking = artifacts.require("EigenLSTRestaking");
 const EigenLSTRestakingPatch = artifacts.require("EigenLSTRestakingPatch");
-const Strategy = artifacts.require("Strategy");
 const deployer = "0xc1364aD857462e1B60609D9e56b5E24C5c21a312";
 const eigenLSTRestakingAddr = "0x87D004f22BDD5F9c85AD6D3F74F1fB6e7A256982";
 const strategyControllerAddr = "0x396aBF9fF46E21694F4eF01ca77C6d7893A017B2";
@@ -16,7 +15,7 @@ const stETHAddr = "0xae7ab96520DE3A18E5e111B5EaAb095312D7fE84";
 
 const delegationManagerAddr = "0x39053D51B77DC0d36036Fc1fCc8Cb819df8Ef37A";
 const eigenStrategyAddr = "0x93c4b944D05dfe6df7645A86cd2206016c51564D";
-const eigenLSTRestakingPatchAddr = "0xc13a36F134B5F08A39B1a972B7D2C934F6EE1c95";
+
 const eventAbi = {
     "anonymous": false,
     "inputs": [{
@@ -266,6 +265,51 @@ module.exports = async function (callback) {
         }
     };
     try {
+        // 在脚本中添加这个函数来分解getInvestedValue
+        async function printInvestedValueComponents(contract) {
+            // 1. 获取ETH余额
+            const etherValue = await web3.eth.getBalance(contract.address);
+
+            // 2. 获取stETH余额
+            const stETH = await IERC20.at(stETHAddr);
+            const tokenValue = await stETH.balanceOf(contract.address);
+
+            // 3. 获取可提取和待处理的资产
+            const pendingAssets = await contract.checkPendingAssets.call();
+            const claimableValue = pendingAssets[1];
+            const pendingValue = pendingAssets[2];
+
+            // 4. 获取EigenLayer质押价值
+            const eigenValue = await contract.getRestakingValue.call();
+
+            // 5. 获取解质押中的价值
+            const unstakingValue = await contract.getUnstakingValue.call();
+
+            // 打印所有组成部分
+            console.log("======== getInvestedValue 组成部分 =========");
+            console.log("1. etherValue (ETH余额):", BigNumber(etherValue).div(1e18).toString(10));
+            console.log("2. tokenValue (stETH余额):", BigNumber(tokenValue).div(1e18).toString(10));
+            console.log("3. claimableValue (可提取stETH):", BigNumber(claimableValue).div(1e18).toString(10));
+            console.log("4. pendingValue (待处理stETH):", BigNumber(pendingValue).div(1e18).toString(10));
+            console.log("5. eigenValue (Eigen质押价值):", BigNumber(eigenValue).div(1e18).toString(10));
+            console.log("6. unstakingValue (解质押中价值):", BigNumber(unstakingValue).div(1e18).toString(10));
+
+            // 计算总和
+            const total = BigNumber(etherValue)
+                .plus(tokenValue)
+                .plus(claimableValue)
+                .plus(pendingValue)
+                .plus(eigenValue)
+                .plus(unstakingValue)
+                .div(1e18);
+
+            console.log("各部分总和:", total.toString(10));
+
+            // 对比getAllValue的结果
+            const getAllValue = await contract.getAllValue.call();
+            console.log("getAllValue返回值:", BigNumber(getAllValue).div(1e18).toString(10));
+        }
+
         // for (var i = 0; i < errorsAbi.length; i++) {
         //     const errorcode = web3.eth.abi.encodeFunctionSignature(errorsAbi[i]);
 
@@ -285,7 +329,14 @@ module.exports = async function (callback) {
         const eigenLSTRestaking = await EigenLSTRestaking.at(eigenLSTRestakingAddr);
         const stETH = await IERC20.at(stETHAddr);
 
-        const eigenLSTRestakingPatch = await EigenLSTRestakingPatch.at(eigenLSTRestakingPatchAddr);
+        const eigenLSTRestakingPatch = await EigenLSTRestakingPatch.new(
+            strategyControllerAddr,
+            "EigenLayer LST Restaking Patch",
+            delegationManagerAddr,
+            eigenStrategyAddr,
+            eigenLSTRestakingAddr,
+            { from: deployer }
+        );
         console.log("EigenLSTRestakingPatch: ", eigenLSTRestakingPatch.address);
         console.log("======== EigenLSTRestaking Initial State =========");
         let getRestakingValue = await eigenLSTRestaking.getRestakingValue();
@@ -296,6 +347,8 @@ module.exports = async function (callback) {
         console.log("getAllValue: ", BigNumber(getAllValue).div(1e18).toString(10));
         let stETHBalance = await stETH.balanceOf(eigenLSTRestakingAddr);
         console.log("stETH Balance: ", BigNumber(stETHBalance).div(1e18).toString(10));
+        console.log("======== printInvestedValueComponents Initial State =========");
+        await printInvestedValueComponents(eigenLSTRestaking);
 
         console.log("======== Patch Initial State =========");
         getAllValue = await eigenLSTRestakingPatch.getAllValue.call();
@@ -324,13 +377,15 @@ module.exports = async function (callback) {
         console.log("getAllValue: ", BigNumber(getAllValue).div(1e18).toString(10));
         stETHBalance = await stETH.balanceOf(eigenLSTRestakingAddr);
         console.log("stETH Balance: ", BigNumber(stETHBalance).div(1e18).toString(10));
+        console.log("======== printInvestedValueComponents State =========");
+        await printInvestedValueComponents(eigenLSTRestaking);
 
         console.log("======== Patch State =========");
         getAllValue = await eigenLSTRestakingPatch.getAllValue.call();
         console.log("getAllValue: ", BigNumber(getAllValue).div(1e18).toString(10));
 
-        for (var i = 0; i < 10; i++) {
-            await provider.send("anvil_mine", [10080]);
+        for (var i = 0; i < 100; i++) {
+            await provider.send("anvil_mine", [1008]);
         }
         // 3. 检查当前区块和时间戳
         const currentBlock = await web3.eth.getBlockNumber();
@@ -382,6 +437,8 @@ module.exports = async function (callback) {
         console.log("getAllValue: ", BigNumber(getAllValue).div(1e18).toString(10));
         stETHBalance = await stETH.balanceOf(eigenLSTRestakingAddr);
         console.log("stETH Balance: ", BigNumber(stETHBalance).div(1e18).toString(10));
+        console.log("======== printInvestedValueComponents Initial State =========");
+        await printInvestedValueComponents(eigenLSTRestaking);
 
         console.log("======== Patch State =========");
         getAllValue = await eigenLSTRestakingPatch.getAllValue.call();
