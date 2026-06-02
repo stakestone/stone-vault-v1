@@ -5,7 +5,6 @@ const BigNumber = require('bignumber.js');
 const timeTravel = require("./timeTravel");
 const Abi = web3.eth.abi;
 const ethers = require('ethers'); // 引入 ethers 库
-const assert = require('assert');
 
 const EigenLSTRestaking = artifacts.require("EigenLSTRestaking");
 const EigenLSTRestakingPatch = artifacts.require("EigenLSTRestakingPatch");
@@ -18,7 +17,6 @@ const StoneVault = artifacts.require("StoneVault");
 const MultiSigStrategy = artifacts.require("MultiSigStrategy");
 const Proposal = artifacts.require("Proposal");
 const Stone = artifacts.require("Stone");
-const toWei = (amount, decimals = 18) => new BigNumber(amount).multipliedBy(new BigNumber(10).pow(decimals));
 const fromWei = (amount, decimals = 18) => new BigNumber(String(amount)).dividedBy(new BigNumber(10).pow(decimals));
 const safeToBN = (value) => {
     if (value === undefined || value === null) return new BigNumber(0);
